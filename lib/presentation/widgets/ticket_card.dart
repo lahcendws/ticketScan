@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/ticket_model.dart';
+import '../../core/services/app_localizations.dart';
 
 class TicketCard extends StatelessWidget {
   final TicketModel ticket;
@@ -16,6 +17,9 @@ class TicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final locale = localizations?.locale.toString() ?? 'fr_FR';
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -29,10 +33,8 @@ class TicketCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // En-tête avec nom du magasin et options
               Row(
                 children: [
-                  // Icône du magasin
                   Container(
                     width: 48,
                     height: 48,
@@ -46,10 +48,7 @@ class TicketCard extends StatelessWidget {
                       size: 24,
                     ),
                   ),
-                  
                   const SizedBox(width: 12),
-                  
-                  // Informations du magasin
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,16 +61,12 @@ class TicketCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          DateFormat('dd MMMM yyyy', 'fr_FR').format(ticket.date),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
+                          DateFormat('dd MMMM yyyy', locale).format(ticket.date),
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
                     ),
                   ),
-                  
-                  // Badge de garantie et menu
                   Row(
                     children: [
                       if (ticket.isWarrantyExpiringSoon())
@@ -84,15 +79,11 @@ class TicketCard extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.warning_amber,
-                                size: 14,
-                                color: Colors.orange,
-                              ),
+                              const Icon(Icons.warning_amber, size: 14, color: Colors.orange),
                               const SizedBox(width: 4),
                               Text(
-                                'Garantie',
-                                style: TextStyle(
+                                localizations?.get('warranty') ?? 'Garantie',
+                                style: const TextStyle(
                                   color: Colors.orange,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
@@ -101,9 +92,7 @@ class TicketCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                      
                       const SizedBox(width: 8),
-                      
                       PopupMenuButton<String>(
                         icon: Icon(
                           Icons.more_vert,
@@ -123,33 +112,36 @@ class TicketCard extends StatelessWidget {
                           }
                         },
                         itemBuilder: (context) => [
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'edit',
                             child: Row(
                               children: [
-                                Icon(Icons.edit, size: 20),
-                                SizedBox(width: 8),
-                                Text('Modifier'),
+                                const Icon(Icons.edit, size: 20),
+                                const SizedBox(width: 8),
+                                Text(localizations?.get('edit') ?? 'Modifier'),
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'share',
                             child: Row(
                               children: [
-                                Icon(Icons.share, size: 20),
-                                SizedBox(width: 8),
-                                Text('Partager'),
+                                const Icon(Icons.share, size: 20),
+                                const SizedBox(width: 8),
+                                Text(localizations?.get('share') ?? 'Partager'),
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete, size: 20, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text('Supprimer', style: TextStyle(color: Colors.red)),
+                                const Icon(Icons.delete, size: 20, color: Colors.red),
+                                const SizedBox(width: 8),
+                                Text(
+                                  localizations?.get('delete') ?? 'Supprimer',
+                                  style: const TextStyle(color: Colors.red),
+                                ),
                               ],
                             ),
                           ),
@@ -159,10 +151,7 @@ class TicketCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
               const SizedBox(height: 12),
-              
-              // Montant total
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -173,7 +162,7 @@ class TicketCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Total',
+                      localizations?.get('total') ?? 'Total',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -188,12 +177,10 @@ class TicketCard extends StatelessWidget {
                   ],
                 ),
               ),
-              
-              // Aperçu des produits
               if (ticket.products.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
-                  'Produits:',
+                  '${localizations?.get('products') ?? 'Produits'}:',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -212,9 +199,7 @@ class TicketCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           product,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -222,18 +207,7 @@ class TicketCard extends StatelessWidget {
                     ],
                   ),
                 )),
-                
-                if (ticket.products.length > 3)
-                  Text(
-                    '+${ticket.products.length - 3} autres produits...',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
               ],
-              
-              // Statut de la garantie
               if (ticket.isWarrantyExpired()) ...[
                 const SizedBox(height: 12),
                 Container(
@@ -244,18 +218,16 @@ class TicketCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 16,
-                        color: Colors.red,
-                      ),
+                      const Icon(Icons.error_outline, size: 16, color: Colors.red),
                       const SizedBox(width: 8),
-                      Text(
-                        'Garantie expirée le ${DateFormat('dd MMMM yyyy', 'fr_FR').format(ticket.warrantyEndDate)}',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                      Expanded(
+                        child: Text(
+                          '${localizations?.get('warranty_expired') ?? 'Garantie expirée'} (${DateFormat('dd/MM/yyyy', locale).format(ticket.warrantyEndDate)})',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
@@ -271,15 +243,11 @@ class TicketCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.warning_amber,
-                        size: 16,
-                        color: Colors.orange,
-                      ),
+                      const Icon(Icons.warning_amber, size: 16, color: Colors.orange),
                       const SizedBox(width: 8),
                       Text(
-                        'Garantie expire dans ${ticket.warrantyEndDate.difference(DateTime.now()).inDays} jours',
-                        style: TextStyle(
+                        '${localizations?.get('warranty_expiring') ?? 'Garantie expire bientôt'} (${ticket.warrantyEndDate.difference(DateTime.now()).inDays} ${localizations?.get('days_remaining') ?? 'jours restants'})',
+                        style: const TextStyle(
                           color: Colors.orange,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -297,16 +265,14 @@ class TicketCard extends StatelessWidget {
   }
 
   void _shareTicket(BuildContext context) {
-    // TODO: Implémenter le partage de ticket
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fonctionnalité de partage bientôt disponible')),
+      SnackBar(content: Text(AppLocalizations.of(context)?.get('filters_soon') ?? 'Bientôt disponible')),
     );
   }
 
   void _editTicket(BuildContext context) {
-    // TODO: Implémenter l'édition de ticket
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fonctionnalité d\'édition bientôt disponible')),
+      SnackBar(content: Text(AppLocalizations.of(context)?.get('filters_soon') ?? 'Bientôt disponible')),
     );
   }
 }

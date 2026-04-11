@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../core/services/app_localizations.dart';
 
 class TicketsPage extends StatelessWidget {
   const TicketsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Mes Tickets',
+          localizations?.get('my_tickets') ?? 'Mes Tickets',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -19,17 +22,17 @@ class TicketsPage extends StatelessWidget {
             icon: const Icon(Icons.filter_list),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Filtres bientôt disponibles')),
+                SnackBar(content: Text(localizations?.get('filters_soon') ?? 'Filtres bientôt disponibles')),
               );
             },
           ),
         ],
       ),
-      body: _buildEmptyState(),
+      body: _buildEmptyState(context),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Scan bientôt disponible')),
+            SnackBar(content: Text(localizations?.get('scan_soon') ?? 'Scan bientôt disponible')),
           );
         },
         backgroundColor: Theme.of(context).primaryColor,
@@ -38,7 +41,9 @@ class TicketsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -57,17 +62,17 @@ class TicketsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Aucun ticket',
-            style: TextStyle(
+          Text(
+            localizations?.get('no_tickets') ?? 'Aucun ticket',
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Scannez votre premier ticket pour commencer',
-            style: TextStyle(
+          Text(
+            localizations?.get('scan_first_ticket') ?? 'Scannez votre premier ticket pour commencer',
+            style: const TextStyle(
               fontSize: 16,
               color: Colors.grey,
             ),
@@ -79,7 +84,7 @@ class TicketsPage extends StatelessWidget {
               // TODO: Naviguer vers le scan
             },
             icon: const Icon(Icons.camera_alt),
-            label: const Text('Scanner un ticket'),
+            label: Text(localizations?.get('scan_ticket') ?? 'Scanner un ticket'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(

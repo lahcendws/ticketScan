@@ -56,6 +56,7 @@ class AppLocalizations {
     'home': 'Accueil',
 
     // Tickets
+    'my_tickets': 'Mes Tickets',
     'no_tickets': 'Aucun ticket',
     'add_ticket': 'Ajouter un ticket',
     'ticket_details': 'Détails du ticket',
@@ -70,6 +71,7 @@ class AppLocalizations {
     'days_remaining': 'jours restants',
     'day_remaining': 'jour restant',
     'expired': 'Expiré',
+    'scan_first_ticket': 'Scannez votre premier ticket pour commencer',
 
     // Scan
     'scan_ticket': 'Scanner un ticket',
@@ -108,6 +110,16 @@ class AppLocalizations {
     'generic_error': 'Une erreur est survenue. Veuillez réessayer.',
     'total': 'Total',
     'export_csv': 'Exporter en CSV',
+    'filters_soon': 'Filtres bientôt disponibles',
+    'scan_soon': 'Scan bientôt disponible',
+    'quick_search': 'Recherche rapide',
+    'recent_searches': 'Recherches récentes',
+    'no_recent_searches': 'Aucune recherche récente',
+    'no_results': 'Aucun résultat trouvé',
+    'try_other_keywords': 'Essayez avec d\'autres mots-clés',
+    'search_hint': 'Rechercher un ticket...',
+    'stores': 'Magasins',
+    'share': 'Partager',
   };
 
   // Anglais
@@ -154,6 +166,7 @@ class AppLocalizations {
     'home': 'Home',
 
     // Tickets
+    'my_tickets': 'My Tickets',
     'no_tickets': 'No tickets',
     'add_ticket': 'Add ticket',
     'ticket_details': 'Ticket details',
@@ -168,6 +181,7 @@ class AppLocalizations {
     'days_remaining': 'days remaining',
     'day_remaining': 'day remaining',
     'expired': 'Expired',
+    'scan_first_ticket': 'Scan your first ticket to get started',
 
     // Scan
     'scan_ticket': 'Scan ticket',
@@ -206,6 +220,16 @@ class AppLocalizations {
     'generic_error': 'An error occurred. Please try again.',
     'total': 'Total',
     'export_csv': 'Export to CSV',
+    'filters_soon': 'Filters coming soon',
+    'scan_soon': 'Scan coming soon',
+    'quick_search': 'Quick search',
+    'recent_searches': 'Recent searches',
+    'no_recent_searches': 'No recent searches',
+    'no_results': 'No results found',
+    'try_other_keywords': 'Try other keywords',
+    'search_hint': 'Search a ticket...',
+    'stores': 'Stores',
+    'share': 'Share',
   };
 
   String get(String key) {

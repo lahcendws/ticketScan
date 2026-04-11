@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/ticket_model.dart';
-// import '../../core/services/firebase_service.dart';
 import '../../core/services/supabase_service.dart';
+import '../../core/services/app_localizations.dart';
 import '../widgets/ticket_card.dart';
 
 class SearchPage extends StatefulWidget {
@@ -38,7 +38,6 @@ class _SearchPageState extends State<SearchPage> {
     });
 
     try {
-      // final documents = await FirebaseService.searchTickets(query);
       final documents = await SupabaseService.searchTickets(query);
       final tickets = documents
           .map((data) => TicketModel.fromMap(data))
@@ -48,7 +47,7 @@ class _SearchPageState extends State<SearchPage> {
         _searchResults = tickets;
       });
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de la recherche');
+      _showErrorSnackBar(AppLocalizations.of(context)?.get('generic_error') ?? 'Erreur');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -69,21 +68,22 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Rechercher'),
+        title: Text(localizations?.get('search') ?? 'Rechercher'),
         elevation: 0,
       ),
       body: Column(
         children: [
-          // Champ de recherche
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
               onChanged: _performSearch,
               decoration: InputDecoration(
-                hintText: 'Rechercher un ticket...',
+                hintText: localizations?.get('search_hint') ?? 'Rechercher un ticket...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -107,11 +107,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
           ),
-
-          // Suggestions de recherche rapide
           if (!_hasSearched) _buildSearchSuggestions(),
-
-          // Résultats de recherche
           Expanded(
             child: _buildSearchResults(),
           ),
@@ -121,11 +117,12 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildSearchSuggestions() {
+    final localizations = AppLocalizations.of(context);
     final suggestions = [
-      {'icon': Icons.store, 'text': 'Magasins'},
-      {'icon': Icons.shopping_cart, 'text': 'Produits'},
-      {'icon': Icons.calendar_today, 'text': 'Date'},
-      {'icon': Icons.euro, 'text': 'Montant'},
+      {'icon': Icons.store, 'text': localizations?.get('stores') ?? 'Magasins'},
+      {'icon': Icons.shopping_cart, 'text': localizations?.get('products') ?? 'Produits'},
+      {'icon': Icons.calendar_today, 'text': localizations?.get('date') ?? 'Date'},
+      {'icon': Icons.euro, 'text': localizations?.get('total') ?? 'Montant'},
     ];
 
     return Padding(
@@ -134,7 +131,7 @@ class _SearchPageState extends State<SearchPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Recherche rapide',
+            localizations?.get('quick_search') ?? 'Recherche rapide',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -151,6 +148,8 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 label: Text(suggestion['text'] as String),
                 onPressed: () {
+                  // On garde le texte original pour la recherche Supabase si besoin
+                  // Mais ici on utilise le texte traduit pour l'UI
                   _searchController.text = suggestion['text'] as String;
                   _performSearch(suggestion['text'] as String);
                 },
@@ -161,18 +160,14 @@ class _SearchPageState extends State<SearchPage> {
               );
             }).toList(),
           ),
-          
           const SizedBox(height: 24),
-          
-          // Tickets récents
           Text(
-            'Recherches récentes',
+            localizations?.get('recent_searches') ?? 'Recherches récentes',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 16),
-          // TODO: Implémenter les recherches récentes
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -187,10 +182,8 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Aucune recherche récente',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
+                  localizations?.get('no_recent_searches') ?? 'Aucune recherche récente',
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ),
@@ -201,6 +194,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildSearchResults() {
+    final localizations = AppLocalizations.of(context);
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -223,17 +217,15 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Aucun résultat trouvé',
+              localizations?.get('no_results') ?? 'Aucun résultat trouvé',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Essayez avec d\'autres mots-clés',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
+              localizations?.get('try_other_keywords') ?? 'Essayez avec d\'autres mots-clés',
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),
@@ -248,8 +240,7 @@ class _SearchPageState extends State<SearchPage> {
         return TicketCard(
           ticket: ticket,
           onTap: () {
-            // Navigation vers le détail du ticket
-            print('Navigate to ticket: ${ticket.id}');
+            // Navigation vers le détail
           },
         );
       },

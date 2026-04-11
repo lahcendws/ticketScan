@@ -1,12 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/ticket_card.dart';
 import '../../data/models/ticket_model.dart';
-// import '../../core/services/firebase_service.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/app_localizations.dart';
 import 'scan_page.dart';
@@ -23,15 +21,20 @@ class _TicketsPageState extends State<TicketsPage> {
   List<TicketModel> _currentTickets = [];
 
   Future<void> _exportToCSV() async {
+    final localizations = AppLocalizations.of(context);
     if (_currentTickets.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.get('no_tickets') + ' à exporter')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text((localizations?.get('no_tickets') ?? 'Aucun ticket') + ' à exporter')));
       return;
     }
 
     try {
-      // 1. Préparer les données
       List<List<dynamic>> rows = [];
-      rows.add([AppLocalizations.of(context)!.get('store_name'), AppLocalizations.of(context)!.get('date'), "Montant Total (€)", AppLocalizations.of(context)!.get('warranty_end_date')]); // Header
+      rows.add([
+        localizations?.get('store_name') ?? 'Magasin',
+        localizations?.get('date') ?? 'Date',
+        "${localizations?.get('total_amount') ?? 'Montant total'} (€)",
+        localizations?.get('warranty_end_date') ?? 'Fin de garantie'
+      ]);
 
       for (var t in _currentTickets) {
         rows.add([
@@ -42,17 +45,13 @@ class _TicketsPageState extends State<TicketsPage> {
         ]);
       }
 
-      // 2. Convertir en CSV
       String csvData = const ListToCsvConverter().convert(rows);
-
-      // 3. Enregistrer temporairement
       final directory = await getTemporaryDirectory();
       final path = "${directory.path}/mes_tickets_${DateTime.now().millisecondsSinceEpoch}.csv";
       final file = File(path);
       await file.writeAsString(csvData);
 
-      // 4. Partager
-      await Share.shareXFiles([XFile(path)], text: 'Voici mon export de tickets de caisse.');
+      await Share.shareXFiles([XFile(path)], text: 'Export tickets.');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur export: $e')));
     }
@@ -60,14 +59,16 @@ class _TicketsPageState extends State<TicketsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mes Tickets', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(localizations?.get('my_tickets') ?? 'Mes Tickets', style: const TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.download),
-            tooltip: 'Exporter en CSV',
+            tooltip: localizations?.get('export_csv') ?? 'Exporter en CSV',
             onPressed: _exportToCSV,
           ),
         ],
@@ -80,16 +81,15 @@ class _TicketsPageState extends State<TicketsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(AppLocalizations.of(context)!.get('error')),
+                  Text(localizations?.get('error') ?? 'Erreur'),
                   const SizedBox(height: 16),
-                  if (snapshot.error.toString().contains('User not authenticated'))
-                    Text(AppLocalizations.of(context)!.get('no_tickets') + ' ' + AppLocalizations.of(context)!.get('tickets').toLowerCase()),
+                  Text(localizations?.get('no_tickets') ?? 'Aucun ticket'),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pushReplacementNamed('/auth');
                     },
-                    child: Text(AppLocalizations.of(context)!.get('login')),
+                    child: Text(localizations?.get('login') ?? 'Connexion'),
                   ),
                 ],
               ),
@@ -129,12 +129,13 @@ class _TicketsPageState extends State<TicketsPage> {
   }
 
   Widget _buildEmptyState() {
+    final localizations = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            AppLocalizations.of(context)!.get('no_tickets'),
+            localizations?.get('no_tickets') ?? 'Aucun ticket',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
           ),
           const SizedBox(height: 32),
@@ -143,7 +144,7 @@ class _TicketsPageState extends State<TicketsPage> {
               MaterialPageRoute(builder: (context) => const ScanPage())
             ),
             icon: const Icon(Icons.camera_alt),
-            label: Text(AppLocalizations.of(context)!.get('scan_ticket'))
+            label: Text(localizations?.get('scan_ticket') ?? 'Scanner un ticket')
           )
         ]
       )
@@ -151,6 +152,7 @@ class _TicketsPageState extends State<TicketsPage> {
   }
 
   Widget _buildStatsSection(List<TicketModel> tickets) {
+    final localizations = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -169,19 +171,19 @@ class _TicketsPageState extends State<TicketsPage> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildStatItem(
-            AppLocalizations.of(context)!.get('total'),
+            localizations?.get('total') ?? 'Total',
             '${tickets.length}',
             Icons.receipt_long,
             Theme.of(context).primaryColor
           ),
           _buildStatItem(
-            AppLocalizations.of(context)!.get('warranty_expiring'),
+            localizations?.get('warranty_expiring') ?? 'Garantie expire bientôt',
             '${tickets.where((t) => t.isWarrantyExpiringSoon()).length}',
             Icons.warning_amber,
             Colors.orange
           ),
           _buildStatItem(
-            AppLocalizations.of(context)!.get('warranty_expired'),
+            localizations?.get('warranty_expired') ?? 'Garantie expirée',
             '${tickets.where((t) => t.isWarrantyExpired()).length}',
             Icons.error_outline,
             Colors.red
