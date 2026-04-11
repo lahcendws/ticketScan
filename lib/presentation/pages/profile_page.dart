@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/theme_service.dart';
@@ -24,7 +25,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _user = SupabaseService.currentUser;
     _currentThemeMode = ThemeService.themeMode;
     
-    // Écouter les changements d'authentification
     SupabaseService.authStateChanges.listen((_) {
       if (mounted) {
         setState(() {
@@ -74,9 +74,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final languageService = Provider.of<LanguageService>(context);
+    final localizations = AppLocalizations.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.get('profile')),
+        title: Text(localizations?.get('profile') ?? 'Profil'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -86,13 +89,13 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             _buildUserInfoSection(),
             const SizedBox(height: 32),
-            _buildSettingsSection(),
+            _buildSettingsSection(languageService, localizations),
             const SizedBox(height: 32),
-            _buildNotificationsSection(),
+            _buildNotificationsSection(localizations),
             const SizedBox(height: 32),
-            _buildAboutSection(),
+            _buildAboutSection(localizations),
             const SizedBox(height: 32),
-            _buildSignOutSection(),
+            _buildSignOutSection(localizations),
           ],
         ),
       ),
@@ -100,7 +103,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildUserInfoSection() {
-    // Dans Supabase, le nom est souvent dans user_metadata
     final String displayName = _user?.userMetadata?['display_name'] ??
                                _user?.userMetadata?['full_name'] ??
                                'Utilisateur';
@@ -163,10 +165,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Theme.of(context).primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Premium',
                     style: TextStyle(
-                      color: Theme.of(context).primaryColor,
+                      color: Color(0xFF2196F3),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -180,12 +182,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildSettingsSection() {
+  Widget _buildSettingsSection(LanguageService languageService, AppLocalizations? localizations) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Paramètres',
+          localizations?.get('settings') ?? 'Paramètres',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -207,7 +209,7 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               _buildSettingTile(
                 icon: Icons.dark_mode,
-                title: AppLocalizations.of(context)!.get('dark_mode'),
+                title: localizations?.get('dark_mode') ?? 'Mode sombre',
                 subtitle: ThemeService.getThemeModeString(),
                 trailing: PopupMenuButton<ThemeMode>(
                   icon: Icon(_getThemeIcon()),
@@ -223,9 +225,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         value: ThemeMode.system,
                         child: Row(
                           children: [
-                            Icon(Icons.settings_brightness),
+                            const Icon(Icons.settings_brightness),
                             const SizedBox(width: 8),
-                            Text(AppLocalizations.of(context)!.get('system_mode')),
+                            Text(localizations?.get('system_mode') ?? 'Système'),
                             if (_currentThemeMode == ThemeMode.system)
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
@@ -238,9 +240,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         value: ThemeMode.light,
                         child: Row(
                           children: [
-                            Icon(Icons.light_mode),
+                            const Icon(Icons.light_mode),
                             const SizedBox(width: 8),
-                            Text(AppLocalizations.of(context)!.get('light_mode')),
+                            Text(localizations?.get('light_mode') ?? 'Mode clair'),
                             if (_currentThemeMode == ThemeMode.light)
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
@@ -253,9 +255,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         value: ThemeMode.dark,
                         child: Row(
                           children: [
-                            Icon(Icons.dark_mode),
+                            const Icon(Icons.dark_mode),
                             const SizedBox(width: 8),
-                            Text(AppLocalizations.of(context)!.get('dark_mode')),
+                            Text(localizations?.get('dark_mode') ?? 'Mode sombre'),
                             if (_currentThemeMode == ThemeMode.dark)
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
@@ -271,19 +273,12 @@ class _ProfilePageState extends State<ProfilePage> {
               _buildDivider(),
               _buildSettingTile(
                 icon: Icons.language,
-                title: AppLocalizations.of(context)!.get('language'),
-                subtitle: LanguageService.getLanguageDisplayText(),
+                title: localizations?.get('language') ?? 'Langue',
+                subtitle: languageService.getLanguageDisplayText(),
                 trailing: PopupMenuButton<Locale>(
                   icon: const Icon(Icons.chevron_right),
                   onSelected: (Locale locale) async {
-                    await LanguageService.setLanguage(locale);
-                    // Redémarrer l'application pour appliquer la langue
-                    if (mounted) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => const AuthPage()),
-                        (route) => false,
-                      );
-                    }
+                    await languageService.setLanguage(locale);
                   },
                   itemBuilder: (BuildContext context) {
                     return [
@@ -293,8 +288,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             const Text('🇫🇷'),
                             const SizedBox(width: 8),
-                            Text('Français'),
-                            if (LanguageService.currentLocale.languageCode == 'fr')
+                            const Text('Français'),
+                            if (languageService.currentLocale.languageCode == 'fr')
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
                                 child: Icon(Icons.check, color: Theme.of(context).primaryColor),
@@ -308,8 +303,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             const Text('🇺🇸'),
                             const SizedBox(width: 8),
-                            Text('English'),
-                            if (LanguageService.currentLocale.languageCode == 'en')
+                            const Text('English'),
+                            if (languageService.currentLocale.languageCode == 'en')
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
                                 child: Icon(Icons.check, color: Theme.of(context).primaryColor),
@@ -324,8 +319,7 @@ class _ProfilePageState extends State<ProfilePage> {
               _buildDivider(),
               _buildSettingTile(
                 icon: Icons.storage,
-                title: 'Stockage',
-                subtitle: 'Gérer le stockage',
+                title: localizations?.get('storage') ?? 'Stockage',
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {},
               ),
@@ -336,12 +330,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildNotificationsSection() {
+  Widget _buildNotificationsSection(AppLocalizations? localizations) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Notifications',
+          localizations?.get('notifications') ?? 'Notifications',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -363,8 +357,7 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               _buildSettingTile(
                 icon: Icons.notifications,
-                title: 'Notifications push',
-                subtitle: 'Recevoir des notifications',
+                title: localizations?.get('push_notifications') ?? 'Notifications push',
                 trailing: Switch(
                   value: true,
                   onChanged: (value) {},
@@ -373,8 +366,7 @@ class _ProfilePageState extends State<ProfilePage> {
               _buildDivider(),
               _buildSettingTile(
                 icon: Icons.warning_amber,
-                title: 'Rappels de garantie',
-                subtitle: '30 jours avant l\'expiration',
+                title: localizations?.get('warranty_notifications') ?? 'Rappels de garantie',
                 trailing: Switch(
                   value: true,
                   onChanged: (value) {},
@@ -383,8 +375,7 @@ class _ProfilePageState extends State<ProfilePage> {
               _buildDivider(),
               _buildSettingTile(
                 icon: Icons.notifications_active,
-                title: 'Tester les notifications',
-                subtitle: 'Envoyer une notification de test',
+                title: localizations?.get('test_notifications') ?? 'Tester les notifications',
                 trailing: const Icon(Icons.play_arrow),
                 onTap: () async {
                   await NotificationService.showTestNotification();
@@ -397,12 +388,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildAboutSection() {
+  Widget _buildAboutSection(AppLocalizations? localizations) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'À propos',
+          localizations?.get('about') ?? 'À propos',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -424,27 +415,27 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               _buildSettingTile(
                 icon: Icons.info,
-                title: 'Version',
+                title: localizations?.get('version') ?? 'Version',
                 subtitle: '1.0.0',
               ),
               _buildDivider(),
               _buildSettingTile(
                 icon: Icons.privacy_tip,
-                title: 'Politique de confidentialité',
+                title: localizations?.get('privacy_policy') ?? 'Politique de confidentialité',
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {},
               ),
               _buildDivider(),
               _buildSettingTile(
                 icon: Icons.description,
-                title: 'Conditions d\'utilisation',
+                title: localizations?.get('terms_of_service') ?? 'Conditions d\'utilisation',
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {},
               ),
               _buildDivider(),
               _buildSettingTile(
                 icon: Icons.support_agent,
-                title: 'Support',
+                title: localizations?.get('support') ?? 'Support',
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {},
               ),
@@ -455,7 +446,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildSignOutSection() {
+  Widget _buildSignOutSection(AppLocalizations? localizations) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -468,7 +459,7 @@ class _ProfilePageState extends State<ProfilePage> {
           color: Theme.of(context).colorScheme.error,
         ),
         title: Text(
-          AppLocalizations.of(context)!.get('sign_out'),
+          localizations?.get('sign_out') ?? 'Se déconnecter',
           style: TextStyle(
             color: Theme.of(context).colorScheme.error,
             fontWeight: FontWeight.w600,
