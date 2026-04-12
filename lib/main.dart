@@ -8,6 +8,7 @@ import 'core/services/supabase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/theme_service.dart';
 import 'core/services/language_service.dart';
+import 'core/services/subscription_service.dart';
 import 'data/models/ticket_provider.dart';
 import 'presentation/pages/splash_page.dart';
 import 'presentation/themes/app_theme.dart';
@@ -33,12 +34,16 @@ void main() async {
   
   final languageService = LanguageService();
   await languageService.init();
+
+  final subscriptionService = SubscriptionService();
+  await subscriptionService.init();
   
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => TicketProvider()),
         ChangeNotifierProvider(create: (_) => languageService),
+        ChangeNotifierProvider(create: (_) => subscriptionService),
       ],
       child: const TicketScanApp(),
     ),

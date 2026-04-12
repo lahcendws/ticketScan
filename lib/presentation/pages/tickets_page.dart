@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:provider/provider.dart';
 import '../widgets/ticket_card.dart';
 import '../../data/models/ticket_model.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/app_localizations.dart';
+import '../../core/services/subscription_service.dart';
 import 'scan_page.dart';
 import 'ticket_detail_page.dart';
+import 'premium_page.dart';
 
 class TicketsPage extends StatefulWidget {
   const TicketsPage({super.key});
@@ -22,6 +25,13 @@ class _TicketsPageState extends State<TicketsPage> {
 
   Future<void> _exportToCSV() async {
     final localizations = AppLocalizations.of(context);
+    final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
+
+    if (!subscriptionService.isPremium) {
+      _showUpgradeForExportDialog();
+      return;
+    }
+
     if (_currentTickets.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text((localizations?.get('no_tickets') ?? 'Aucun ticket') + ' à exporter')));
       return;
@@ -57,9 +67,31 @@ class _TicketsPageState extends State<TicketsPage> {
     }
   }
 
+  void _showUpgradeForExportDialog() {
+    final localizations = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Export Premium'),
+        content: const Text('L\'export CSV est une fonctionnalité Premium. Passez au Premium pour débloquer cette option.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(localizations?.get('cancel') ?? 'Annuler')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage()));
+            },
+            child: Text(localizations?.get('upgrade_premium') ?? 'Passer Premium'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final subscriptionService = Provider.of<SubscriptionService>(context);
     
     return Scaffold(
       appBar: AppBar(
@@ -73,57 +105,101 @@ class _TicketsPageState extends State<TicketsPage> {
           ),
         ],
       ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: SupabaseService.getTicketsStream(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(localizations?.get('error') ?? 'Erreur'),
-                  const SizedBox(height: 16),
-                  Text(localizations?.get('no_tickets') ?? 'Aucun ticket'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushReplacementNamed('/auth');
-                    },
-                    child: Text(localizations?.get('login') ?? 'Connexion'),
-                  ),
-                ],
-              ),
-            );
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-          if (!snapshot.hasData || snapshot.data!.isEmpty) return _buildEmptyState();
+      body: Column(
+        children: [
+          if (!subscriptionService.isPremium) _buildUsageLimitIndicator(subscriptionService),
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: SupabaseService.getTicketsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(localizations?.get('error') ?? 'Erreur'),
+                        const SizedBox(height: 16),
+                        Text(localizations?.get('no_tickets') ?? 'Aucun ticket'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pushReplacementNamed('/auth');
+                          },
+                          child: Text(localizations?.get('login') ?? 'Connexion'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+                if (!snapshot.hasData || snapshot.data!.isEmpty) return _buildEmptyState();
 
-          _currentTickets = snapshot.data!.map((data) => TicketModel.fromMap(data)).toList();
+                _currentTickets = snapshot.data!.map((data) => TicketModel.fromMap(data)).toList();
 
-          return Column(
-            children: [
-              _buildStatsSection(_currentTickets),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _currentTickets.length,
-                  itemBuilder: (context, index) {
-                    final ticket = _currentTickets[index];
-                    return TicketCard(
-                      ticket: ticket,
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => TicketDetailPage(ticket: ticket))),
-                      onDelete: () => SupabaseService.deleteTicket(ticket.id!),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
+                return Column(
+                  children: [
+                    _buildStatsSection(_currentTickets),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _currentTickets.length,
+                        itemBuilder: (context, index) {
+                          final ticket = _currentTickets[index];
+                          return TicketCard(
+                            ticket: ticket,
+                            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => TicketDetailPage(ticket: ticket))),
+                            onDelete: () => SupabaseService.deleteTicket(ticket.id!),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ScanPage())),
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildUsageLimitIndicator(SubscriptionService subscriptionService) {
+    final progress = subscriptionService.scansThisMonth / subscriptionService.freeLimit;
+    final color = progress > 0.8 ? Colors.red : (progress > 0.5 ? Colors.orange : Colors.green);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: color.withOpacity(0.1),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Scans ce mois: ${subscriptionService.scansThisMonth}/${subscriptionService.freeLimit}',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color),
+                ),
+                const SizedBox(height: 4),
+                LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: color.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          TextButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())),
+            child: const Text('ILLIMITÉ'),
+          ),
+        ],
       ),
     );
   }

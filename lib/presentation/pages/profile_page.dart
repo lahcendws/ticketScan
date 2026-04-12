@@ -5,8 +5,10 @@ import '../../core/services/supabase_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/theme_service.dart';
 import '../../core/services/language_service.dart';
+import '../../core/services/subscription_service.dart';
 import '../../core/services/app_localizations.dart';
 import 'auth_page.dart';
+import 'premium_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -75,6 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final languageService = Provider.of<LanguageService>(context);
+    final subscriptionService = Provider.of<SubscriptionService>(context);
     final localizations = AppLocalizations.of(context);
 
     return Scaffold(
@@ -87,7 +90,9 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildUserInfoSection(),
+            _buildUserInfoSection(subscriptionService),
+            const SizedBox(height: 24),
+            if (!subscriptionService.isPremium) _buildPremiumBanner(localizations),
             const SizedBox(height: 32),
             _buildSettingsSection(languageService, localizations),
             const SizedBox(height: 32),
@@ -102,7 +107,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildUserInfoSection() {
+  Widget _buildUserInfoSection(SubscriptionService subscriptionService) {
     final String displayName = _user?.userMetadata?['display_name'] ??
                                _user?.userMetadata?['full_name'] ??
                                'Utilisateur';
@@ -162,13 +167,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: subscriptionService.isPremium 
+                        ? Colors.amber.withOpacity(0.1) 
+                        : Theme.of(context).primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Premium',
+                  child: Text(
+                    subscriptionService.isPremium ? 'Premium' : 'Gratuit',
                     style: TextStyle(
-                      color: Color(0xFF2196F3),
+                      color: subscriptionService.isPremium ? Colors.amber[700] : Theme.of(context).primaryColor,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -176,6 +183,48 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumBanner(AppLocalizations? localizations) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.8)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.stars, color: Colors.white, size: 32),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  localizations?.get('upgrade_premium') ?? 'Passez au Premium',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const Text(
+                  'Scans illimités et plus encore',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Theme.of(context).primaryColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Voir'),
           ),
         ],
       ),

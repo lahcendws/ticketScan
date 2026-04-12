@@ -120,6 +120,25 @@ class AppLocalizations {
     'search_hint': 'Rechercher un ticket...',
     'stores': 'Magasins',
     'share': 'Partager',
+
+    // Abonnement
+    'upgrade_premium': 'Passer au Premium',
+    'subscription': 'Abonnement',
+    'free_plan': 'Version Gratuite',
+    'premium_plan': 'Version Premium',
+    'unlimited_scans': 'Scans illimités',
+    'monthly_limit': 'Limite de 10 scans par mois',
+    'cloud_sync': 'Synchronisation Cloud',
+    'auto_categorization': 'Catégorisation automatique',
+    'premium_support': 'Support prioritaire',
+    'monthly': 'Mensuel',
+    'yearly': 'Annuel',
+    'save_percentage': 'Économisez {percentage}%',
+    'start_premium': 'Commencer Premium',
+    'limit_reached': 'Limite atteinte',
+    'limit_reached_msg': 'Vous avez atteint votre limite de scans pour ce mois. Passez au Premium pour continuer sans limites.',
+    'current_plan': 'Plan actuel',
+    'best_value': 'Meilleure offre',
   };
 
   // Anglais
@@ -230,9 +249,28 @@ class AppLocalizations {
     'search_hint': 'Search a ticket...',
     'stores': 'Stores',
     'share': 'Share',
+
+    // Subscription
+    'upgrade_premium': 'Upgrade to Premium',
+    'subscription': 'Subscription',
+    'free_plan': 'Free Plan',
+    'premium_plan': 'Premium Plan',
+    'unlimited_scans': 'Unlimited scans',
+    'monthly_limit': '10 scans per month limit',
+    'cloud_sync': 'Cloud Synchronization',
+    'auto_categorization': 'Auto categorization',
+    'premium_support': 'Priority Support',
+    'monthly': 'Monthly',
+    'yearly': 'Yearly',
+    'save_percentage': 'Save {percentage}%',
+    'start_premium': 'Start Premium',
+    'limit_reached': 'Limit reached',
+    'limit_reached_msg': 'You have reached your scan limit for this month. Upgrade to Premium for unlimited access.',
+    'current_plan': 'Current plan',
+    'best_value': 'Best value',
   };
 
-  String get(String key) {
+  String get(String key, {Map<String, String>? params}) {
     Map<String, String> translations;
     
     switch (locale.languageCode) {
@@ -245,7 +283,15 @@ class AppLocalizations {
         break;
     }
     
-    return translations[key] ?? key;
+    String value = translations[key] ?? key;
+
+    if (params != null) {
+      params.forEach((key, paramValue) {
+        value = value.replaceAll('{$key}', paramValue);
+      });
+    }
+
+    return value;
   }
 }
 

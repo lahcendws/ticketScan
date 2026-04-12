@@ -1,16 +1,16 @@
-// import 'dart:io';
 import 'package:flutter/material.dart';
-// import 'package:camera/camera.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:provider/provider.dart';
 import '../../core/services/camera_service.dart';
 import '../../core/services/ocr_service.dart';
-// import '../../core/services/firebase_service.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/subscription_service.dart';
+import '../../core/services/app_localizations.dart';
 import '../../data/models/ticket_model.dart';
 import '../widgets/camera_preview_widget.dart';
 import '../widgets/ticket_analysis_dialog.dart';
+import 'premium_page.dart';
 
 class ScanPage extends StatefulWidget {
   const ScanPage({super.key});
@@ -40,6 +40,14 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Future<void> _processImage(String imagePath) async {
+    final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
+    final localizations = AppLocalizations.of(context);
+
+    if (!subscriptionService.canScan) {
+      _showLimitReachedDialog();
+      return;
+    }
+
     final connectivityResult = await Connectivity().checkConnectivity();
     final hasInternet = !connectivityResult.contains(ConnectivityResult.none);
 
@@ -69,9 +77,30 @@ class _ScanPageState extends State<ScanPage> {
       }
     } catch (e) {
       debugPrint('Erreur analyse: $e');
-      _showErrorSnackBar('L\'analyse a échoué. Vérifiez vos crédits OpenAI.');
+      _showErrorSnackBar(localizations?.get('generic_error') ?? 'L\'analyse a échoué.');
       setState(() => _isProcessing = false);
     }
+  }
+
+  void _showLimitReachedDialog() {
+    final localizations = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(localizations?.get('limit_reached') ?? 'Limite atteinte'),
+        content: Text(localizations?.get('limit_reached_msg') ?? 'Vous avez atteint votre limite de scans.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(localizations?.get('cancel') ?? 'Annuler')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage()));
+            },
+            child: Text(localizations?.get('upgrade_premium') ?? 'Passer Premium'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showOfflineDialog(String imagePath) {
@@ -96,20 +125,19 @@ class _ScanPageState extends State<ScanPage> {
 
   Future<void> _saveTicket(TicketAnalysis analysis, String imagePath) async {
     setState(() => _isProcessing = true);
+    final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
+
     try {
-      // 1. UPLOAD DE L'IMAGE VERS FIREBASE STORAGE
       debugPrint('Début de l\'upload de l\'image...');
       final fileName = 'ticket_${DateTime.now().millisecondsSinceEpoch}.jpg';
       String imageUrl = '';
 
       try {
-        // imageUrl = await FirebaseService.uploadTicketImage(imagePath, fileName);
         imageUrl = await SupabaseService.uploadTicketImage(imagePath, fileName);
         debugPrint('Image uploadée avec succès: $imageUrl');
       } catch (e) {
         debugPrint('Échec de l\'upload image: $e');
-        // On peut décider de continuer ou d'arrêter ici. Pour la garantie, l'image est cruciale.
-        _showErrorSnackBar('L\'image n\'a pas pu être sauvegardée sur le cloud. Vérifiez l\'activation de Storage.');
+        _showErrorSnackBar('L\'image n\'a pas pu être sauvegardée sur le cloud.');
       }
 
       final warrantyDate = analysis.date.add(Duration(days: analysis.warrantyYears * 365));
@@ -118,15 +146,16 @@ class _ScanPageState extends State<ScanPage> {
         date: analysis.date,
         totalAmount: analysis.totalAmount,
         products: analysis.products,
-        imageUrl: imageUrl, // Maintenant on utilise la vraie URL !
+        imageUrl: imageUrl,
         warrantyEndDate: warrantyDate,
         extractedText: analysis.extractedText,
-        // createdAt: Timestamp.now(),
         createdAt: DateTime.now(),
       );
       
-      // final docRef = await FirebaseService.addTicket(ticket.toMap());
       final ticketData = await SupabaseService.addTicket(ticket.toMap());
+
+      // Incrémenter le compteur de scans
+      await subscriptionService.incrementScanCount();
 
       await NotificationService.scheduleWarrantyNotification(
         id: ticketData['id'].hashCode,
@@ -150,7 +179,7 @@ class _ScanPageState extends State<ScanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Scanner un ticket')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)?.get('scan_ticket') ?? 'Scanner un ticket')),
       body: _isInitialized
         ? Stack(children: [
             CameraPreviewWidget(controller: CameraService.cameraController!),
