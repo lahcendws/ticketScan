@@ -1,51 +1,23 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class OCRService {
-  // REMPLACEZ CECI PAR VOTRE VRAIE CLÉ API OPENAI
-  static String _apiKey = dotenv.env['OPENAI_API_KEY']!;
-  static String _apiUrl = dotenv.env['OPENAI_API_URL']!;
+  static final _supabase = Supabase.instance.client;
 
   static Future<TicketAnalysis> extractTextFromImage(String imagePath) async {
     try {
       final bytes = await File(imagePath).readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      final response = await http.post(
-        Uri.parse(_apiUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_apiKey',
-        },
-        body: jsonEncode({
-          'model': 'gpt-4o-mini',
-          'messages': [
-            {
-              'role': 'user',
-              'content': [
-                {
-                  'type': 'text',
-                  'text': 'Analyse ce ticket de caisse et renvoie uniquement un objet JSON avec les clés suivantes: "storeName" (le nom de l\'enseigne), "date" (format YYYY-MM-DD), "totalAmount" (nombre), "products" (liste de chaînes de caractères au format "Nom Article (Prix€)"). Ne renvoie rien d\'autre que le JSON.'
-                },
-                {
-                  'type': 'image_url',
-                  'image_url': {
-                    'url': 'data:image/jpeg;base64,$base64Image',
-                  },
-                },
-              ],
-            }
-          ],
-          'response_format': { 'type': 'json_object' },
-          'max_tokens': 500,
-        }),
+      // Appel de la Supabase Edge Function
+      final response = await _supabase.functions.invoke(
+        'analyze-ticket',
+        body: {'imageBase64': base64Image},
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        final content = jsonDecode(data['choices'][0]['message']['content']);
+      if (response.status == 200) {
+        final content = response.data;
 
         return TicketAnalysis(
           storeName: content['storeName'] ?? 'Magasin',
@@ -55,15 +27,19 @@ class OCRService {
           extractedText: [],
           warrantyYears: 2,
         );
+      } else if (response.status == 403) {
+        throw Exception('LIMIT_REACHED');
       } else {
-        throw Exception('Erreur API OpenAI: ${response.body}');
+        throw Exception('Erreur serveur: ${response.status}');
       }
     } catch (e) {
-      throw Exception('Erreur lors de l\'analyse Cloud: $e');
+      if (e.toString().contains('LIMIT_REACHED')) {
+        rethrow;
+      }
+      throw Exception('Erreur lors de l\'analyse: $e');
     }
   }
 
-  // Cette méthode n'est plus utilisée car GPT fait tout le travail, mais on la garde pour la compatibilité
   static TicketAnalysis analyzeTicketText(String text) {
     return TicketAnalysis(storeName: '', date: DateTime.now(), totalAmount: 0, products: [], extractedText: []);
   }

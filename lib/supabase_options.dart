@@ -1,11 +1,12 @@
 // Configuration Supabase pour remplacer Firebase
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SupabaseOptions {
-  static const String supabaseUrl = 'https://hymtkrhncajixgmamsbt.supabase.co';
-  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5bXRrcmhuY2FqaXhnbWFtc2J0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMDUxMTIsImV4cCI6MjA4OTU4MTExMn0.Bf2525ETZ2V-K0rFeY_pWiuJkPWM2wo2X2Aw5GIqM78';
-  
+  static String supabaseUrl = dotenv.env['SUPA_BASE_URL']!;
+  static String supabaseAnonKey = dotenv.env['SUPA_BASE_ANON_KEY']!;
+
   static String get currentUrl => supabaseUrl;
   static String get currentAnonKey => supabaseAnonKey;
 }
