@@ -33,7 +33,9 @@ class _ScanPageState extends State<ScanPage> {
     try {
       await CameraService.initialize();
       final hasPermission = await CameraService.requestCameraPermission();
-      if (hasPermission) setState(() => _isInitialized = true);
+      if (mounted) {
+        setState(() => _isInitialized = hasPermission);
+      }
     } catch (e) {
       debugPrint('Erreur caméra: $e');
     }
@@ -58,6 +60,7 @@ class _ScanPageState extends State<ScanPage> {
 
     try {
       setState(() => _isProcessing = true);
+      
       final analysis = await OCRService.extractTextFromImage(imagePath);
 
       if (!mounted) return;
@@ -72,13 +75,16 @@ class _ScanPageState extends State<ScanPage> {
         ),
       );
       
-      if (finalAnalysis != null) {
+      if (finalAnalysis != null && mounted) {
         await _saveTicket(finalAnalysis, imagePath);
       }
     } catch (e) {
       debugPrint('Erreur analyse: $e');
-      _showErrorSnackBar(localizations?.get('generic_error') ?? 'L\'analyse a échoué.');
-      setState(() => _isProcessing = false);
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        String errorMsg = localizations?.get('generic_error') ?? 'L\'analyse a échoué.';
+        _showErrorSnackBar(errorMsg);
+      }
     }
   }
 
@@ -124,20 +130,18 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Future<void> _saveTicket(TicketAnalysis analysis, String imagePath) async {
+    if (!mounted) return;
     setState(() => _isProcessing = true);
     final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
 
     try {
-      debugPrint('Début de l\'upload de l\'image...');
       final fileName = 'ticket_${DateTime.now().millisecondsSinceEpoch}.jpg';
       String imageUrl = '';
 
       try {
         imageUrl = await SupabaseService.uploadTicketImage(imagePath, fileName);
-        debugPrint('Image uploadée avec succès: $imageUrl');
       } catch (e) {
         debugPrint('Échec de l\'upload image: $e');
-        _showErrorSnackBar('L\'image n\'a pas pu être sauvegardée sur le cloud.');
       }
 
       final warrantyDate = analysis.date.add(Duration(days: analysis.warrantyYears * 365));
@@ -153,27 +157,28 @@ class _ScanPageState extends State<ScanPage> {
       );
       
       final ticketData = await SupabaseService.addTicket(ticket.toMap());
-
-      // Incrémenter le compteur de scans
       await subscriptionService.incrementScanCount();
 
       await NotificationService.scheduleWarrantyNotification(
         id: ticketData['id'].hashCode,
-        productName: analysis.products.isNotEmpty ? analysis.products.first : 'Articles',
+        productName: analysis.products.isNotEmpty ? (analysis.products.first['name'] ?? 'Article') : 'Article',
         storeName: analysis.storeName,
         warrantyEndDate: warrantyDate,
       );
 
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      _showErrorSnackBar('Erreur sauvegarde ticket: $e');
+      if (mounted) _showErrorSnackBar('Erreur sauvegarde ticket: $e');
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.orange));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.orange)
+    );
   }
 
   @override
@@ -186,10 +191,12 @@ class _ScanPageState extends State<ScanPage> {
             if (_isProcessing) Container(color: Colors.black54, child: const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [CircularProgressIndicator(color: Colors.white), SizedBox(height: 16), Text('Traitement en cours...', style: TextStyle(color: Colors.white))]))),
             Positioned(bottom: 30, left: 0, right: 0, child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
               FloatingActionButton(heroTag: 'gallery', onPressed: () async {
+                if (_isProcessing) return;
                 final path = await CameraService.pickImageFromGallery();
                 if (path != null) _processImage(path);
               }, child: const Icon(Icons.photo_library)),
               FloatingActionButton(heroTag: 'camera', onPressed: () async {
+                if (_isProcessing) return;
                 final path = await CameraService.takePicture();
                 if (path != null) _processImage(path);
               }, child: const Icon(Icons.camera_alt, size: 32)),

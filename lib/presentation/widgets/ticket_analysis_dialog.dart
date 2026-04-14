@@ -70,8 +70,10 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
 
       final updatedAnalysis = TicketAnalysis(
         storeName: _storeController.text.trim(),
+        category: widget.analysis.category,
         date: finalDate,
         totalAmount: finalAmount,
+        currency: widget.analysis.currency,
         products: widget.analysis.products,
         extractedText: widget.analysis.extractedText,
         warrantyYears: finalWarranty,
@@ -144,7 +146,7 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
 
   Widget _buildImagePreview() {
     return Container(
-      height: 200, // Augmenté pour une meilleure visibilité
+      height: 200,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -161,7 +163,7 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.error_outline, color: Colors.red),
-                Text('Impossible de charger l\'image', style: TextStyle(fontSize: 10)),
+                Text('Erreur image', style: TextStyle(fontSize: 10)),
               ],
             ),
           ),
@@ -194,7 +196,7 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade200)),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: widget.analysis.products.take(5).map((p) => Padding(padding: const EdgeInsets.only(bottom: 4), child: Text('• $p', style: const TextStyle(fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis))).toList()),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: widget.analysis.products.take(5).map((p) => Padding(padding: const EdgeInsets.only(bottom: 4), child: Text('• ${p['name']}', style: const TextStyle(fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis))).toList()),
         ),
       ],
     );

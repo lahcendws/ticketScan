@@ -2,7 +2,6 @@ import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 class CameraService {
@@ -15,12 +14,12 @@ class CameraService {
     try {
       _cameras = await availableCameras();
       if (_cameras != null && _cameras!.isNotEmpty) {
-        // Utiliser ResolutionPreset.medium pour une meilleure compatibilité avec l'émulateur
+        // ResolutionPreset.medium (souvent 720p ou 480p) est idéal pour l'OCR sans saturer la mémoire
         _cameraController = CameraController(
           _cameras!.first,
           ResolutionPreset.medium,
           enableAudio: false,
-          imageFormatGroup: ImageFormatGroup.jpeg, // Forcer le format JPEG
+          imageFormatGroup: ImageFormatGroup.jpeg,
         );
         await _cameraController!.initialize();
       }
@@ -29,13 +28,10 @@ class CameraService {
     }
   }
 
-  // Obtenir le contrôleur de caméra
   static CameraController? get cameraController => _cameraController;
 
-  // Vérifier si la caméra est initialisée
   static bool get isInitialized => _cameraController?.value.isInitialized ?? false;
 
-  // Demander les permissions de caméra
   static Future<bool> requestCameraPermission() async {
     final status = await Permission.camera.request();
     return status.isGranted;
@@ -44,12 +40,10 @@ class CameraService {
   // Prendre une photo
   static Future<String?> takePicture() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      debugPrint('Caméra non prête pour takePicture');
       return null;
     }
 
     try {
-      // S'assurer que le flash est éteint sur l'émulateur pour éviter les crashs
       if (Platform.isAndroid) {
          await _cameraController!.setFlashMode(FlashMode.off);
       }
@@ -57,19 +51,19 @@ class CameraService {
       final XFile picture = await _cameraController!.takePicture();
       return picture.path;
     } catch (e) {
-      debugPrint('Erreur lors de l\'appel natif takePicture: $e');
+      debugPrint('Erreur takePicture: $e');
       return null;
     }
   }
 
-  // Choisir une image depuis la galerie
+  // Choisir une image depuis la galerie avec redimensionnement agressif
   static Future<String?> pickImageFromGallery() async {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
+        maxWidth: 1024, // Réduit pour éviter WORKER_LIMIT dans Supabase
+        maxHeight: 1024,
+        imageQuality: 70, // Qualité réduite pour économiser la mémoire
       );
       return image?.path;
     } catch (e) {
@@ -78,7 +72,6 @@ class CameraService {
     }
   }
 
-  // Basculer entre les caméras
   static Future<void> switchCamera() async {
     if (_cameras == null || _cameras!.length < 2) return;
 
@@ -94,7 +87,6 @@ class CameraService {
     await _cameraController!.initialize();
   }
 
-  // Activer/Désactiver le flash
   static Future<void> toggleFlash() async {
     if (_cameraController == null) return;
     try {
@@ -110,7 +102,6 @@ class CameraService {
 
   static FlashMode get flashMode => _cameraController?.value.flashMode ?? FlashMode.off;
 
-  // Libérer les ressources
   static Future<void> dispose() async {
     await _cameraController?.dispose();
     _cameraController = null;

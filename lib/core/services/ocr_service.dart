@@ -10,57 +10,54 @@ class OCRService {
       final bytes = await File(imagePath).readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      // Appel de la Supabase Edge Function
       final response = await _supabase.functions.invoke(
         'analyze-ticket',
         body: {'imageBase64': base64Image},
       );
 
       if (response.status == 200) {
-        final content = response.data;
+        final dynamic data = response.data;
+        Map<String, dynamic> content = (data is String) ? jsonDecode(data) : Map<String, dynamic>.from(data);
 
         return TicketAnalysis(
-          storeName: content['storeName'] ?? 'Magasin',
-          date: DateTime.tryParse(content['date'] ?? '') ?? DateTime.now(),
-          totalAmount: (content['totalAmount'] ?? 0.0).toDouble(),
-          products: List<String>.from(content['products'] ?? []),
+          storeName: content['storeName']?.toString() ?? 'Magasin',
+          storeAddress: content['storeAddress']?.toString(),
+          category: content['category']?.toString() ?? 'Alimentation',
+          date: DateTime.tryParse(content['date']?.toString() ?? '') ?? DateTime.now(),
+          totalAmount: double.tryParse(content['totalAmount']?.toString() ?? '0') ?? 0.0,
+          currency: content['currency']?.toString() ?? '€',
+          products: (content['products'] as List?)?.map((p) => Map<String, dynamic>.from(p)).toList() ?? [],
           extractedText: [],
           warrantyYears: 2,
         );
-      } else if (response.status == 403) {
-        throw Exception('LIMIT_REACHED');
-      } else {
-        throw Exception('Erreur serveur: ${response.status}');
       }
+      throw Exception('Erreur serveur: ${response.status}');
     } catch (e) {
-      if (e.toString().contains('LIMIT_REACHED')) {
-        rethrow;
-      }
-      throw Exception('Erreur lors de l\'analyse: $e');
+      throw Exception('Erreur analyse: $e');
     }
   }
-
-  static TicketAnalysis analyzeTicketText(String text) {
-    return TicketAnalysis(storeName: '', date: DateTime.now(), totalAmount: 0, products: [], extractedText: []);
-  }
-
-  static void dispose() {}
 }
 
 class TicketAnalysis {
   final String storeName;
+  final String? storeAddress;
+  final String category;
   final DateTime date;
   final double totalAmount;
-  final List<String> products;
+  final String currency;
+  final List<Map<String, dynamic>> products;
   final List<String> extractedText;
   final int warrantyYears;
 
   TicketAnalysis({
     required this.storeName,
+    this.storeAddress,
+    required this.category,
     required this.date,
     required this.totalAmount,
+    required this.currency,
     required this.products,
     required this.extractedText,
-    this.warrantyYears = 2,
+    required this.warrantyYears,
   });
 }

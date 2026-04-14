@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SupabaseOptions {
-  static String supabaseUrl = dotenv.env['SUPA_BASE_URL']!;
-  static String supabaseAnonKey = dotenv.env['SUPA_BASE_ANON_KEY']!;
+  static String supabaseUrl = dotenv.env['SUPABASE_URL']!;
+  static String supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY']!;
 
   static String get currentUrl => supabaseUrl;
   static String get currentAnonKey => supabaseAnonKey;
