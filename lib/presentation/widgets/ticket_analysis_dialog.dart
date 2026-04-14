@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/services/ocr_service.dart';
@@ -53,7 +54,6 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
 
   void _onSave() {
     try {
-      // 1. Nettoyage et parsing de la date
       final dateStr = _dateController.text.trim();
       final dateParts = dateStr.split('/');
       if (dateParts.length != 3) throw Exception('Format de date invalide');
@@ -64,21 +64,17 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
         int.parse(dateParts[0].trim()),
       );
 
-      // 2. Nettoyage et parsing du montant (très robuste)
       String amountStr = _amountController.text.replaceAll(' ', '').replaceAll(',', '.').replaceAll('€', '').trim();
       final double finalAmount = double.tryParse(amountStr) ?? 0.0;
-
-      // 3. Parsing de la garantie
       final int finalWarranty = int.tryParse(_warrantyController.text.trim()) ?? 2;
 
-      // 4. Création de l'objet de retour complet
       final updatedAnalysis = TicketAnalysis(
         storeName: _storeController.text.trim(),
         date: finalDate,
         totalAmount: finalAmount,
         products: widget.analysis.products,
         extractedText: widget.analysis.extractedText,
-        warrantyYears: finalWarranty, // On inclut enfin la garantie modifiée !
+        warrantyYears: finalWarranty,
       );
 
       _close(updatedAnalysis);
@@ -148,10 +144,29 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
 
   Widget _buildImagePreview() {
     return Container(
-      height: 120,
+      height: 200, // Augmenté pour une meilleure visibilité
       width: double.infinity,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: Colors.grey.shade100, border: Border.all(color: Colors.grey.shade300)),
-      child: const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.receipt, size: 40, color: Colors.grey), Text('Aperçu du ticket', style: TextStyle(color: Colors.grey, fontSize: 12))])),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.black12,
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.file(
+          File(widget.imagePath),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, color: Colors.red),
+                Text('Impossible de charger l\'image', style: TextStyle(fontSize: 10)),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 

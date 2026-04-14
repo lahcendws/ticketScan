@@ -22,30 +22,42 @@ class TicketCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
+                  // Affichage de l'image ou de l'icône
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      Icons.store,
-                      color: Theme.of(context).primaryColor,
-                      size: 24,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: ticket.imageUrl.isNotEmpty
+                          ? Image.network(
+                              ticket.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Icon(
+                                Icons.store,
+                                color: Theme.of(context).primaryColor,
+                                size: 28,
+                              ),
+                            )
+                          : Icon(
+                              Icons.store,
+                              color: Theme.of(context).primaryColor,
+                              size: 28,
+                            ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -55,14 +67,16 @@ class TicketCard extends StatelessWidget {
                       children: [
                         Text(
                           ticket.storeName,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           DateFormat('dd MMMM yyyy', locale).format(ticket.date),
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -92,11 +106,11 @@ class TicketCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
                       PopupMenuButton<String>(
                         icon: Icon(
                           Icons.more_vert,
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                          color: Colors.grey[600],
                         ),
                         onSelected: (value) {
                           switch (value) {
@@ -152,111 +166,24 @@ class TicketCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      localizations?.get('total') ?? 'Total',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${ticket.totalAmount.toStringAsFixed(2)} €',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
                     ),
+                  ),
+                  if (ticket.isWarrantyExpired())
                     Text(
-                      '${ticket.totalAmount.toStringAsFixed(2)} €',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
-                      ),
+                      localizations?.get('expired') ?? 'Expiré',
+                      style: const TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.w600),
                     ),
-                  ],
-                ),
+                ],
               ),
-              if (ticket.products.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(
-                  '${localizations?.get('products') ?? 'Produits'}:',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                ...ticket.products.take(3).map((product) => Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.circle,
-                        size: 4,
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          product,
-                          style: Theme.of(context).textTheme.bodySmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
-              ],
-              if (ticket.isWarrantyExpired()) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline, size: 16, color: Colors.red),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${localizations?.get('warranty_expired') ?? 'Garantie expirée'} (${DateFormat('dd/MM/yyyy', locale).format(ticket.warrantyEndDate)})',
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ] else if (ticket.isWarrantyExpiringSoon()) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.warning_amber, size: 16, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${localizations?.get('warranty_expiring') ?? 'Garantie expire bientôt'} (${ticket.warrantyEndDate.difference(DateTime.now()).inDays} ${localizations?.get('days_remaining') ?? 'jours restants'})',
-                        style: const TextStyle(
-                          color: Colors.orange,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
         ),
