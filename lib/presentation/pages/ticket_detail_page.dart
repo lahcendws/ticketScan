@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/models/ticket_model.dart';
 import '../../data/models/ticket_provider.dart';
 import '../../core/services/app_localizations.dart';
+import 'dart:convert';
 
 class TicketDetailPage extends StatefulWidget {
   final TicketModel ticket;
@@ -23,6 +24,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   late TextEditingController _dateController;
   final List<TextEditingController> _productNameControllers = [];
   final List<TextEditingController> _productPriceControllers = [];
+  final List<bool> _productWarrantyStates = [];
 
   @override
   void initState() {
@@ -37,9 +39,11 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     
     _productNameControllers.clear();
     _productPriceControllers.clear();
+    _productWarrantyStates.clear();
     for (var product in widget.ticket.products) {
       _productNameControllers.add(TextEditingController(text: product['name']?.toString() ?? ''));
       _productPriceControllers.add(TextEditingController(text: product['price']?.toString() ?? '0.00'));
+      _productWarrantyStates.add(product['hasWarranty'] == true);
     }
   }
 
@@ -48,21 +52,14 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     _storeController.dispose();
     _amountController.dispose();
     _dateController.dispose();
-    for (var c in _productNameControllers) {
-      c.dispose();
-    }
-    for (var c in _productPriceControllers) {
-      c.dispose();
-    }
+    for (var c in _productNameControllers) c.dispose();
+    for (var c in _productPriceControllers) c.dispose();
     super.dispose();
   }
 
   Future<void> _saveChanges() async {
     final ticketId = widget.ticket.id;
-    if (ticketId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ID du ticket manquant. Veuillez réessayer.')));
-      return;
-    }
+    if (ticketId == null) return;
 
     setState(() => _isSaving = true);
     
@@ -75,6 +72,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         newProducts.add({
           'name': _productNameControllers[i].text,
           'price': _productPriceControllers[i].text,
+          'hasWarranty': _productWarrantyStates[i], // On sauve le nouvel état
         });
       }
 
@@ -260,23 +258,41 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       child: Column(
         children: [
           ...List.generate(_productNameControllers.length, (index) {
+            final bool isGuaranteed = _productWarrantyStates[index];
+
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: _isEditing 
-                ? Row(
-                    children: [
-                      Expanded(flex: 3, child: TextField(controller: _productNameControllers[index], decoration: const InputDecoration(hintText: 'Produit'))),
-                      const SizedBox(width: 8),
-                      Expanded(flex: 1, child: TextField(controller: _productPriceControllers[index], keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Prix'))),
-                    ],
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(child: Text(_productNameControllers[index].text, style: const TextStyle(fontSize: 15))),
-                      Text('${_productPriceControllers[index].text} ${widget.ticket.currency}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ],
+              child: Row(
+                children: [
+                  if (_isEditing)
+                    IconButton(
+                      icon: Icon(isGuaranteed ? Icons.verified_user : Icons.verified_user_outlined),
+                      color: isGuaranteed ? Colors.green : Colors.grey,
+                      onPressed: () => setState(() => _productWarrantyStates[index] = !isGuaranteed),
+                      tooltip: 'Toggle Garantie',
+                    )
+                  else if (isGuaranteed)
+                    const Padding(padding: EdgeInsets.only(right: 8.0), child: Icon(Icons.verified_user, color: Colors.green, size: 18)),
+                  
+                  Expanded(
+                    child: _isEditing
+                        ? Row(
+                            children: [
+                              Expanded(flex: 3, child: TextField(controller: _productNameControllers[index], decoration: const InputDecoration(hintText: 'Produit', isDense: true))),
+                              const SizedBox(width: 8),
+                              Expanded(flex: 1, child: TextField(controller: _productPriceControllers[index], keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Prix', isDense: true))),
+                            ],
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(child: Text(_productNameControllers[index].text, style: const TextStyle(fontSize: 15))),
+                              Text('${_productPriceControllers[index].text} ${widget.ticket.currency}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                   ),
+                ],
+              ),
             );
           }),
           if (!_isEditing) ...[
