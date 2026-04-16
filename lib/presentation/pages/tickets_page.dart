@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import '../widgets/ticket_card.dart';
 import '../../data/models/ticket_model.dart';
+import '../../data/models/ticket_provider.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/app_localizations.dart';
 import '../../core/services/subscription_service.dart';
@@ -21,9 +22,16 @@ class TicketsPage extends StatefulWidget {
 }
 
 class _TicketsPageState extends State<TicketsPage> {
-  List<TicketModel> _currentTickets = [];
+  @override
+  void initState() {
+    super.initState();
+    // Charger les tickets au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TicketProvider>(context, listen: false).loadTickets();
+    });
+  }
 
-  Future<void> _exportToCSV() async {
+  Future<void> _exportToCSV(List<TicketModel> tickets) async {
     final localizations = AppLocalizations.of(context);
     final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
 
@@ -32,7 +40,7 @@ class _TicketsPageState extends State<TicketsPage> {
       return;
     }
 
-    if (_currentTickets.isEmpty) {
+    if (tickets.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text((localizations?.get('no_tickets') ?? 'Aucun ticket') + ' à exporter')));
       return;
     }
@@ -46,7 +54,7 @@ class _TicketsPageState extends State<TicketsPage> {
         localizations?.get('warranty_end_date') ?? 'Fin de garantie'
       ]);
 
-      for (var t in _currentTickets) {
+      for (var t in tickets) {
         rows.add([
           t.storeName,
           "${t.date.day}/${t.date.month}/${t.date.year}",
@@ -92,7 +100,10 @@ class _TicketsPageState extends State<TicketsPage> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final subscriptionService = Provider.of<SubscriptionService>(context);
+    final ticketProvider = Provider.of<TicketProvider>(context);
     
+    final tickets = ticketProvider.tickets;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations?.get('my_tickets') ?? 'Mes Tickets', style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -101,7 +112,7 @@ class _TicketsPageState extends State<TicketsPage> {
           IconButton(
             icon: const Icon(Icons.download),
             tooltip: localizations?.get('export_csv') ?? 'Exporter en CSV',
-            onPressed: _exportToCSV,
+            onPressed: () => _exportToCSV(tickets),
           ),
         ],
       ),
@@ -109,53 +120,9 @@ class _TicketsPageState extends State<TicketsPage> {
         children: [
           if (!subscriptionService.isPremium) _buildUsageLimitIndicator(subscriptionService),
           Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: SupabaseService.getTicketsStream(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(localizations?.get('error') ?? 'Erreur'),
-                        const SizedBox(height: 16),
-                        Text(localizations?.get('no_tickets') ?? 'Aucun ticket'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pushReplacementNamed('/auth');
-                          },
-                          child: Text(localizations?.get('login') ?? 'Connexion'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-                if (!snapshot.hasData || snapshot.data!.isEmpty) return _buildEmptyState();
-
-                _currentTickets = snapshot.data!.map((data) => TicketModel.fromMap(data)).toList();
-
-                return Column(
-                  children: [
-                    _buildStatsSection(_currentTickets),
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _currentTickets.length,
-                        itemBuilder: (context, index) {
-                          final ticket = _currentTickets[index];
-                          return TicketCard(
-                            ticket: ticket,
-                            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => TicketDetailPage(ticket: ticket))),
-                            onDelete: () => SupabaseService.deleteTicket(ticket.id!),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              },
+            child: RefreshIndicator(
+              onRefresh: () => ticketProvider.loadTickets(),
+              child: _buildContent(ticketProvider, localizations),
             ),
           ),
         ],
@@ -164,6 +131,36 @@ class _TicketsPageState extends State<TicketsPage> {
         onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ScanPage())),
         child: const Icon(Icons.add, color: Colors.white),
       ),
+    );
+  }
+
+  Widget _buildContent(TicketProvider provider, AppLocalizations? localizations) {
+    if (provider.isLoading && provider.tickets.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    if (provider.tickets.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return Column(
+      children: [
+        _buildStatsSection(provider.tickets),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: provider.tickets.length,
+            itemBuilder: (context, index) {
+              final ticket = provider.tickets[index];
+              return TicketCard(
+                ticket: ticket,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => TicketDetailPage(ticket: ticket))),
+                onDelete: () => provider.deleteTicket(ticket.id!),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -206,24 +203,29 @@ class _TicketsPageState extends State<TicketsPage> {
 
   Widget _buildEmptyState() {
     final localizations = AppLocalizations.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            localizations?.get('no_tickets') ?? 'Aucun ticket',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const ScanPage())
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              localizations?.get('no_tickets') ?? 'Aucun ticket',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
             ),
-            icon: const Icon(Icons.camera_alt),
-            label: Text(localizations?.get('scan_ticket') ?? 'Scanner un ticket')
-          )
-        ]
-      )
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ScanPage())
+              ),
+              icon: const Icon(Icons.camera_alt),
+              label: Text(localizations?.get('scan_ticket') ?? 'Scanner un ticket')
+            )
+          ]
+        ),
+      ),
     );
   }
 

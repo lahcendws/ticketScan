@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:provider/provider.dart';
 import '../../core/services/camera_service.dart';
 import '../../core/services/ocr_service.dart';
 import '../../core/services/supabase_service.dart';
+import '../../core/services/subscription_service.dart';
 import '../../data/models/ticket_model.dart';
+import '../../data/models/ticket_provider.dart';
 import '../widgets/ticket_analysis_dialog.dart';
 
 class ScanPage extends StatefulWidget {
@@ -60,37 +63,52 @@ class _ScanPageState extends State<ScanPage> {
         await _saveTicket(finalAnalysis);
       }
     } catch (e) {
-      setState(() => _isProcessing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
   Future<void> _saveTicket(TicketAnalysis analysis) async {
     setState(() => _isProcessing = true);
+    final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
+    final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
+
     try {
       final List<String> urls = await Future.wait(
         _capturedImages.map((path) =>
-          SupabaseService.uploadTicketImage(path, 'ticket_${DateTime.now().millisecondsSinceEpoch}_${path.split('/').last}')
+          SupabaseService.uploadTicketImage(path, 'ticket_${DateTime.now().millisecondsSinceEpoch}_${path.split('/').last}.jpg')
         )
       );
+
       final ticket = TicketModel(
         storeName: analysis.storeName,
+        storeAddress: analysis.storeAddress,
+        category: analysis.category,
         date: analysis.date,
         totalAmount: analysis.totalAmount,
+        currency: analysis.currency,
         products: analysis.products,
         imageUrls: urls,
         warrantyEndDate: analysis.date.add(Duration(days: analysis.warrantyYears * 365)),
         createdAt: DateTime.now(),
       );
-      await SupabaseService.addTicket(ticket.toMap());
+
+      // IMPORTANT : Utiliser le provider pour une mise à jour immédiate de l'UI
+      await ticketProvider.addTicket(ticket);
+      await subscriptionService.incrementScanCount();
+
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      setState(() => _isProcessing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur sauvegarde: $e'), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur sauvegarde: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -104,12 +122,9 @@ class _ScanPageState extends State<ScanPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Caméra en plein écran
           Positioned.fill(
             child: CameraPreview(CameraService.cameraController!),
           ),
-          
-          // Overlay UI
           SafeArea(
             child: Column(
               children: [
@@ -120,7 +135,6 @@ class _ScanPageState extends State<ScanPage> {
               ],
             ),
           ),
-
           if (_isProcessing)
             Container(
               color: Colors.black54,
@@ -162,7 +176,7 @@ class _ScanPageState extends State<ScanPage> {
             ),
           ),
           const Spacer(),
-          const SizedBox(width: 48), // Pour équilibrer le bouton retour
+          const SizedBox(width: 48),
         ],
       ),
     );
@@ -209,9 +223,7 @@ class _ScanPageState extends State<ScanPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          const SizedBox(width: 60), // Équilibrage
-          
-          // Bouton Capture
+          const SizedBox(width: 60),
           GestureDetector(
             onTap: _takePhoto,
             child: Container(
@@ -230,8 +242,6 @@ class _ScanPageState extends State<ScanPage> {
               ),
             ),
           ),
-          
-          // Bouton Validation
           SizedBox(
             width: 60,
             child: _capturedImages.isNotEmpty 
