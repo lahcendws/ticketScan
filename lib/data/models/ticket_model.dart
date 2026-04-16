@@ -46,39 +46,36 @@ class TicketModel {
   }
 
   factory TicketModel.fromMap(Map<String, dynamic> data) {
-    // 1. Gestion robuste des produits
+    // 1. Parsing robuste des produits
     List<Map<String, dynamic>> parsedProducts = [];
     final rawProducts = data['products'];
     if (rawProducts is List) {
       parsedProducts = rawProducts.map((item) {
-        if (item is Map) {
-          return Map<String, dynamic>.from(item);
-        } else {
-          return {'name': item.toString(), 'price': '0.00'};
+        if (item is Map) return Map<String, dynamic>.from(item);
+        if (item is String && item.startsWith('{')) {
+          try { return Map<String, dynamic>.from(jsonDecode(item)); } catch (_) {}
         }
+        return {'name': item.toString(), 'price': '0.00'};
       }).toList();
     }
 
-    // 2. Gestion robuste des images
+    // 2. Parsing robuste des URLs d'images (enlève les JSON artifacts)
     List<String> urls = [];
-    if (data['image_urls'] != null) {
-      if (data['image_urls'] is List) {
-        urls = List<String>.from(data['image_urls']);
-      } else if (data['image_urls'] is String) {
-        urls = [data['image_urls'].toString()];
+    dynamic rawUrls = data['image_urls'] ?? data['image_url'];
+    if (rawUrls != null) {
+      if (rawUrls is List) {
+        urls = rawUrls.map((e) => e.toString().replaceAll(RegExp(r'[\[\]" ]'), '')).toList();
+      } else if (rawUrls is String) {
+        if (rawUrls.startsWith('[')) {
+          try {
+            urls = List<String>.from(jsonDecode(rawUrls)).map((e) => e.replaceAll(RegExp(r'[\[\]" ]'), '')).toList();
+          } catch (_) {
+            urls = [rawUrls.replaceAll(RegExp(r'[\[\]" ]'), '')];
+          }
+        } else {
+          urls = [rawUrls.replaceAll(RegExp(r'[\[\]" ]'), '')];
+        }
       }
-    } else if (data['image_url'] != null) {
-      urls = [data['image_url'].toString()];
-    }
-
-    // 3. Gestion robuste du texte extrait (Le problème identifié)
-    List<String> extracted = [];
-    final rawExtracted = data['extracted_text'];
-    if (rawExtracted is List) {
-      extracted = List<String>.from(rawExtracted);
-    } else if (rawExtracted is String) {
-      // Si la base renvoie une chaîne au lieu d'une liste
-      extracted = [rawExtracted];
     }
 
     return TicketModel(
@@ -90,9 +87,9 @@ class TicketModel {
       currency: data['currency'] ?? '€',
       category: data['category'] ?? 'Autre',
       products: parsedProducts,
-      imageUrls: urls,
+      imageUrls: urls.where((u) => u.isNotEmpty).toList(),
       warrantyEndDate: DateTime.parse(data['warranty_end_date'] ?? DateTime.now().toIso8601String()),
-      extractedText: extracted,
+      extractedText: List<String>.from(data['extracted_text'] ?? []),
       createdAt: DateTime.parse(data['created_at'] ?? DateTime.now().toIso8601String()),
     );
   }
@@ -127,11 +124,6 @@ class TicketModel {
     );
   }
 
-  bool isWarrantyExpiringSoon() {
-    final now = DateTime.now();
-    final daysUntilExpiry = warrantyEndDate.difference(now).inDays;
-    return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-  }
-
+  bool isWarrantyExpiringSoon() => warrantyEndDate.difference(DateTime.now()).inDays <= 30;
   bool isWarrantyExpired() => DateTime.now().isAfter(warrantyEndDate);
 }
