@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../data/models/ticket_model.dart';
+import '../../data/models/ticket_provider.dart';
 import '../../core/services/app_localizations.dart';
 
 class TicketDetailPage extends StatefulWidget {
@@ -13,6 +15,92 @@ class TicketDetailPage extends StatefulWidget {
 
 class _TicketDetailPageState extends State<TicketDetailPage> {
   int _activeImageIndex = 0;
+  bool _isEditing = false;
+  bool _isSaving = false;
+
+  late TextEditingController _storeController;
+  late TextEditingController _amountController;
+  late TextEditingController _dateController;
+  final List<TextEditingController> _productNameControllers = [];
+  final List<TextEditingController> _productPriceControllers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initControllers();
+  }
+
+  void _initControllers() {
+    _storeController = TextEditingController(text: widget.ticket.storeName);
+    _amountController = TextEditingController(text: widget.ticket.totalAmount.toStringAsFixed(2));
+    _dateController = TextEditingController(text: DateFormat('dd/MM/yyyy').format(widget.ticket.date));
+    
+    _productNameControllers.clear();
+    _productPriceControllers.clear();
+    for (var product in widget.ticket.products) {
+      _productNameControllers.add(TextEditingController(text: product['name']?.toString() ?? ''));
+      _productPriceControllers.add(TextEditingController(text: product['price']?.toString() ?? '0.00'));
+    }
+  }
+
+  @override
+  void dispose() {
+    _storeController.dispose();
+    _amountController.dispose();
+    _dateController.dispose();
+    for (var c in _productNameControllers) {
+      c.dispose();
+    }
+    for (var c in _productPriceControllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _saveChanges() async {
+    final ticketId = widget.ticket.id;
+    if (ticketId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ID du ticket manquant. Veuillez réessayer.')));
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    
+    try {
+      final dateParts = _dateController.text.split('/');
+      final newDate = DateTime(int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
+      
+      final List<Map<String, dynamic>> newProducts = [];
+      for (int i = 0; i < _productNameControllers.length; i++) {
+        newProducts.add({
+          'name': _productNameControllers[i].text,
+          'price': _productPriceControllers[i].text,
+        });
+      }
+
+      final updatedData = {
+        'store_name': _storeController.text,
+        'total_amount': double.parse(_amountController.text.replaceAll(',', '.')),
+        'date': newDate.toIso8601String(),
+        'products': newProducts,
+      };
+
+      await Provider.of<TicketProvider>(context, listen: false).updateTicket(ticketId, updatedData);
+      
+      if (mounted) {
+        setState(() {
+          _isEditing = false;
+          _isSaving = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ticket mis à jour')));
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
+      }
+    }
+  }
 
   void _showFullScreenImage(String url) {
     Navigator.push(context, MaterialPageRoute(
@@ -30,7 +118,22 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     final locale = localizations?.locale.toString() ?? 'fr_FR';
 
     return Scaffold(
-      appBar: AppBar(title: Text(localizations?.get('ticket_details') ?? 'Détails')),
+      appBar: AppBar(
+        title: Text(localizations?.get('ticket_details') ?? 'Détails'),
+        actions: [
+          if (!_isEditing)
+            IconButton(icon: const Icon(Icons.edit), onPressed: () => setState(() => _isEditing = true))
+          else
+            _isSaving 
+              ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
+              : IconButton(icon: const Icon(Icons.check, color: Colors.green), onPressed: _saveChanges),
+          if (_isEditing)
+            IconButton(icon: const Icon(Icons.close), onPressed: () {
+              _initControllers();
+              setState(() => _isEditing = false);
+            }),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -40,11 +143,30 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
             const SizedBox(height: 12),
             _buildImageThumbnails(),
             const SizedBox(height: 20),
-            _buildInfoCard(context, locale, localizations),
+            _isEditing ? _buildEditForm() : _buildInfoCard(context, locale, localizations),
             const SizedBox(height: 24),
             Text(localizations?.get('products') ?? 'Articles', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            _buildProductsTable(),
+            _buildProductsSection(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditForm() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(controller: _storeController, decoration: const InputDecoration(labelText: 'Magasin', prefixIcon: Icon(Icons.store))),
+            const SizedBox(height: 12),
+            TextField(controller: _dateController, decoration: const InputDecoration(labelText: 'Date (JJ/MM/AAAA)', prefixIcon: Icon(Icons.calendar_today))),
+            const SizedBox(height: 12),
+            TextField(controller: _amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Montant Total', prefixIcon: Icon(Icons.euro))),
           ],
         ),
       ),
@@ -130,34 +252,46 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     );
   }
 
-  Widget _buildProductsTable() {
+  Widget _buildProductsSection() {
     return Card(
       elevation: 0,
       color: Colors.grey.withOpacity(0.05),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
-          ...widget.ticket.products.map((product) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: Text(product['name']?.toString() ?? 'Article', style: const TextStyle(fontSize: 15))),
-                Text('${product['price']?.toString() ?? "0.00"} ${widget.ticket.currency}', style: const TextStyle(fontWeight: FontWeight.bold)),
-              ],
+          ...List.generate(_productNameControllers.length, (index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: _isEditing 
+                ? Row(
+                    children: [
+                      Expanded(flex: 3, child: TextField(controller: _productNameControllers[index], decoration: const InputDecoration(hintText: 'Produit'))),
+                      const SizedBox(width: 8),
+                      Expanded(flex: 1, child: TextField(controller: _productPriceControllers[index], keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Prix'))),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: Text(_productNameControllers[index].text, style: const TextStyle(fontSize: 15))),
+                      Text('${_productPriceControllers[index].text} ${widget.ticket.currency}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+            );
+          }),
+          if (!_isEditing) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('${widget.ticket.totalAmount.toStringAsFixed(2)} ${widget.ticket.currency}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ],
+              ),
             ),
-          )),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Total', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('${widget.ticket.totalAmount.toStringAsFixed(2)} ${widget.ticket.currency}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              ],
-            ),
-          ),
+          ]
         ],
       ),
     );

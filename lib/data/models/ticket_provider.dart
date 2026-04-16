@@ -34,14 +34,22 @@ class TicketProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      await SupabaseService.addTicket(ticket.toMap());
-      _tickets.insert(0, ticket);
+      // 1. Enregistrer dans Supabase et récupérer le résultat (avec le vrai ID)
+      final response = await SupabaseService.addTicket(ticket.toMap());
+      
+      // 2. Créer un nouvel objet ticket avec l'ID réel
+      final ticketWithId = TicketModel.fromMap(response);
+      
+      // 3. Ajouter à la liste locale
+      _tickets.insert(0, ticketWithId);
       
       await NotificationService.scheduleWarrantyNotification(
-        id: ticket.id.hashCode,
-        productName: ticket.products.isNotEmpty ? (ticket.products.first['name']?.toString() ?? 'Produit') : 'Produit',
-        storeName: ticket.storeName,
-        warrantyEndDate: ticket.warrantyEndDate,
+        id: ticketWithId.id.hashCode,
+        productName: ticketWithId.products.isNotEmpty 
+            ? (ticketWithId.products.first['name']?.toString() ?? 'Produit') 
+            : 'Produit',
+        storeName: ticketWithId.storeName,
+        warrantyEndDate: ticketWithId.warrantyEndDate,
       );
       
       notifyListeners();

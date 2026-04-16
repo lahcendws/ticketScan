@@ -3,6 +3,7 @@ import '../../data/models/ticket_model.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/app_localizations.dart';
 import '../widgets/ticket_card.dart';
+import 'ticket_detail_page.dart'; // Import ajouté
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -148,8 +149,6 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 label: Text(suggestion['text'] as String),
                 onPressed: () {
-                  // On garde le texte original pour la recherche Supabase si besoin
-                  // Mais ici on utilise le texte traduit pour l'UI
                   _searchController.text = suggestion['text'] as String;
                   _performSearch(suggestion['text'] as String);
                 },
@@ -240,7 +239,13 @@ class _SearchPageState extends State<SearchPage> {
         return TicketCard(
           ticket: ticket,
           onTap: () {
-            // Navigation vers le détail
+            // FIX : Ajout de la navigation vers la page de détails
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TicketDetailPage(ticket: ticket),
+              ),
+            );
           },
         );
       },
