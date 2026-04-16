@@ -17,7 +17,7 @@ class CameraService {
         // ResolutionPreset.medium (souvent 720p ou 480p) est idéal pour l'OCR sans saturer la mémoire
         _cameraController = CameraController(
           _cameras!.first,
-          ResolutionPreset.medium,
+          ResolutionPreset.low,
           enableAudio: false,
           imageFormatGroup: ImageFormatGroup.jpeg,
         );
@@ -40,6 +40,7 @@ class CameraService {
   // Prendre une photo
   static Future<String?> takePicture() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      debugPrint('Erreur: CameraController non initialisé');
       return null;
     }
 
@@ -49,9 +50,28 @@ class CameraService {
       }
 
       final XFile picture = await _cameraController!.takePicture();
+      debugPrint('Photo prise avec succès: ${picture.path}');
       return picture.path;
     } catch (e) {
       debugPrint('Erreur takePicture: $e');
+      debugPrint('Type d\'erreur: ${e.runtimeType}');
+      
+      // Tenter de réinitialiser la caméra en cas d'erreur
+      try {
+        await _cameraController?.dispose();
+        if (_cameras != null && _cameras!.isNotEmpty) {
+          _cameraController = CameraController(
+            _cameras!.first,
+            ResolutionPreset.medium,
+            enableAudio: false,
+            imageFormatGroup: ImageFormatGroup.jpeg,
+          );
+          await _cameraController!.initialize();
+          debugPrint('Caméra réinitialisée avec succès');
+        }
+      } catch (reinitError) {
+        debugPrint('Échec de réinitialisation: $reinitError');
+      }
       return null;
     }
   }

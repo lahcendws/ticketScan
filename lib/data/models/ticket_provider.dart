@@ -39,7 +39,7 @@ class TicketProvider extends ChangeNotifier {
       
       await NotificationService.scheduleWarrantyNotification(
         id: ticket.id.hashCode,
-        productName: ticket.products.isNotEmpty ? (ticket.products.first['name'] ?? 'Produit') : 'Produit',
+        productName: ticket.products.isNotEmpty ? (ticket.products.first['name']?.toString() ?? 'Produit') : 'Produit',
         storeName: ticket.storeName,
         warrantyEndDate: ticket.warrantyEndDate,
       );
@@ -61,19 +61,29 @@ class TicketProvider extends ChangeNotifier {
       
       final index = _tickets.indexWhere((ticket) => ticket.id == ticketId);
       if (index != -1) {
-        final updatedTicket = _tickets[index].copyWith(
-          storeName: data['store_name'],
-          date: data['date'] != null ? DateTime.parse(data['date']) : null,
-          totalAmount: (data['total_amount'] as num?)?.toDouble(),
-          products: data['products'] != null ? List<Map<String, dynamic>>.from(data['products']) : null,
-          warrantyEndDate: data['warranty_end_date'] != null ? DateTime.parse(data['warranty_end_date']) : null,
+        final currentTicket = _tickets[index];
+        
+        final updatedTicket = currentTicket.copyWith(
+          storeName: data['store_name'] ?? currentTicket.storeName,
+          date: data['date'] != null ? DateTime.parse(data['date']) : currentTicket.date,
+          totalAmount: (data['total_amount'] as num?)?.toDouble() ?? currentTicket.totalAmount,
+          products: data['products'] != null 
+              ? List<Map<String, dynamic>>.from(data['products']) 
+              : currentTicket.products,
+          warrantyEndDate: data['warranty_end_date'] != null 
+              ? DateTime.parse(data['warranty_end_date']) 
+              : currentTicket.warrantyEndDate,
         );
         
         _tickets[index] = updatedTicket;
         
+        final productName = updatedTicket.products.isNotEmpty 
+            ? (updatedTicket.products.first['name']?.toString() ?? 'Produit')
+            : 'Produit';
+
         await NotificationService.scheduleWarrantyNotification(
           id: updatedTicket.id.hashCode,
-          productName: updatedTicket.products.isNotEmpty ? (updatedTicket.products.first['name'] ?? 'Produit') : 'Produit',
+          productName: productName,
           storeName: updatedTicket.storeName,
           warrantyEndDate: updatedTicket.warrantyEndDate,
         );
@@ -93,7 +103,9 @@ class TicketProvider extends ChangeNotifier {
 
     try {
       final ticket = _tickets.firstWhere((t) => t.id == ticketId);
-      await SupabaseService.deleteTicketImage(ticket.imageUrl);
+      for (var url in ticket.imageUrls) {
+        await SupabaseService.deleteTicketImage(url);
+      }
       await SupabaseService.deleteTicket(ticketId);
       await NotificationService.cancelNotification(ticket.id.hashCode);
       _tickets.removeWhere((ticket) => ticket.id == ticketId);

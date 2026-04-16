@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/ticket_model.dart';
 import '../../core/services/app_localizations.dart';
+import 'dart:convert';
 
 class TicketDetailPage extends StatelessWidget {
   final TicketModel ticket;
@@ -45,6 +46,17 @@ class TicketDetailPage extends StatelessWidget {
   }
 
   Widget _buildImageCard(BuildContext context) {
+    // Nettoyage : Retire les caractères parasites [ ] " souvent stockés par erreur
+    String cleanUrl = '';
+    if (ticket.imageUrls.isNotEmpty) {
+      cleanUrl = ticket.imageUrls.first
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .replaceAll('"', '')
+          .replaceAll("'", '')
+          .trim();
+    }
+
     return Container(
       width: double.infinity,
       height: 250,
@@ -57,8 +69,8 @@ class TicketDetailPage extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: ticket.imageUrl.isNotEmpty
-            ? Image.network(ticket.imageUrl, fit: BoxFit.contain)
+        child: cleanUrl.isNotEmpty && cleanUrl.startsWith('http')
+            ? Image.network(cleanUrl, fit: BoxFit.contain, errorBuilder: (c, o, s) => const Icon(Icons.broken_image, color: Colors.white))
             : const Icon(Icons.receipt, color: Colors.white, size: 64),
       ),
     );
@@ -113,16 +125,19 @@ class TicketDetailPage extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
-          ...ticket.products.map((product) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: Text(product['name'] ?? 'Article', style: const TextStyle(fontSize: 15))),
-                Text(product['price']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-          )),
+          ...ticket.products.map((dynamic p) {
+            final product = (p is String) ? jsonDecode(p) : p;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: Text(product['name'] ?? 'Article', style: const TextStyle(fontSize: 15))),
+                  Text(product['price']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+            );
+          }),
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(16),

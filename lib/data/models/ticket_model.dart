@@ -9,7 +9,7 @@ class TicketModel {
   final String? currency;
   final String? category;
   final List<Map<String, dynamic>> products; 
-  final String imageUrl;
+  final List<String> imageUrls;
   final DateTime warrantyEndDate;
   final List<String> extractedText;
   final DateTime createdAt;
@@ -23,7 +23,7 @@ class TicketModel {
     this.currency = '€',
     this.category = 'Autre',
     required this.products,
-    required this.imageUrl,
+    required this.imageUrls,
     required this.warrantyEndDate,
     this.extractedText = const [],
     required this.createdAt,
@@ -38,7 +38,7 @@ class TicketModel {
       'currency': currency,
       'category': category,
       'products': products,
-      'image_url': imageUrl,
+      'image_urls': imageUrls,
       'warranty_end_date': warrantyEndDate.toIso8601String(),
       'extracted_text': extractedText,
       'created_at': createdAt.toIso8601String(),
@@ -46,26 +46,39 @@ class TicketModel {
   }
 
   factory TicketModel.fromMap(Map<String, dynamic> data) {
-    // Logique robuste pour la liste de produits
+    // 1. Gestion robuste des produits
     List<Map<String, dynamic>> parsedProducts = [];
     final rawProducts = data['products'];
-
     if (rawProducts is List) {
       parsedProducts = rawProducts.map((item) {
         if (item is Map) {
           return Map<String, dynamic>.from(item);
         } else {
-          // Si c'est une ancienne donnée (String), on la convertit en objet
           return {'name': item.toString(), 'price': '0.00'};
         }
       }).toList();
-    } else if (rawProducts is String) {
-      // Cas où Supabase renvoie une string JSON
-      try {
-        parsedProducts = List<Map<String, dynamic>>.from(jsonDecode(rawProducts));
-      } catch (e) {
-        parsedProducts = [{'name': rawProducts, 'price': '0.00'}];
+    }
+
+    // 2. Gestion robuste des images
+    List<String> urls = [];
+    if (data['image_urls'] != null) {
+      if (data['image_urls'] is List) {
+        urls = List<String>.from(data['image_urls']);
+      } else if (data['image_urls'] is String) {
+        urls = [data['image_urls'].toString()];
       }
+    } else if (data['image_url'] != null) {
+      urls = [data['image_url'].toString()];
+    }
+
+    // 3. Gestion robuste du texte extrait (Le problème identifié)
+    List<String> extracted = [];
+    final rawExtracted = data['extracted_text'];
+    if (rawExtracted is List) {
+      extracted = List<String>.from(rawExtracted);
+    } else if (rawExtracted is String) {
+      // Si la base renvoie une chaîne au lieu d'une liste
+      extracted = [rawExtracted];
     }
 
     return TicketModel(
@@ -77,9 +90,9 @@ class TicketModel {
       currency: data['currency'] ?? '€',
       category: data['category'] ?? 'Autre',
       products: parsedProducts,
-      imageUrl: data['image_url'] ?? '',
+      imageUrls: urls,
       warrantyEndDate: DateTime.parse(data['warranty_end_date'] ?? DateTime.now().toIso8601String()),
-      extractedText: List<String>.from(data['extracted_text'] ?? []),
+      extractedText: extracted,
       createdAt: DateTime.parse(data['created_at'] ?? DateTime.now().toIso8601String()),
     );
   }
@@ -93,7 +106,7 @@ class TicketModel {
     String? currency,
     String? category,
     List<Map<String, dynamic>>? products,
-    String? imageUrl,
+    List<String>? imageUrls,
     DateTime? warrantyEndDate,
     List<String>? extractedText,
     DateTime? createdAt,
@@ -107,7 +120,7 @@ class TicketModel {
       currency: currency ?? this.currency,
       category: category ?? this.category,
       products: products ?? this.products,
-      imageUrl: imageUrl ?? this.imageUrl,
+      imageUrls: imageUrls ?? this.imageUrls,
       warrantyEndDate: warrantyEndDate ?? this.warrantyEndDate,
       extractedText: extractedText ?? this.extractedText,
       createdAt: createdAt ?? this.createdAt,
@@ -120,7 +133,5 @@ class TicketModel {
     return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
   }
 
-  bool isWarrantyExpired() {
-    return DateTime.now().isAfter(warrantyEndDate);
-  }
+  bool isWarrantyExpired() => DateTime.now().isAfter(warrantyEndDate);
 }

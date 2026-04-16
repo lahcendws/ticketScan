@@ -43,9 +43,9 @@ class TicketCard extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: ticket.imageUrl.isNotEmpty
+                      child: ticket.imageUrls.isNotEmpty
                           ? Image.network(
-                              ticket.imageUrl,
+                              ticket.imageUrls.first,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => Icon(
                                 Icons.store,

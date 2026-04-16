@@ -8,6 +8,7 @@ import 'core/services/supabase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/theme_service.dart';
 import 'core/services/language_service.dart';
+import 'core/services/camera_service.dart';
 import 'core/services/subscription_service.dart';
 import 'data/models/ticket_provider.dart';
 import 'presentation/pages/splash_page.dart';
@@ -31,6 +32,7 @@ void main() async {
   await SupabaseService.initialize();
   await NotificationService.initialize();
   await ThemeService.init();
+  await CameraService.initialize();
   
   final languageService = LanguageService();
   await languageService.init();

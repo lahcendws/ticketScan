@@ -1,16 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:provider/provider.dart';
 import '../../core/services/camera_service.dart';
 import '../../core/services/ocr_service.dart';
 import '../../core/services/supabase_service.dart';
-import '../../core/services/notification_service.dart';
 import '../../core/services/subscription_service.dart';
 import '../../core/services/app_localizations.dart';
 import '../../data/models/ticket_model.dart';
-import '../widgets/camera_preview_widget.dart';
 import '../widgets/ticket_analysis_dialog.dart';
-import 'premium_page.dart';
+import 'package:provider/provider.dart';
+import 'package:camera/camera.dart';
 
 class ScanPage extends StatefulWidget {
   const ScanPage({super.key});
@@ -20,8 +18,10 @@ class ScanPage extends StatefulWidget {
 }
 
 class _ScanPageState extends State<ScanPage> {
-  bool _isInitialized = false;
+  final List<String> _capturedImages = [];
   bool _isProcessing = false;
+  // Déclaration de la variable manquante
+  bool _isInitialized = false;
 
   @override
   void initState() {
@@ -30,179 +30,114 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Future<void> _initializeCamera() async {
-    try {
-      await CameraService.initialize();
-      final hasPermission = await CameraService.requestCameraPermission();
-      if (mounted) {
-        setState(() => _isInitialized = hasPermission);
-      }
-    } catch (e) {
-      debugPrint('Erreur caméra: $e');
+    // Initialisation sécurisée
+    await CameraService.initialize();
+    if (mounted) {
+      setState(() {
+        _isInitialized = CameraService.isInitialized;
+      });
     }
   }
 
-  Future<void> _processImage(String imagePath) async {
-    final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
-    final localizations = AppLocalizations.of(context);
-
-    if (!subscriptionService.canScan) {
-      _showLimitReachedDialog();
-      return;
-    }
-
-    final connectivityResult = await Connectivity().checkConnectivity();
-    final hasInternet = !connectivityResult.contains(ConnectivityResult.none);
-
-    if (!hasInternet) {
-      _showOfflineDialog(imagePath);
-      return;
-    }
-
-    try {
-      setState(() => _isProcessing = true);
-      
-      final analysis = await OCRService.extractTextFromImage(imagePath);
-
-      if (!mounted) return;
-      setState(() => _isProcessing = false);
-
-      final finalAnalysis = await showDialog<TicketAnalysis>(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => TicketAnalysisDialog(
-          analysis: analysis,
-          imagePath: imagePath,
-        ),
-      );
-      
-      if (finalAnalysis != null && mounted) {
-        await _saveTicket(finalAnalysis, imagePath);
-      }
-    } catch (e) {
-      debugPrint('Erreur analyse: $e');
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        String errorMsg = localizations?.get('generic_error') ?? 'L\'analyse a échoué.';
-        _showErrorSnackBar(errorMsg);
-      }
+  Future<void> _takePhoto() async {
+    final path = await CameraService.takePicture();
+    if (path != null) {
+      setState(() => _capturedImages.add(path));
     }
   }
 
-  void _showLimitReachedDialog() {
-    final localizations = AppLocalizations.of(context);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(localizations?.get('limit_reached') ?? 'Limite atteinte'),
-        content: Text(localizations?.get('limit_reached_msg') ?? 'Vous avez atteint votre limite de scans.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(localizations?.get('cancel') ?? 'Annuler')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage()));
-            },
-            child: Text(localizations?.get('upgrade_premium') ?? 'Passer Premium'),
-          ),
-        ],
-      ),
-    );
-  }
+  Future<void> _analyzeTicket() async {
+    if (_capturedImages.isEmpty) return;
 
-  void _showOfflineDialog(String imagePath) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Pas de connexion'),
-        content: const Text('L\'analyse IA nécessite une connexion. Voulez-vous sauvegarder la photo pour plus tard ?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showErrorSnackBar('Photo gardée en mémoire locale.');
-            },
-            child: const Text('Sauvegarder'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _saveTicket(TicketAnalysis analysis, String imagePath) async {
-    if (!mounted) return;
+    // Pause la caméra pour éviter les conflits pendant le dialogue
+    await CameraService.cameraController?.pausePreview();
     setState(() => _isProcessing = true);
-    final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
 
-    try {
-      final fileName = 'ticket_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      String imageUrl = '';
+    final analysis = await OCRService.extractTextFromImage(_capturedImages.first);
 
-      try {
-        imageUrl = await SupabaseService.uploadTicketImage(imagePath, fileName);
-      } catch (e) {
-        debugPrint('Échec de l\'upload image: $e');
-      }
+    setState(() => _isProcessing = false);
 
-      final warrantyDate = analysis.date.add(Duration(days: analysis.warrantyYears * 365));
-      final ticket = TicketModel(
-        storeName: analysis.storeName,
-        date: analysis.date,
-        totalAmount: analysis.totalAmount,
-        products: analysis.products,
-        imageUrl: imageUrl,
-        warrantyEndDate: warrantyDate,
-        extractedText: analysis.extractedText,
-        createdAt: DateTime.now(),
-      );
-      
-      final ticketData = await SupabaseService.addTicket(ticket.toMap());
-      await subscriptionService.incrementScanCount();
+    final finalAnalysis = await showDialog<TicketAnalysis>(
+      context: context,
+      builder: (context) => TicketAnalysisDialog(
+          analysis: analysis,
+          imagePath: _capturedImages.first
+      ),
+    );
 
-      await NotificationService.scheduleWarrantyNotification(
-        id: ticketData['id'].hashCode,
-        productName: analysis.products.isNotEmpty ? (analysis.products.first['name'] ?? 'Article') : 'Article',
-        storeName: analysis.storeName,
-        warrantyEndDate: warrantyDate,
-      );
-
-      if (mounted) Navigator.of(context).pop();
-    } catch (e) {
-      if (mounted) _showErrorSnackBar('Erreur sauvegarde ticket: $e');
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
+    if (finalAnalysis != null && mounted) {
+      await _saveTicket(finalAnalysis);
     }
   }
 
-  void _showErrorSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.orange)
+  Future<void> _saveTicket(TicketAnalysis analysis) async {
+    setState(() => _isProcessing = true);
+
+    final List<String> urls = await Future.wait(
+        _capturedImages.map((path) =>
+            SupabaseService.uploadTicketImage(path, 'ticket_${DateTime.now().millisecondsSinceEpoch}.jpg')
+        )
     );
+
+    final ticket = TicketModel(
+      storeName: analysis.storeName,
+      date: analysis.date,
+      totalAmount: analysis.totalAmount,
+      products: analysis.products,
+      imageUrls: urls,
+      warrantyEndDate: analysis.date.add(Duration(days: analysis.warrantyYears * 365)),
+      createdAt: DateTime.now(),
+    );
+
+    await SupabaseService.addTicket(ticket.toMap());
+    if (mounted) Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    // Condition explicite pour éviter l'écran blanc pendant l'init
+    if (!_isInitialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context)?.get('scan_ticket') ?? 'Scanner un ticket')),
-      body: _isInitialized
-        ? Stack(children: [
-            CameraPreviewWidget(controller: CameraService.cameraController!),
-            if (_isProcessing) Container(color: Colors.black54, child: const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [CircularProgressIndicator(color: Colors.white), SizedBox(height: 16), Text('Traitement en cours...', style: TextStyle(color: Colors.white))]))),
-            Positioned(bottom: 30, left: 0, right: 0, child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-              FloatingActionButton(heroTag: 'gallery', onPressed: () async {
-                if (_isProcessing) return;
-                final path = await CameraService.pickImageFromGallery();
-                if (path != null) _processImage(path);
-              }, child: const Icon(Icons.photo_library)),
-              FloatingActionButton(heroTag: 'camera', onPressed: () async {
-                if (_isProcessing) return;
-                final path = await CameraService.takePicture();
-                if (path != null) _processImage(path);
-              }, child: const Icon(Icons.camera_alt, size: 32)),
-            ]))
-          ])
-        : const Center(child: CircularProgressIndicator()),
+      appBar: AppBar(title: Text('Scanner (${_capturedImages.length})')),
+      body: Column(
+        children: [
+          // AJOUT : La prévisualisation de la caméra
+          SizedBox(
+            height: 300,
+            child: CameraPreview(CameraService.cameraController!),
+          ),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(8),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8),
+              itemCount: _capturedImages.length,
+              itemBuilder: (context, i) => ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(File(_capturedImages[i]), fit: BoxFit.cover),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                FloatingActionButton(heroTag: 'btn_gallery',onPressed: _takePhoto, child: const Icon(Icons.camera_alt)),
+                if (_capturedImages.isNotEmpty)
+                  FloatingActionButton(
+                      heroTag: 'btn_check',
+                      onPressed: _isProcessing ? null : _analyzeTicket,
+                      backgroundColor: Colors.green,
+                      child: _isProcessing ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.check)
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
