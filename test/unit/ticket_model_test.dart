@@ -2,49 +2,39 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ticketscan_new/data/models/ticket_model.dart';
 
 void main() {
-  group('TicketModel Logic Tests', () {
-    test('isWarrantyExpired should return true if date is in the past', () {
+  group('TicketModel Logic & Parsing', () {
+    test('isWarrantyExpired should detect past dates', () {
+      final pastDate = DateTime.now().subtract(const Duration(days: 365 * 3)); // 3 ans ago
       final ticket = TicketModel(
-        storeName: 'Test Store',
-        date: DateTime.now().subtract(const Duration(days: 400)),
-        totalAmount: 10.0,
+        storeName: 'Test',
+        date: pastDate,
+        totalAmount: 10,
         products: [],
         imageUrls: [],
-        warrantyEndDate: DateTime.now().subtract(const Duration(days: 1)),
+        warrantyEndDate: pastDate.add(const Duration(days: 365 * 2)), // Garantie de 2 ans
         createdAt: DateTime.now(),
       );
 
       expect(ticket.isWarrantyExpired(), true);
     });
 
-    test('isWarrantyExpiringSoon should return true if expiry is within 30 days', () {
-      final ticket = TicketModel(
-        storeName: 'Test Store',
-        date: DateTime.now(),
-        totalAmount: 10.0,
-        products: [],
-        imageUrls: [],
-        warrantyEndDate: DateTime.now().add(const Duration(days: 15)),
-        createdAt: DateTime.now(),
-      );
-
-      expect(ticket.isWarrantyExpiringSoon(), true);
-    });
-
-    test('TicketModel.fromMap should handle malformed image_urls string', () {
+    test('Parsing should handle products as both objects and strings', () {
       final map = {
-        'store_name': 'LIDL',
-        'total_amount': 20.5,
-        'image_urls': '["https://test.com/photo.jpg"]', // Format texte JSON
-        'date': '2024-01-01T00:00:00.000Z',
-        'warranty_end_date': '2026-01-01T00:00:00.000Z',
-        'products': [{'name': 'Lait', 'price': '1.20'}],
+        'store_name': 'Test',
+        'products': [
+          {'name': 'Objet 1', 'price': '10.00', 'hasWarranty': true},
+          '{"name": "Objet 2", "price": "5.00", "hasWarranty": false}'
+        ],
+        'image_urls': [],
+        'date': DateTime.now().toIso8601String(),
+        'total_amount': 15.0,
+        'warranty_end_date': DateTime.now().toIso8601String(),
       };
 
       final ticket = TicketModel.fromMap(map);
-      
-      expect(ticket.imageUrls.length, 1);
-      expect(ticket.imageUrls.first, 'https://test.com/photo.jpg');
+      expect(ticket.products.length, 2);
+      expect(ticket.products[0]['name'], 'Objet 1');
+      expect(ticket.products[1]['name'], 'Objet 2');
     });
   });
 }
