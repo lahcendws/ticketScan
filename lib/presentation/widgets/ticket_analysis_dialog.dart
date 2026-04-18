@@ -23,9 +23,10 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
   late TextEditingController _amountController;
   late TextEditingController _warrantyController;
   
-  // Liste de contrôleurs pour les produits
+  // Liste de contrôleurs et états pour les produits
   final List<TextEditingController> _productNameControllers = [];
   final List<TextEditingController> _productPriceControllers = [];
+  final List<bool> _productWarrantyStates = [];
 
   bool _isClosing = false;
 
@@ -41,10 +42,11 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     );
     _warrantyController = TextEditingController(text: widget.analysis.warrantyYears.toString());
 
-    // Initialiser les contrôleurs pour chaque produit
+    // Initialiser les contrôleurs et les états de garantie
     for (var product in widget.analysis.products) {
       _productNameControllers.add(TextEditingController(text: product['name']?.toString() ?? ''));
       _productPriceControllers.add(TextEditingController(text: product['price']?.toString() ?? '0.00'));
+      _productWarrantyStates.add(product['hasWarranty'] == true);
     }
   }
 
@@ -54,12 +56,8 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     _dateController.dispose();
     _amountController.dispose();
     _warrantyController.dispose();
-    for (var c in _productNameControllers) {
-      c.dispose();
-    }
-    for (var c in _productPriceControllers) {
-      c.dispose();
-    }
+    for (var c in _productNameControllers) c.dispose();
+    for (var c in _productPriceControllers) c.dispose();
     super.dispose();
   }
 
@@ -85,12 +83,13 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
       final double finalAmount = double.tryParse(amountStr) ?? 0.0;
       final int finalWarranty = int.tryParse(_warrantyController.text.trim()) ?? 2;
 
-      // Récupérer les produits modifiés
+      // Récupérer les produits modifiés avec leur état de garantie
       final List<Map<String, dynamic>> updatedProducts = [];
       for (int i = 0; i < _productNameControllers.length; i++) {
         updatedProducts.add({
           'name': _productNameControllers[i].text.trim(),
           'price': _productPriceControllers[i].text.trim(),
+          'hasWarranty': _productWarrantyStates[i],
         });
       }
 
@@ -139,7 +138,7 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
                     const SizedBox(height: 16),
                     _buildFormField(controller: _warrantyController, label: 'Garantie (années)', icon: Icons.security, keyboardType: TextInputType.number),
                     const SizedBox(height: 24),
-                    const Text('Modifier les produits:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text('Modifier les produits & Garantie:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 12),
                     _buildEditableProductsList(),
                   ],
@@ -218,10 +217,19 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     
     return Column(
       children: List.generate(_productNameControllers.length, (index) {
+        final bool isGuaranteed = _productWarrantyStates[index];
+        
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
+              // BOUTON GARANTIE RESTAURÉ
+              IconButton(
+                icon: Icon(isGuaranteed ? Icons.verified_user : Icons.verified_user_outlined),
+                color: isGuaranteed ? Colors.green : Colors.grey,
+                onPressed: () => setState(() => _productWarrantyStates[index] = !isGuaranteed),
+                tooltip: 'Garantie',
+              ),
               Expanded(
                 flex: 3,
                 child: TextField(
