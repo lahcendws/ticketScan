@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/ticket_model.dart';
 import '../../core/services/app_localizations.dart';
+import '../../core/services/supabase_service.dart'; // Import ajouté
 
 class TicketCard extends StatelessWidget {
   final TicketModel ticket;
@@ -33,7 +34,6 @@ class TicketCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  // Affichage de l'image ou de l'icône
                   Container(
                     width: 56,
                     height: 56,
@@ -45,7 +45,8 @@ class TicketCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       child: ticket.imageUrls.isNotEmpty
                           ? Image.network(
-                              ticket.imageUrls.first,
+                              // FIX : Utilisation de getPublicUrl
+                              SupabaseService.getPublicUrl(ticket.imageUrls.first),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => Icon(
                                 Icons.store,
@@ -146,16 +147,13 @@ class TicketCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: 'delete',
                             child: Row(
                               children: [
-                                const Icon(Icons.delete, size: 20, color: Colors.red),
-                                const SizedBox(width: 8),
-                                Text(
-                                  localizations?.get('delete') ?? 'Supprimer',
-                                  style: const TextStyle(color: Colors.red),
-                                ),
+                                Icon(Icons.delete, size: 20, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Supprimer', style: TextStyle(color: Colors.red)),
                               ],
                             ),
                           ),

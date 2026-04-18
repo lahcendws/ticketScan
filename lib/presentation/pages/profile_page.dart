@@ -21,6 +21,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   User? _user;
   ThemeMode _currentThemeMode = ThemeMode.system;
+  bool _isDeleting = false;
 
   @override
   void initState() {
@@ -53,23 +54,46 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _deleteAccount() async {
     final localizations = AppLocalizations.of(context);
+    final supabase = Supabase.instance.client;
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(localizations?.get('delete_account') ?? 'Supprimer le compte'),
-        content: const Text('Cette action est définitive. Tous vos tickets et photos seront supprimés de nos serveurs.'),
+        content: const Text('ATTENTION : Cette action est irréversible. Toutes vos données (tickets, photos, profil) seront définitivement supprimées.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Supprimer tout', style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), 
+            child: const Text('Supprimer tout', style: TextStyle(color: Colors.red))
+          ),
         ],
       ),
     );
 
     if (confirmed == true && mounted) {
-      await SupabaseService.signOut();
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const AuthPage()), (route) => false);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Votre demande de suppression a été prise en compte.')));
+      setState(() => _isDeleting = true);
+      try {
+        // Appel de la Edge Function pour supprimer l'utilisateur
+        await supabase.functions.invoke('delete-user');
+        
+        // Déconnexion locale propre
+        await SupabaseService.signOut();
+        
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AuthPage()),
+            (route) => false,
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Votre compte a été supprimé avec succès.'))
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isDeleting = false);
+          _showErrorSnackBar('Erreur lors de la suppression : $e');
+        }
       }
     }
   }
@@ -83,7 +107,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error),
+    );
   }
 
   @override
@@ -94,22 +120,40 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(localizations?.get('profile') ?? 'Profil'), elevation: 0),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildUserInfoSection(subscriptionService),
-            const SizedBox(height: 24),
-            if (!subscriptionService.isPremium) _buildPremiumBanner(localizations),
-            const SizedBox(height: 32),
-            _buildSettingsSection(languageService, localizations),
-            const SizedBox(height: 32),
-            _buildAboutSection(localizations),
-            const SizedBox(height: 32),
-            _buildDangerZone(localizations),
-            const SizedBox(height: 20),
-          ],
-        ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildUserInfoSection(subscriptionService),
+                const SizedBox(height: 24),
+                if (!subscriptionService.isPremium) _buildPremiumBanner(localizations),
+                const SizedBox(height: 32),
+                _buildSettingsSection(languageService, localizations),
+                const SizedBox(height: 32),
+                _buildAboutSection(localizations),
+                const SizedBox(height: 32),
+                _buildDangerZone(localizations),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+          if (_isDeleting)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.white),
+                    SizedBox(height: 16),
+                    Text('Suppression du compte...', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -167,8 +211,6 @@ class _ProfilePageState extends State<ProfilePage> {
       children: [
         Text(localizations?.get('settings') ?? 'Paramètres', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         const SizedBox(height: 16),
-        
-        // SÉLECTEUR DE LANGUE RESTAURÉ
         ListTile(
           leading: const Icon(Icons.language),
           title: Text(localizations?.get('language') ?? 'Langue'),
@@ -182,8 +224,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
         ),
-
-        // SÉLECTEUR DE THÈME RESTAURÉ
         ListTile(
           leading: Icon(_getThemeIcon()),
           title: Text(localizations?.get('dark_mode') ?? 'Thème'),
@@ -234,7 +274,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ListTile(
           leading: const Icon(Icons.delete_forever, color: Colors.red),
           title: const Text('Supprimer mon compte', style: TextStyle(color: Colors.red)),
-          onTap: _deleteAccount,
+          onTap: _isDeleting ? null : _deleteAccount,
         ),
       ],
     );
