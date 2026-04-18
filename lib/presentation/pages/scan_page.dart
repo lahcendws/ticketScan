@@ -59,7 +59,16 @@ class _ScanPageState extends State<ScanPage> {
           imagePath: _capturedImages.first,
         ),
       );
+      
       if (finalAnalysis != null && mounted) {
+        // VÉRIFICATION : Au moins un produit sous garantie
+        final bool hasAnyWarranty = finalAnalysis.products.any((p) => p['hasWarranty'] == true);
+        
+        if (!hasAnyWarranty) {
+          _showNoWarrantyDialog();
+          return;
+        }
+
         await _saveTicket(finalAnalysis);
       }
     } catch (e) {
@@ -70,6 +79,28 @@ class _ScanPageState extends State<ScanPage> {
         );
       }
     }
+  }
+
+  void _showNoWarrantyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Aucune garantie'),
+          ],
+        ),
+        content: const Text("Ce ticket ne contient aucun produit avec une garantie détectée. Pour garder votre liste propre, ce ticket ne sera pas enregistré."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _saveTicket(TicketAnalysis analysis) async {
@@ -97,7 +128,6 @@ class _ScanPageState extends State<ScanPage> {
         createdAt: DateTime.now(),
       );
 
-      // IMPORTANT : Utiliser le provider pour une mise à jour immédiate de l'UI
       await ticketProvider.addTicket(ticket);
       await subscriptionService.incrementScanCount();
 

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/models/ticket_model.dart';
 import '../../data/models/ticket_provider.dart';
 import '../../core/services/app_localizations.dart';
+import '../../core/services/supabase_service.dart';
 import 'dart:convert';
 
 class TicketDetailPage extends StatefulWidget {
@@ -60,36 +61,27 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   Future<void> _saveChanges() async {
     final ticketId = widget.ticket.id;
     if (ticketId == null) return;
-
     setState(() => _isSaving = true);
-    
     try {
       final dateParts = _dateController.text.split('/');
       final newDate = DateTime(int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
-      
       final List<Map<String, dynamic>> newProducts = [];
       for (int i = 0; i < _productNameControllers.length; i++) {
         newProducts.add({
           'name': _productNameControllers[i].text,
           'price': _productPriceControllers[i].text,
-          'hasWarranty': _productWarrantyStates[i], // On sauve le nouvel état
+          'hasWarranty': _productWarrantyStates[i],
         });
       }
-
       final updatedData = {
         'store_name': _storeController.text,
         'total_amount': double.parse(_amountController.text.replaceAll(',', '.')),
         'date': newDate.toIso8601String(),
         'products': newProducts,
       };
-
       await Provider.of<TicketProvider>(context, listen: false).updateTicket(ticketId, updatedData);
-      
       if (mounted) {
-        setState(() {
-          _isEditing = false;
-          _isSaving = false;
-        });
+        setState(() { _isEditing = false; _isSaving = false; });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ticket mis à jour')));
       }
     } catch (e) {
@@ -100,12 +92,12 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     }
   }
 
-  void _showFullScreenImage(String url) {
+  void _showFullScreenImage(String path) {
     Navigator.push(context, MaterialPageRoute(
       builder: (context) => Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, iconTheme: const IconThemeData(color: Colors.white)),
-        body: Center(child: InteractiveViewer(child: Image.network(url, fit: BoxFit.contain))),
+        body: Center(child: InteractiveViewer(child: Image.network(SupabaseService.getPublicUrl(path), fit: BoxFit.contain))),
       ),
     ));
   }
@@ -114,22 +106,13 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final locale = localizations?.locale.toString() ?? 'fr_FR';
-
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations?.get('ticket_details') ?? 'Détails'),
         actions: [
-          if (!_isEditing)
-            IconButton(icon: const Icon(Icons.edit), onPressed: () => setState(() => _isEditing = true))
-          else
-            _isSaving 
-              ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
-              : IconButton(icon: const Icon(Icons.check, color: Colors.green), onPressed: _saveChanges),
-          if (_isEditing)
-            IconButton(icon: const Icon(Icons.close), onPressed: () {
-              _initControllers();
-              setState(() => _isEditing = false);
-            }),
+          if (!_isEditing) IconButton(icon: const Icon(Icons.edit), onPressed: () => setState(() => _isEditing = true))
+          else _isSaving ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))) : IconButton(icon: const Icon(Icons.check, color: Colors.green), onPressed: _saveChanges),
+          if (_isEditing) IconButton(icon: const Icon(Icons.close), onPressed: () { _initControllers(); setState(() => _isEditing = false); }),
         ],
       ),
       body: SingleChildScrollView(
@@ -173,10 +156,9 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
 
   Widget _buildMainImageCard() {
     if (widget.ticket.imageUrls.isEmpty) return const SizedBox();
-    final url = widget.ticket.imageUrls[_activeImageIndex];
-
+    final path = widget.ticket.imageUrls[_activeImageIndex];
     return GestureDetector(
-      onTap: () => _showFullScreenImage(url),
+      onTap: () => _showFullScreenImage(path),
       child: Container(
         width: double.infinity,
         height: 300,
@@ -184,7 +166,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Image.network(
-            url,
+            SupabaseService.getPublicUrl(path),
             fit: BoxFit.contain,
             loadingBuilder: (c, child, p) => p == null ? child : const Center(child: CircularProgressIndicator(color: Colors.white)),
             errorBuilder: (c, o, s) => const Center(child: Icon(Icons.broken_image, color: Colors.white, size: 64)),
@@ -209,7 +191,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: _activeImageIndex == index ? Theme.of(context).primaryColor : Colors.grey, width: 2),
-              image: DecorationImage(image: NetworkImage(widget.ticket.imageUrls[index]), fit: BoxFit.cover),
+              image: DecorationImage(image: NetworkImage(SupabaseService.getPublicUrl(widget.ticket.imageUrls[index])), fit: BoxFit.cover),
             ),
           ),
         ),
@@ -259,37 +241,15 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         children: [
           ...List.generate(_productNameControllers.length, (index) {
             final bool isGuaranteed = _productWarrantyStates[index];
-
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  if (_isEditing)
-                    IconButton(
-                      icon: Icon(isGuaranteed ? Icons.verified_user : Icons.verified_user_outlined),
-                      color: isGuaranteed ? Colors.green : Colors.grey,
-                      onPressed: () => setState(() => _productWarrantyStates[index] = !isGuaranteed),
-                      tooltip: 'Toggle Garantie',
-                    )
-                  else if (isGuaranteed)
-                    const Padding(padding: EdgeInsets.only(right: 8.0), child: Icon(Icons.verified_user, color: Colors.green, size: 18)),
-                  
+                  if (_isEditing) IconButton(icon: Icon(isGuaranteed ? Icons.verified_user : Icons.verified_user_outlined), color: isGuaranteed ? Colors.green : Colors.grey, onPressed: () => setState(() => _productWarrantyStates[index] = !isGuaranteed))
+                  else if (isGuaranteed) const Padding(padding: EdgeInsets.only(right: 8.0), child: Icon(Icons.verified_user, color: Colors.green, size: 18)),
                   Expanded(
-                    child: _isEditing
-                        ? Row(
-                            children: [
-                              Expanded(flex: 3, child: TextField(controller: _productNameControllers[index], decoration: const InputDecoration(hintText: 'Produit', isDense: true))),
-                              const SizedBox(width: 8),
-                              Expanded(flex: 1, child: TextField(controller: _productPriceControllers[index], keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Prix', isDense: true))),
-                            ],
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(child: Text(_productNameControllers[index].text, style: const TextStyle(fontSize: 15))),
-                              Text('${_productPriceControllers[index].text} ${widget.ticket.currency}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            ],
-                          ),
+                    child: _isEditing ? Row(children: [Expanded(flex: 3, child: TextField(controller: _productNameControllers[index], decoration: const InputDecoration(hintText: 'Produit', isDense: true))), const SizedBox(width: 8), Expanded(flex: 1, child: TextField(controller: _productPriceControllers[index], keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Prix', isDense: true)))])
+                    : Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(_productNameControllers[index].text, style: const TextStyle(fontSize: 15))), Text('${_productPriceControllers[index].text} ${widget.ticket.currency}', style: const TextStyle(fontWeight: FontWeight.bold))]),
                   ),
                 ],
               ),
@@ -314,12 +274,6 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   }
 
   Widget _buildDetailRow(String label, String value, {bool isBold = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 15)),
-        Text(value, style: TextStyle(fontSize: 16, fontWeight: isBold ? FontWeight.bold : FontWeight.normal, color: isBold ? Theme.of(context).primaryColor : null)),
-      ],
-    );
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(label, style: const TextStyle(fontSize: 15)), Text(value, style: TextStyle(fontSize: 16, fontWeight: isBold ? FontWeight.bold : FontWeight.normal, color: isBold ? Theme.of(context).primaryColor : null))]);
   }
 }
