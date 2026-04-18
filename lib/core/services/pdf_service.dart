@@ -13,6 +13,10 @@ class PDFService {
   static Future<void> generateAndPreviewTicketPDF(BuildContext context, TicketModel ticket) async {
     final pdf = pw.Document();
     
+    // Charger une police qui supporte le symbole €
+    final font = await PdfGoogleFonts.robotoRegular();
+    final fontBold = await PdfGoogleFonts.robotoBold();
+
     pw.ImageProvider? ticketImage;
     if (ticket.imageUrls.isNotEmpty) {
       try {
@@ -28,6 +32,10 @@ class PDFService {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
+        theme: pw.ThemeData.withFont(
+          base: font,
+          bold: fontBold,
+        ),
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
