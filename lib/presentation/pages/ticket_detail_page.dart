@@ -5,6 +5,9 @@ import '../../data/models/ticket_model.dart';
 import '../../data/models/ticket_provider.dart';
 import '../../core/services/app_localizations.dart';
 import '../../core/services/supabase_service.dart';
+import '../../core/services/subscription_service.dart';
+import '../../core/services/pdf_service.dart';
+import 'premium_page.dart';
 import 'dart:convert';
 
 class TicketDetailPage extends StatefulWidget {
@@ -19,6 +22,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   int _activeImageIndex = 0;
   bool _isEditing = false;
   bool _isSaving = false;
+  bool _isGeneratingPDF = false;
 
   late TextEditingController _storeController;
   late TextEditingController _amountController;
@@ -56,6 +60,45 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     for (var c in _productNameControllers) c.dispose();
     for (var c in _productPriceControllers) c.dispose();
     super.dispose();
+  }
+
+  Future<void> _handlePDFExport() async {
+    final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
+    
+    if (!subscriptionService.isPremium) {
+      _showUpgradeDialog();
+      return;
+    }
+
+    setState(() => _isGeneratingPDF = true);
+    try {
+      // UTILISATION DE LA NOUVELLE MÉTHODE AVEC PRÉVISUALISATION
+      await PDFService.generateAndPreviewTicketPDF(context, widget.ticket);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur PDF: $e')));
+    } finally {
+      if (mounted) setState(() => _isGeneratingPDF = false);
+    }
+  }
+
+  void _showUpgradeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Fonction Premium'),
+        content: const Text('L\'export PDF professionnel est réservé aux membres Premium. Voulez-vous passer au Premium ?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Plus tard')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage()));
+            },
+            child: const Text('Passer Premium'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _saveChanges() async {
@@ -110,9 +153,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       appBar: AppBar(
         title: Text(localizations?.get('ticket_details') ?? 'Détails'),
         actions: [
-          if (!_isEditing) IconButton(icon: const Icon(Icons.edit), onPressed: () => setState(() => _isEditing = true))
-          else _isSaving ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))) : IconButton(icon: const Icon(Icons.check, color: Colors.green), onPressed: _saveChanges),
-          if (_isEditing) IconButton(icon: const Icon(Icons.close), onPressed: () { _initControllers(); setState(() => _isEditing = false); }),
+          if (!_isEditing) ...[
+            _isGeneratingPDF 
+              ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
+              : IconButton(icon: const Icon(Icons.picture_as_pdf), onPressed: _handlePDFExport, tooltip: 'Aperçu PDF'),
+            IconButton(icon: const Icon(Icons.edit), onPressed: () => setState(() => _isEditing = true)),
+          ] else ...[
+            _isSaving 
+              ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
+              : IconButton(icon: const Icon(Icons.check, color: Colors.green), onPressed: _saveChanges),
+            IconButton(icon: const Icon(Icons.close), onPressed: () { _initControllers(); setState(() => _isEditing = false); }),
+          ],
         ],
       ),
       body: SingleChildScrollView(
