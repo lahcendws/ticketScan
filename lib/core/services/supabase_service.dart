@@ -16,10 +16,11 @@ class SupabaseService {
   }
 
   static Future<AuthResponse> signUpWithEmail(String email, String password) async {
-    final response = await _auth.signUp(email: email, password: password);
-    if (response.user != null && response.user!.emailConfirmedAt != null) {
-      await _auth.signInWithPassword(email: email, password: password);
-    }
+    final response = await _auth.signUp(
+      email: email,
+      password: password,
+      // Si Confirm Email est désactivé dans le dashboard, l'utilisateur sera loggé auto
+    );
     return response;
   }
 
@@ -70,7 +71,6 @@ class SupabaseService {
     return await _client.from('tickets').select().eq('user_id', userId).or('store_name.ilike.%$searchTerm%,category.ilike.%$searchTerm%');
   }
 
-  // MODIFIÉ : Renvoie le chemin relatif (Path) au lieu de l'URL
   static Future<String> uploadTicketImage(String filePath, String fileName) async {
     final userId = currentUser?.id;
     if (userId == null) throw Exception('User not authenticated');
@@ -78,13 +78,12 @@ class SupabaseService {
       final file = File(filePath);
       final path = 'users/$userId/tickets/$fileName';
       await _storage.from('tickets').upload(path, file);
-      return path; // ON RENVOIE LE CHEMIN ICI
+      return path;
     } catch (e) {
       rethrow;
     }
   }
 
-  // MODIFIÉ : Accepte directement le chemin relatif
   static Future<void> deleteTicketImage(String imagePath) async {
     try {
       await _storage.from('tickets').remove([imagePath]);
@@ -93,9 +92,8 @@ class SupabaseService {
     }
   }
 
-  // UTILITAIRE : Convertir un chemin en URL publique pour l'UI
   static String getPublicUrl(String path) {
-    if (path.startsWith('http')) return path; // Pour la compatibilité
+    if (path.startsWith('http')) return path;
     return _storage.from('tickets').getPublicUrl(path);
   }
 }

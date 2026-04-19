@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import '../../core/services/firebase_service.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/app_localizations.dart';
 import '../widgets/custom_text_field.dart';
@@ -33,19 +31,8 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
   }
 
   void _initializeAnimations() {
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    
+    _animationController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
     _animationController.forward();
   }
 
@@ -64,74 +51,75 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
 
     try {
       if (_isLogin) {
-        // await FirebaseService.signInWithEmail(
-        await SupabaseService.signInWithEmail(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
+        final response = await SupabaseService.signInWithEmail(_emailController.text.trim(), _passwordController.text);
+        
+        // Vérifier si l'utilisateur est bien connecté (session présente)
+        if (response.session != null && mounted) {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomePage()));
+        } else if (mounted) {
+          _showInfoDialog(
+            title: 'Email non confirmé',
+            message: 'Veuillez vérifier votre boîte mail et cliquer sur le lien de confirmation pour vous connecter.',
+          );
+        }
       } else {
-        // await FirebaseService.signUpWithEmail(
-        await SupabaseService.signUpWithEmail(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
+        await SupabaseService.signUpWithEmail(_emailController.text.trim(), _passwordController.text);
+        if (mounted) {
+          _showInfoDialog(
+            title: 'Compte créé !',
+            message: 'Un email de confirmation vous a été envoyé. Veuillez confirmer votre adresse avant de vous connecter.',
+            onConfirm: () => setState(() => _isLogin = true), // Basculer en mode login après inscription
+          );
+        }
       }
-      
-      if (mounted) {
-        // Redirection directe vers HomePage
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
-      }
-    } on Exception catch (e) {
-      _showErrorSnackBar(_getErrorMessage(e));
     } catch (e) {
-      print('Auth error: $e'); // Pour le débug
-      _showErrorSnackBar('Une erreur est survenue. Veuillez réessayer.');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+      String errorMsg = e.toString();
+      if (errorMsg.contains('Invalid login credentials')) {
+        _showErrorSnackBar(AppLocalizations.of(context)?.get('wrong_password') ?? 'Identifiants invalides');
+      } else if (errorMsg.contains('Email not confirmed')) {
+        _showInfoDialog(title: 'Confirmation requise', message: 'Veuillez confirmer votre email avant de vous connecter.');
+      } else {
+        _showErrorSnackBar('Une erreur est survenue : ${e.toString()}');
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  String _getErrorMessage(Exception e) {
-    // Gérer les erreurs Supabase
-    if (e.toString().contains('Invalid login credentials')) {
-      return AppLocalizations.of(context)!.get('wrong_password');
-    } else if (e.toString().contains('User already registered')) {
-      return AppLocalizations.of(context)!.get('email_already_used');
-    } else if (e.toString().contains('Email not confirmed')) {
-      return AppLocalizations.of(context)!.get('email_sent');
-    } else {
-      return 'Erreur: ${e.toString()}';
-    }
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+  void _showInfoDialog({required String title, required String message, VoidCallback? onConfirm}) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onConfirm?.call();
+            },
+            child: const Text('Compris'),
+          ),
+        ],
       ),
     );
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error),
+    );
+  }
+
   void _toggleAuthMode() {
-    setState(() {
-      _isLogin = !_isLogin;
-    });
-    
+    setState(() => _isLogin = !_isLogin);
     _animationController.reset();
     _animationController.forward();
   }
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -147,145 +135,54 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const SizedBox(height: 60),
-                      
-                      // Logo et titre
                       Center(
                         child: Column(
                           children: [
                             Container(
-                              width: 80,
-                              height: 80,
+                              width: 80, height: 80,
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Theme.of(context).primaryColor,
-                                    Theme.of(context).primaryColor.withOpacity(0.7),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
+                                gradient: LinearGradient(colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.7)]),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Icon(
-                                Icons.receipt_long,
-                                size: 40,
-                                color: Colors.white,
-                              ),
+                              child: const Icon(Icons.receipt_long, size: 40, color: Colors.white),
                             ),
                             const SizedBox(height: 16),
-                            Text(
-                              'TicketScan',
-                              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                            ),
+                            Text('TicketScan', style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
                             const SizedBox(height: 8),
-                            Text(
-                              _isLogin ? 'Connectez-vous pour continuer' : 'Créez votre compte',
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
-                              ),
-                            ),
+                            Text(_isLogin ? 'Connectez-vous pour continuer' : 'Créez votre compte'),
                           ],
                         ),
                       ),
-                      
                       const SizedBox(height: 48),
-                      
-                      // Champ email
                       CustomTextField(
                         controller: _emailController,
-                        label: AppLocalizations.of(context)!.get('email'),
+                        label: localizations?.get('email') ?? 'Email',
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: Icons.email_outlined,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(context)!.get('invalid_email');
-                          }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                            return AppLocalizations.of(context)!.get('invalid_email');
-                          }
-                          return null;
-                        },
+                        validator: (v) => (v == null || !v.contains('@')) ? 'Email invalide' : null,
                       ),
-                      
                       const SizedBox(height: 16),
-                      
-                      // Champ mot de passe
                       CustomTextField(
                         controller: _passwordController,
-                        label: AppLocalizations.of(context)!.get('password'),
+                        label: localizations?.get('password') ?? 'Mot de passe',
                         obscureText: _obscurePassword,
                         prefixIcon: Icons.lock_outline,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() => _obscurePassword = !_obscurePassword);
-                          },
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(context)!.get('weak_password');
-                          }
-                          if (value.length < 6) {
-                            return AppLocalizations.of(context)!.get('weak_password');
-                          }
-                          return null;
-                        },
+                        suffixIcon: IconButton(icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _obscurePassword = !_obscurePassword)),
+                        validator: (v) => (v == null || v.length < 6) ? 'Mot de passe trop court' : null,
                       ),
-                      
                       const SizedBox(height: 24),
-                      
-                      // Bouton de connexion/inscription
                       PrimaryButton(
-                        text: _isLogin ? AppLocalizations.of(context)!.get('sign_in') : AppLocalizations.of(context)!.get('sign_up'),
+                        text: _isLogin ? (localizations?.get('sign_in') ?? 'Se connecter') : (localizations?.get('sign_up') ?? 'S\'inscrire'),
                         onPressed: _submit,
                         isLoading: _isLoading,
                       ),
-                      
                       const SizedBox(height: 24),
-                      
-                      // Lien pour changer de mode
                       Center(
                         child: TextButton(
                           onPressed: _toggleAuthMode,
-                          child: Text.rich(
-                            TextSpan(
-                              text: _isLogin ? AppLocalizations.of(context)!.get('no_account') : AppLocalizations.of(context)!.get('already_account'),
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              children: [
-                                TextSpan(
-                                  text: _isLogin ? AppLocalizations.of(context)!.get('sign_up') : AppLocalizations.of(context)!.get('sign_in'),
-                                  style: TextStyle(
-                                    color: Theme.of(context).primaryColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          child: Text(_isLogin ? 'Pas encore de compte ? S\'inscrire' : 'Déjà un compte ? Se connecter'),
                         ),
                       ),
-                      
-                      // Bouton mot de passe oublié (uniquement en mode connexion)
-                      if (_isLogin) ...[
-                        const SizedBox(height: 8),
-                        Center(
-                          child: TextButton(
-                            onPressed: _resetPassword,
-                            child: Text(
-                              AppLocalizations.of(context)!.get('forgot_password'),
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColor,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -295,21 +192,5 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
         ),
       ),
     );
-  }
-
-  Future<void> _resetPassword() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      _showErrorSnackBar(AppLocalizations.of(context)!.get('invalid_email') + ' ' + AppLocalizations.of(context)!.get('email').toLowerCase());
-      return;
-    }
-
-    try {
-      // await FirebaseService.resetPassword(email);
-      await SupabaseService.resetPassword(email);
-      _showErrorSnackBar(AppLocalizations.of(context)!.get('email_sent'));
-    } catch (e) {
-      _showErrorSnackBar(AppLocalizations.of(context)!.get('generic_error'));
-    }
   }
 }
