@@ -6,11 +6,12 @@ class PrivacyPolicyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
+    final loc = AppLocalizations.of(context);
+    final isFr = loc?.locale.languageCode == 'fr';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations?.get('privacy_policy') ?? 'Confidentialité'),
+        title: Text(loc?.get('privacy_policy') ?? 'Privacy Policy'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -18,30 +19,34 @@ class PrivacyPolicyPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSection(
-              title: '1. Collecte des données',
-              content: 'Nous collectons uniquement les données nécessaires au bon fonctionnement du service : votre adresse email pour votre compte, et les photos des tickets que vous scannez.',
+              title: isFr ? '1. Collecte des données' : '1. Data Collection',
+              content: isFr 
+                ? 'Nous collectons uniquement votre email pour la gestion de votre compte et les photos de tickets que vous choisissez de numériser.' 
+                : 'We only collect your email for account management and the ticket photos you choose to digitize.',
             ),
             _buildSection(
-              title: '2. Utilisation des données',
-              content: 'Les photos de vos tickets sont analysées par une intelligence artificielle (OpenAI) pour extraire les informations de garantie. Ces données sont stockées de manière sécurisée sur nos serveurs Cloud (Supabase).',
+              title: isFr ? '2. Traitement des informations' : '2. Data Processing',
+              content: isFr 
+                ? 'Les images sont traitées par nos algorithmes de reconnaissance de texte afin d\'extraire automatiquement les dates et garanties.' 
+                : 'Images are processed by our text recognition algorithms to automatically extract dates and warranties.',
             ),
             _buildSection(
-              title: '3. Stockage et Sécurité',
-              content: 'Vos données sont hébergées sur Supabase, une plateforme sécurisée respectant les standards de l\'industrie. Vos images sont stockées dans un espace privé accessible uniquement par vous.',
+              title: isFr ? '3. Sécurité et Stockage' : '3. Security and Storage',
+              content: isFr 
+                ? 'Vos données sont stockées sur des serveurs sécurisés et cryptés. Vos photos sont privées et accessibles uniquement via votre compte.' 
+                : 'Your data is stored on secure, encrypted servers. Your photos are private and accessible only through your account.',
             ),
             _buildSection(
-              title: '4. Vos Droits (RGPD)',
-              content: 'Conformément au RGPD, vous disposez d\'un droit d\'accès, de modification et de suppression de vos données. Vous pouvez supprimer n\'importe quel ticket à tout moment.',
-            ),
-            _buildSection(
-              title: '5. Suppression du compte',
-              content: 'Vous pouvez demander la suppression définitive de votre compte et de toutes les données associées (emails, tickets, images) directement depuis les paramètres de votre profil. Cette action est irréversible.',
+              title: isFr ? '4. Vos Droits' : '4. Your Rights',
+              content: isFr 
+                ? 'Conformément aux lois sur la protection des données, vous pouvez supprimer vos tickets ou votre compte intégralement à tout moment.' 
+                : 'In accordance with data protection laws, you can delete your tickets or your entire account at any time.',
             ),
             const SizedBox(height: 40),
             Center(
               child: Text(
-                'Dernière mise à jour : Avril 2024',
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                'TicketScan - 2024',
+                style: TextStyle(color: Colors.grey[400], fontSize: 12),
               ),
             ),
           ],
@@ -56,15 +61,9 @@ class PrivacyPolicyPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 8),
-          Text(
-            content,
-            style: const TextStyle(fontSize: 15, height: 1.5),
-          ),
+          Text(content, style: const TextStyle(fontSize: 15, height: 1.5)),
         ],
       ),
     );
