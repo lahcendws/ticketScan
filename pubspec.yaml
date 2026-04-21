@@ -31,6 +31,9 @@ dependencies:
   pdf: ^3.10.7
   printing: ^5.11.1
 
+  # Version Info
+  package_info_plus: ^8.0.0
+
   # Autres dépendances
   shared_preferences: ^2.2.2
 
