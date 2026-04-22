@@ -64,15 +64,9 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
 
   Future<void> _handlePDFExport() async {
     final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
-    
-    if (!subscriptionService.isPremium) {
-      _showUpgradeDialog();
-      return;
-    }
-
+    if (!subscriptionService.isPremium) { _showUpgradeDialog(); return; }
     setState(() => _isGeneratingPDF = true);
     try {
-      // UTILISATION DE LA NOUVELLE MÉTHODE AVEC PRÉVISUALISATION
       await PDFService.generateAndPreviewTicketPDF(context, widget.ticket);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur PDF: $e')));
@@ -86,16 +80,10 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Fonction Premium'),
-        content: const Text('L\'export PDF professionnel est réservé aux membres Premium. Voulez-vous passer au Premium ?'),
+        content: const Text('L\'export PDF professionnel est réservé aux membres Premium.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Plus tard')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage()));
-            },
-            child: const Text('Passer Premium'),
-          ),
+          ElevatedButton(onPressed: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())); }, child: const Text('Passer Premium')),
         ],
       ),
     );
@@ -108,6 +96,11 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     try {
       final dateParts = _dateController.text.split('/');
       final newDate = DateTime(int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
+      
+      // LOGIQUE : Calculer la durée de garantie originale pour la reporter sur la nouvelle date
+      final originalDuration = widget.ticket.warrantyEndDate.difference(widget.ticket.date);
+      final newWarrantyEndDate = newDate.add(originalDuration);
+
       final List<Map<String, dynamic>> newProducts = [];
       for (int i = 0; i < _productNameControllers.length; i++) {
         newProducts.add({
@@ -116,13 +109,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           'hasWarranty': _productWarrantyStates[i],
         });
       }
+
       final updatedData = {
         'store_name': _storeController.text,
         'total_amount': double.parse(_amountController.text.replaceAll(',', '.')),
         'date': newDate.toIso8601String(),
+        'warranty_end_date': newWarrantyEndDate.toIso8601String(), // AJOUT : Correction auto date fin garantie
         'products': newProducts,
       };
+
       await Provider.of<TicketProvider>(context, listen: false).updateTicket(ticketId, updatedData);
+
       if (mounted) {
         setState(() { _isEditing = false; _isSaving = false; });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ticket mis à jour')));
