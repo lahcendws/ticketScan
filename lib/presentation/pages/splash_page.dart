@@ -34,10 +34,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   Future<void> _initializeApp() async {
-    // 1. Attendre un peu pour l'animation
     await Future.delayed(const Duration(milliseconds: 2000));
-    
-    // 2. Vérifier si une mise à jour est requise
     final status = await VersionService.checkVersion();
     
     if (status != null) {
@@ -51,7 +48,6 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       }
     }
 
-    // 3. Continuer vers l'Auth ou Home
     if (!mounted) return;
     final user = SupabaseService.currentUser;
     Navigator.of(context).pushReplacement(
@@ -65,13 +61,11 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Mise à jour requise'),
-        content: const Text('Une nouvelle version de TicketScan est disponible. Veuillez mettre à jour l\'application pour continuer.'),
+        content: const Text('Une nouvelle version est disponible. Veuillez mettre à jour pour continuer.'),
         actions: [
           ElevatedButton(
             onPressed: () async {
-              if (url.isNotEmpty) {
-                await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-              }
+              if (url.isNotEmpty) await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
             },
             child: const Text('Mettre à jour'),
           ),
@@ -81,14 +75,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   void _showMaintenanceDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        title: Text('Maintenance'),
-        content: Text('L\'application est actuellement en maintenance pour amélioration. Merci de revenir plus tard !'),
-      ),
-    );
+    showDialog(context: context, barrierDismissible: false, builder: (context) => const AlertDialog(title: Text('Maintenance'), content: Text('Application en maintenance.')));
   }
 
   @override
@@ -113,11 +100,15 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                 child: Container(
                   width: 120, height: 120,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.7)]),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
-                    boxShadow: [BoxShadow(color: Theme.of(context).primaryColor.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))],
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 8))],
                   ),
-                  child: const Icon(Icons.receipt_long, size: 60, color: Colors.white),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    // UTILISATION DE VOTRE NOUVELLE ICÔNE ICI
+                    child: Image.asset('assets/icons/app_icon.png', fit: BoxFit.cover),
+                  ),
                 ),
               ),
             ),
