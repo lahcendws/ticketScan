@@ -19,11 +19,11 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
+    final loc = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations?.get('subscription') ?? 'Paiement'),
+        title: Text(loc?.get('upgrade_premium') ?? 'Paiement'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -33,31 +33,40 @@ class _PaymentPageState extends State<PaymentPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Récapitulatif
+              // RÉCAPITULATIF CORRIGÉ POUR ÉVITER LE DÉBORDEMENT
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.plan == 'yearly' ? 'Abonnement Annuel' : 'Abonnement Mensuel',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text('Accès illimité à toutes les fonctions'),
-                      ],
+                    Expanded( // Permet au texte de prendre la place disponible et de wrapper
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.plan == 'yearly' 
+                                ? (loc?.get('yearly') ?? 'Annuel') 
+                                : (loc?.get('monthly') ?? 'Mensuel'),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Accès illimité aux fonctions',
+                            style: TextStyle(fontSize: 12, color: Colors.blueGrey),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       widget.price,
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).primaryColor,
                       ),
@@ -73,7 +82,6 @@ class _PaymentPageState extends State<PaymentPage> {
               ),
               const SizedBox(height: 16),
               
-              // Numéro de carte
               TextFormField(
                 decoration: InputDecoration(
                   labelText: 'Numéro de carte',
@@ -88,7 +96,6 @@ class _PaymentPageState extends State<PaymentPage> {
               
               Row(
                 children: [
-                  // Expiration
                   Expanded(
                     child: TextFormField(
                       decoration: InputDecoration(
@@ -100,7 +107,6 @@ class _PaymentPageState extends State<PaymentPage> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // CVC
                   Expanded(
                     child: TextFormField(
                       decoration: InputDecoration(
@@ -135,7 +141,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: _isProcessing
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : Text('Payer ${widget.price}'),
                 ),
               ),
@@ -147,7 +153,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   children: [
                     Icon(Icons.lock, size: 14, color: Colors.grey),
                     SizedBox(width: 4),
-                    Text('Paiement sécurisé par SSL', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text('Paiement sécurisé par Google Play', style: TextStyle(color: Colors.grey, fontSize: 11)),
                   ],
                 ),
               ),
@@ -160,20 +166,17 @@ class _PaymentPageState extends State<PaymentPage> {
 
   Future<void> _processPayment() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isProcessing = true);
 
-    final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
-    final success = await subscriptionService.upgradeToPremium(widget.plan);
+    final subService = Provider.of<SubscriptionService>(context, listen: false);
+    final success = await subService.upgradeToPremium(widget.plan);
 
     if (mounted) {
       setState(() => _isProcessing = false);
       if (success) {
         _showSuccessDialog();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Échec du paiement. Veuillez réessayer.')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Échec du paiement.')));
       }
     }
   }
@@ -183,33 +186,10 @@ class _PaymentPageState extends State<PaymentPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Icon(Icons.check_circle, color: Colors.green, size: 64),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Paiement réussi !',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Vous avez maintenant accès à toutes les fonctionnalités Premium.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+        title: const Icon(Icons.check_circle, color: Colors.green, size: 48),
+        content: const Text('Félicitations ! Vous êtes maintenant Premium.', textAlign: TextAlign.center),
         actions: [
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Fermer le dialog
-                Navigator.of(context).pop(); // Fermer la page de paiement
-                Navigator.of(context).pop(); // Fermer la page Premium
-              },
-              child: const Text('Commencer à utiliser'),
-            ),
-          ),
-          const SizedBox(height: 8),
+          Center(child: ElevatedButton(onPressed: () { Navigator.pop(context); Navigator.pop(context); Navigator.pop(context); }, child: const Text('Commencer'))),
         ],
       ),
     );
