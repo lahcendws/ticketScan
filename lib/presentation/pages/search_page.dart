@@ -3,7 +3,7 @@ import '../../data/models/ticket_model.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/app_localizations.dart';
 import '../widgets/ticket_card.dart';
-import 'ticket_detail_page.dart'; // Import ajouté
+import 'ticket_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -69,11 +69,11 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
+    final loc = AppLocalizations.of(context);
     
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations?.get('search') ?? 'Rechercher'),
+        title: Text(loc?.get('search_tickets') ?? 'Rechercher'),
         elevation: 0,
       ),
       body: Column(
@@ -84,7 +84,7 @@ class _SearchPageState extends State<SearchPage> {
               controller: _searchController,
               onChanged: _performSearch,
               decoration: InputDecoration(
-                hintText: localizations?.get('search_hint') ?? 'Rechercher un ticket...',
+                hintText: loc?.get('search_hint') ?? 'Rechercher un ticket...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -108,7 +108,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
           ),
-          if (!_hasSearched) _buildSearchSuggestions(),
+          if (!_hasSearched) _buildSearchSuggestions(loc),
           Expanded(
             child: _buildSearchResults(),
           ),
@@ -117,51 +117,21 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildSearchSuggestions() {
-    final localizations = AppLocalizations.of(context);
-    final suggestions = [
-      {'icon': Icons.store, 'text': localizations?.get('stores') ?? 'Magasins'},
-      {'icon': Icons.shopping_cart, 'text': localizations?.get('products') ?? 'Produits'},
-      {'icon': Icons.calendar_today, 'text': localizations?.get('date') ?? 'Date'},
-      {'icon': Icons.euro, 'text': localizations?.get('total') ?? 'Montant'},
-    ];
-
+  Widget _buildSearchSuggestions(AppLocalizations? loc) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            localizations?.get('quick_search') ?? 'Recherche rapide',
+            loc?.get('quick_search') ?? 'Recherche rapide',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: suggestions.map((suggestion) {
-              return ActionChip(
-                avatar: Icon(
-                  suggestion['icon'] as IconData,
-                  size: 18,
-                ),
-                label: Text(suggestion['text'] as String),
-                onPressed: () {
-                  _searchController.text = suggestion['text'] as String;
-                  _performSearch(suggestion['text'] as String);
-                },
-                backgroundColor: Theme.of(context).cardColor,
-                side: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                ),
-              );
-            }).toList(),
-          ),
           const SizedBox(height: 24),
           Text(
-            localizations?.get('recent_searches') ?? 'Recherches récentes',
+            loc?.get('recent_searches') ?? 'Recherches récentes',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -181,7 +151,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  localizations?.get('no_recent_searches') ?? 'Aucune recherche récente',
+                  loc?.get('no_recent_searches') ?? 'Aucune recherche récente',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -193,7 +163,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildSearchResults() {
-    final localizations = AppLocalizations.of(context);
+    final loc = AppLocalizations.of(context);
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -216,15 +186,10 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              localizations?.get('no_results') ?? 'Aucun résultat trouvé',
+              loc?.get('no_results') ?? 'Aucun résultat trouvé',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              localizations?.get('try_other_keywords') ?? 'Essayez avec d\'autres mots-clés',
-              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),
@@ -239,7 +204,6 @@ class _SearchPageState extends State<SearchPage> {
         return TicketCard(
           ticket: ticket,
           onTap: () {
-            // FIX : Ajout de la navigation vers la page de détails
             Navigator.push(
               context,
               MaterialPageRoute(

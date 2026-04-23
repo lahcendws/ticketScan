@@ -36,29 +36,31 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _contactSupport() async {
-    final Uri emailLaunchUri = Uri(
-      scheme: 'mailto',
-      path: 'support@ticketscan.app',
-      query: 'subject=[TicketScan] Signalement de bug / Feedback&body=Bonjour, j\'utilise le compte ${_user?.email}. Voici mon message : ',
-    );
+    final String subject = Uri.encodeComponent("[TicketScan] Feedback / Support");
+    final String body = Uri.encodeComponent("Bonjour, j'utilise le compte ${_user?.email}. Voici mon message : ");
+    final Uri emailLaunchUri = Uri.parse("mailto:support@ticketscan.app?subject=$subject&body=$body");
 
-    if (await canLaunchUrl(emailLaunchUri)) {
-      await launchUrl(emailLaunchUri);
-    } else {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Impossible d\'ouvrir l\'application email.')));
+    try {
+      if (await canLaunchUrl(emailLaunchUri)) {
+        await launchUrl(emailLaunchUri);
+      } else {
+        throw 'Impossible d\'ouvrir l\'application email';
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à support@ticketscan.app')));
     }
   }
 
   Future<void> _deleteAccount() async {
-    final localizations = AppLocalizations.of(context);
+    final loc = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(localizations?.get('delete_account') ?? 'Supprimer'),
-        content: Text(localizations?.get('delete_account_warning') ?? 'Action irréversible.'),
+        title: Text(loc?.get('delete_account') ?? 'Supprimer'),
+        content: Text(loc?.get('delete_account_warning') ?? 'Action irréversible.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(localizations?.get('cancel') ?? 'Annuler')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(localizations?.get('delete') ?? 'Supprimer', style: const TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(loc?.get('cancel') ?? 'Annuler')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(loc?.get('delete') ?? 'Supprimer', style: const TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -77,27 +79,27 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    final subscription = Provider.of<SubscriptionService>(context);
-    final language = Provider.of<LanguageService>(context);
+    final loc = AppLocalizations.of(context);
+    final sub = Provider.of<SubscriptionService>(context);
+    final lang = Provider.of<LanguageService>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(localizations?.get('profile') ?? 'Profil'), elevation: 0),
+      appBar: AppBar(title: Text(loc?.get('profile') ?? 'Profil'), elevation: 0),
       body: Stack(
         children: [
           SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _buildUserInfo(subscription),
+                _buildUserInfo(sub),
                 const SizedBox(height: 24),
-                if (!subscription.isPremium) _buildPremiumBanner(localizations),
+                if (!sub.isPremium) _buildPremiumBanner(loc),
                 const SizedBox(height: 32),
-                _buildSettings(language, localizations),
+                _buildSettings(lang, loc),
                 const SizedBox(height: 32),
-                _buildAbout(localizations),
+                _buildAbout(loc),
                 const SizedBox(height: 32),
-                _buildSignOut(localizations),
+                _buildSignOut(loc),
               ],
             ),
           ),
@@ -175,13 +177,11 @@ class _ProfilePageState extends State<ProfilePage> {
       ListTile(
         leading: const Icon(Icons.privacy_tip),
         title: Text(loc?.get('privacy_policy') ?? 'Confidentialité'),
-        trailing: const Icon(Icons.chevron_right, size: 20),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyPolicyPage())),
       ),
       ListTile(
-        leading: const Icon(Icons.bug_report),
-        title: const Text('Signaler un bug / Feedback'),
-        trailing: const Icon(Icons.chevron_right, size: 20),
+        leading: const Icon(Icons.support_agent),
+        title: Text(loc?.get('contact_support') ?? 'Support'),
         onTap: _contactSupport,
       ),
     ]);
