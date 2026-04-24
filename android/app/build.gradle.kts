@@ -7,7 +7,6 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Charger les propriétés de signature
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
@@ -26,12 +25,13 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        // Correction de la dépréciation
+        jvmTarget = "17"
     }
 
     defaultConfig {
         applicationId = "com.ticketscan.app"
-        minSdk = 21
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -47,11 +47,15 @@ android {
     }
 
     buildTypes {
-        release {
-            // Utiliser la configuration de signature pour la release
+        getByName("release") {
+            // Correction des références non résolues (syntaxe Kotlin DSL)
+            isMinifyEnabled = false
+            isShrinkResources = false
             signingConfig = signingConfigs.getByName("release")
-            minifyEnabled = false
-            shrinkResources = false
+        }
+        
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

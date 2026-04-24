@@ -5,6 +5,7 @@ import 'tickets_page.dart';
 import 'search_page.dart';
 import 'profile_page.dart';
 import 'auth_page.dart';
+import 'scan_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,7 +20,6 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const TicketsPage(),
     const SearchPage(),
-    Container(), // Page de scan temporairement vide
     const ProfilePage(),
   ];
 
@@ -27,16 +27,28 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     
-    // Écouter les changements d'authentification
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
       if (event.session == null && mounted) {
-        // Rediriger vers la page d'authentification si déconnecté
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const AuthPage()),
           (route) => false,
         );
       }
     });
+  }
+
+  void _onTabTapped(int index) {
+    if (index == 2) {
+      // Ouvre le scan en plein écran au lieu de changer d'onglet
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const ScanPage()),
+      );
+    } else {
+      setState(() {
+        // Ajustement de l'index car on a retiré la page de scan de la liste _pages
+        _currentIndex = index > 2 ? index - 1 : index;
+      });
+    }
   }
 
   @override
@@ -47,12 +59,9 @@ class _HomePageState extends State<HomePage> {
         children: _pages,
       ),
       bottomNavigationBar: CustomBottomNavigation(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        // On recalcule l'index pour la barre de navigation
+        currentIndex: _currentIndex >= 2 ? _currentIndex + 1 : _currentIndex,
+        onTap: _onTabTapped,
       ),
     );
   }

@@ -87,10 +87,7 @@ class _TicketsPageState extends State<TicketsPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ScanPage())),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      // BOUTON "+" SUPPRIMÉ POUR ÉVITER LA CONFUSION
     );
   }
 
@@ -144,7 +141,7 @@ class _TicketsPageState extends State<TicketsPage> {
           const SizedBox(width: 16),
           TextButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())),
-            child: Text(loc?.get('unlimited') ?? 'ILLIMITÉ'), // TRADUCTION ICI
+            child: Text(loc?.get('unlimited') ?? 'ILLIMITÉ'),
           ),
         ],
       ),
@@ -152,7 +149,16 @@ class _TicketsPageState extends State<TicketsPage> {
   }
 
   Widget _buildEmptyState(AppLocalizations? loc) {
-    return Center(child: Text(loc?.get('no_tickets') ?? 'No tickets'));
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey),
+          const SizedBox(height: 16),
+          Text(loc?.get('no_tickets') ?? 'No tickets', style: const TextStyle(color: Colors.grey, fontSize: 16)),
+        ],
+      ),
+    );
   }
 
   Widget _buildStatsSection(List<TicketModel> tickets, AppLocalizations? loc) {
