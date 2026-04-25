@@ -14,7 +14,8 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.ticketscan.app"
+    // NOUVEAU NAMESPACE
+    namespace = "com.boukkoutti.ticketscan"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -25,12 +26,12 @@ android {
     }
 
     kotlinOptions {
-        // Correction de la dépréciation
         jvmTarget = "17"
     }
 
     defaultConfig {
-        applicationId = "com.ticketscan.app"
+        // NOUVEL IDENTIFIANT UNIQUE POUR LE PLAY STORE
+        applicationId = "com.boukkoutti.ticketscan"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -48,7 +49,6 @@ android {
 
     buildTypes {
         getByName("release") {
-            // Correction des références non résolues (syntaxe Kotlin DSL)
             isMinifyEnabled = false
             isShrinkResources = false
             signingConfig = signingConfigs.getByName("release")
