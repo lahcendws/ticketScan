@@ -38,7 +38,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _contactSupport() async {
     final String subject = Uri.encodeComponent("[TicketScan] Feedback / Support");
     final String body = Uri.encodeComponent("Bonjour, j'utilise le compte ${_user?.email}. Voici mon message : ");
-    final Uri emailLaunchUri = Uri.parse("mailto:support@ticketscan.app?subject=$subject&body=$body");
+    // NOUVELLE ADRESSE MAIL APPLIQUÉE
+    final Uri emailLaunchUri = Uri.parse("mailto:lahcen.boukkoutti@outlook.fr?subject=$subject&body=$body");
 
     try {
       if (await canLaunchUrl(emailLaunchUri)) {
@@ -47,7 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
         throw 'Impossible d\'ouvrir l\'application email';
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à support@ticketscan.app')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à lahcen.boukkoutti@outlook.fr')));
     }
   }
 
@@ -177,6 +178,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ListTile(
         leading: const Icon(Icons.privacy_tip),
         title: Text(loc?.get('privacy_policy') ?? 'Confidentialité'),
+        trailing: const Icon(Icons.chevron_right, size: 20),
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyPolicyPage())),
       ),
       ListTile(
