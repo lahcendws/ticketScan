@@ -32,7 +32,7 @@ android {
     defaultConfig {
         // NOUVEL IDENTIFIANT UNIQUE POUR LE PLAY STORE
         applicationId = "com.boukkoutti.ticketscan"
-        minSdk = flutter.minSdkVersion
+        minSdk = 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
