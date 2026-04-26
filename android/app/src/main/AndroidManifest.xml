@@ -5,8 +5,6 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-    <!-- PERMISSION CRUCIALE POUR DÉBLOQUER LES MENUS DE MONÉTISATION -->
     <uses-permission android:name="com.android.vending.BILLING" />
 
     <queries>
@@ -24,7 +22,8 @@
     <application
         android:label="TicketScan"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        // MODIFIÉ ICI POUR UTILISER L'ICÔNE GÉNÉRÉE
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name="com.boukkoutti.ticketscan.MainActivity"
             android:exported="true"
