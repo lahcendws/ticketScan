@@ -2,7 +2,8 @@ name: ticketscan_new
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+1
+# VERSION INCRÉMENTÉE POUR GOOGLE PLAY
+version: 1.0.0+2
 
 environment:
   sdk: ^3.10.8
