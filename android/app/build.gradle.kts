@@ -14,8 +14,8 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    // NOUVEAU NAMESPACE
-    namespace = "com.boukkoutti.ticketscan"
+    // MODIFIÉ : Nouveau namespace
+    namespace = "com.devevolu.ticketscan"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -30,9 +30,9 @@ android {
     }
 
     defaultConfig {
-        // NOUVEL IDENTIFIANT UNIQUE POUR LE PLAY STORE
-        applicationId = "com.boukkoutti.ticketscan"
-        minSdk = flutter.minSdkVersion
+        // MODIFIÉ : Nouvel identifiant unique pour le Play Store
+        applicationId = "com.devevolu.ticketscan"
+        minSdk = 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

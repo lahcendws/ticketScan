@@ -1,10 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.boukkoutti.ticketscan">
+    package="com.devevolu.ticketscan">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- PERMISSION CRUCIALE POUR DÉBLOQUER LES MENUS DE MONÉTISATION -->
     <uses-permission android:name="com.android.vending.BILLING" />
 
     <queries>
@@ -22,10 +24,9 @@
     <application
         android:label="TicketScan"
         android:name="${applicationName}"
-        // MODIFIÉ ICI POUR UTILISER L'ICÔNE GÉNÉRÉE
         android:icon="@mipmap/launcher_icon">
         <activity
-            android:name="com.boukkoutti.ticketscan.MainActivity"
+            android:name="com.devevolu.ticketscan.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
