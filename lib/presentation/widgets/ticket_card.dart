@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/ticket_model.dart';
 import '../../core/services/app_localizations.dart';
-import '../../core/services/supabase_service.dart'; // Import ajouté
+import '../../core/services/supabase_service.dart';
+import '../pages/ticket_detail_page.dart';
 
 class TicketCard extends StatelessWidget {
   final TicketModel ticket;
@@ -196,8 +197,10 @@ class TicketCard extends StatelessWidget {
   }
 
   void _editTicket(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)?.get('filters_soon') ?? 'Bientôt disponible')),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => TicketDetailPage(ticket: ticket, initialEditMode: true),
+      ),
     );
   }
 }

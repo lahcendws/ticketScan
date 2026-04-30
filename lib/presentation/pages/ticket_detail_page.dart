@@ -12,7 +12,8 @@ import 'dart:convert';
 
 class TicketDetailPage extends StatefulWidget {
   final TicketModel ticket;
-  const TicketDetailPage({super.key, required this.ticket});
+  final bool initialEditMode;
+  const TicketDetailPage({super.key, required this.ticket, this.initialEditMode = false});
 
   @override
   State<TicketDetailPage> createState() => _TicketDetailPageState();
@@ -34,6 +35,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   @override
   void initState() {
     super.initState();
+    _isEditing = widget.initialEditMode;
     _initControllers();
   }
 
