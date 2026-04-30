@@ -60,6 +60,12 @@ class AppLocalizations {
     'premium_monthly_detail': 'Abonnement mensuel',
     'manage_unlimited': 'Gérez tous vos tickets sans limite',
     'live_env': 'Environnement en direct',
+    'premium_banner_msg': 'Passez à la version Premium',
+    'contact_support': 'Contacter le support',
+    'delete_account': 'Supprimer mon compte',
+    'delete_account_warning': 'Attention : cette action est irréversible. Toutes vos données seront supprimées.',
+    'dark_mode': 'Mode sombre',
+    'language': 'Langue',
   };
 
   static const Map<String, String> _en = {
@@ -112,6 +118,12 @@ class AppLocalizations {
     'premium_monthly_detail': 'Monthly subscription',
     'manage_unlimited': 'Manage all your tickets without limit',
     'live_env': 'Live environment',
+    'premium_banner_msg': 'Upgrade to Premium version',
+    'contact_support': 'Contact Support',
+    'delete_account': 'Delete my account',
+    'delete_account_warning': 'Warning: this action is irreversible. All your data will be deleted.',
+    'dark_mode': 'Dark mode',
+    'language': 'Language',
   };
 
   String get(String key) {
