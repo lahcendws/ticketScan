@@ -43,7 +43,7 @@ void main() {
         'min_version': '1.0.0',
       };
       
-      final bool isMaintenance = mockResponse['is_under_maintenance'] ?? false;
+      final bool isMaintenance = (mockResponse['is_under_maintenance'] as bool?) ?? false;
       expect(isMaintenance, false);
     });
   });

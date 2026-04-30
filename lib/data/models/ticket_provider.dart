@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'ticket_model.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/notification_service.dart';
-import '../../core/services/subscription_service.dart';
 
 class TicketProvider extends ChangeNotifier {
   List<TicketModel> _tickets = [];
@@ -21,7 +20,7 @@ class TicketProvider extends ChangeNotifier {
       _tickets = ticketsData.map((data) => TicketModel.fromMap(data)).toList();
       notifyListeners();
     } catch (e) {
-      _setError('Erreur lors du chargement des tickets: $e');
+      _setError('Erreur lors du chargement: $e');
     } finally {
       _setLoading(false);
     }
@@ -41,18 +40,17 @@ class TicketProvider extends ChangeNotifier {
         storeName: ticketWithId.storeName,
         warrantyEndDate: ticketWithId.warrantyEndDate,
       );
-
-      // MAJ immédiate du quota de scans
-      await SubscriptionService().refreshSubscriptionStatus();
       
       notifyListeners();
     } catch (e) {
-      _setError('Erreur lors de l\'ajout du ticket: $e');
+      _setError('Erreur: $e');
+      rethrow;
     } finally {
       _setLoading(false);
     }
   }
 
+  // MÉTHODE RESTAURÉE
   Future<void> updateTicket(String ticketId, Map<String, dynamic> data) async {
     _setLoading(true);
     _clearError();
@@ -72,7 +70,7 @@ class TicketProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      _setError('Erreur lors de la mise à jour du ticket: $e');
+      _setError('Erreur lors de la mise à jour: $e');
     } finally {
       _setLoading(false);
     }
@@ -87,14 +85,10 @@ class TicketProvider extends ChangeNotifier {
         await SupabaseService.deleteTicketImage(url);
       }
       await SupabaseService.deleteTicket(ticketId);
-      _tickets.removeWhere((ticket) => ticket.id == ticketId);
-      
-      // MAJ immédiate du quota après suppression
-      await SubscriptionService().refreshSubscriptionStatus();
-      
+      _tickets.removeWhere((t) => t.id == ticketId);
       notifyListeners();
     } catch (e) {
-      _setError('Erreur lors de la suppression du ticket: $e');
+      _setError('Erreur lors de la suppression: $e');
     } finally {
       _setLoading(false);
     }

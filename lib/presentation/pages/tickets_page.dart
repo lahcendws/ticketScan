@@ -31,14 +31,14 @@ class _TicketsPageState extends State<TicketsPage> {
   }
 
   Future<void> _exportToCSV(List<TicketModel> tickets) async {
-    final localizations = AppLocalizations.of(context);
-    final subscriptionService = Provider.of<SubscriptionService>(context, listen: false);
-    if (!subscriptionService.isPremium) { _showUpgradeForExportDialog(); return; }
+    final loc = AppLocalizations.of(context);
+    final sub = Provider.of<SubscriptionService>(context, listen: false);
+    if (!sub.isPremium) { _showUpgradeDialog(loc); return; }
     if (tickets.isEmpty) return;
 
     try {
       List<List<dynamic>> rows = [];
-      rows.add([localizations?.get('store_name'), localizations?.get('date'), "Total (€)", localizations?.get('warranty_end_date')]);
+      rows.add([loc?.get('store_name'), loc?.get('date'), "Total (€)", loc?.get('warranty_end_date')]);
       for (var t in tickets) {
         rows.add([t.storeName, "${t.date.day}/${t.date.month}/${t.date.year}", t.totalAmount.toStringAsFixed(2), "${t.warrantyEndDate.day}/${t.warrantyEndDate.month}/${t.warrantyEndDate.year}"]);
       }
@@ -53,41 +53,65 @@ class _TicketsPageState extends State<TicketsPage> {
     }
   }
 
-  void _showUpgradeForExportDialog() {
-    final loc = AppLocalizations.of(context);
+  void _showUpgradeDialog(AppLocalizations? loc) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Premium'),
-        content: Text(loc?.get('upgrade_premium') ?? 'Upgrade required'),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(loc?.get('cancel') ?? 'OK'))],
+        title: Text(loc?.get('upgrade_premium') ?? 'Premium'),
+        content: Text(loc?.get('limit_reached_msg') ?? 'Limite atteinte'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(loc?.get('cancel') ?? 'OK')),
+          ElevatedButton(onPressed: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())); }, child: Text(loc?.get('upgrade_premium') ?? 'Upgrade')),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    final subscriptionService = Provider.of<SubscriptionService>(context);
-    final ticketProvider = Provider.of<TicketProvider>(context);
+    final loc = AppLocalizations.of(context);
+    final sub = Provider.of<SubscriptionService>(context);
+    final provider = Provider.of<TicketProvider>(context);
     
+    final canScan = sub.canScan(provider.tickets);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations?.get('my_tickets') ?? 'Tickets', style: const TextStyle(fontWeight: FontWeight.bold)),
-        actions: [IconButton(icon: const Icon(Icons.download), onPressed: () => _exportToCSV(ticketProvider.tickets))],
+        title: Text(loc?.get('my_tickets') ?? 'Tickets', style: const TextStyle(fontWeight: FontWeight.bold)),
+        actions: [IconButton(icon: const Icon(Icons.download), onPressed: () => _exportToCSV(provider.tickets))],
       ),
       body: Column(
         children: [
-          if (!subscriptionService.isPremium) _buildUsageLimitIndicator(subscriptionService, localizations),
+          if (!sub.isPremium && !canScan)
+            InkWell(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                color: Colors.orange.withOpacity(0.15),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        loc?.get('limit_reached_msg') ?? 'Limite de 3 tickets atteinte.',
+                        style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.orange, size: 20),
+                  ],
+                ),
+              ),
+            ),
           Expanded(
             child: RefreshIndicator(
-              onRefresh: () => ticketProvider.loadTickets(),
-              child: _buildContent(ticketProvider, localizations),
+              onRefresh: () => provider.loadTickets(),
+              child: _buildContent(provider, loc),
             ),
           ),
         ],
       ),
-      // BOUTON "+" SUPPRIMÉ POUR ÉVITER LA CONFUSION
     );
   }
 
@@ -116,49 +140,8 @@ class _TicketsPageState extends State<TicketsPage> {
     );
   }
 
-  Widget _buildUsageLimitIndicator(SubscriptionService sub, AppLocalizations? loc) {
-    final progress = sub.scansThisMonth / sub.freeLimit;
-    final color = progress > 0.8 ? Colors.red : Colors.blue;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: color.withOpacity(0.1),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${loc?.get('scans_count')}: ${sub.scansThisMonth}/${sub.freeLimit}',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color),
-                ),
-                const SizedBox(height: 4),
-                LinearProgressIndicator(value: progress, backgroundColor: color.withOpacity(0.2), valueColor: AlwaysStoppedAnimation<Color>(color)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          TextButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())),
-            child: Text(loc?.get('unlimited') ?? 'ILLIMITÉ'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmptyState(AppLocalizations? loc) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          Text(loc?.get('no_tickets') ?? 'No tickets', style: const TextStyle(color: Colors.grey, fontSize: 16)),
-        ],
-      ),
-    );
+    return Center(child: Text(loc?.get('no_tickets') ?? 'No tickets'));
   }
 
   Widget _buildStatsSection(List<TicketModel> tickets, AppLocalizations? loc) {

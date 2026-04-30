@@ -32,7 +32,7 @@ android {
     defaultConfig {
         // MODIFIÉ : Nouvel identifiant unique pour le Play Store
         applicationId = "com.devevolu.ticketscan"
-        minSdk = 21
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
