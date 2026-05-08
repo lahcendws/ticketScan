@@ -14,6 +14,35 @@ class PremiumPage extends StatefulWidget {
 
 class _PremiumPageState extends State<PremiumPage> {
   String _selectedPlan = 'yearly';
+  bool _isRestoring = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Écouter les changements de statut pour rediriger en cas de restauration réussie
+    final subService = Provider.of<SubscriptionService>(context, listen: false);
+    subService.addListener(_onSubscriptionChanged);
+  }
+
+  @override
+  void dispose() {
+    Provider.of<SubscriptionService>(context, listen: false).removeListener(_onSubscriptionChanged);
+    super.dispose();
+  }
+
+  void _onSubscriptionChanged() {
+    final subService = Provider.of<SubscriptionService>(context, listen: false);
+    if (subService.isPremium && mounted) {
+      // Si l'utilisateur est passé Premium (via restauration par exemple), on retourne à l'accueil
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Abonnement activé ! Merci de votre confiance 🚀'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +54,17 @@ class _PremiumPageState extends State<PremiumPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black, size: 28),
+          icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          TextButton(
+            onPressed: _isRestoring ? null : _handleRestore,
+            child: _isRestoring 
+              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              : Text(loc?.get('restore') ?? 'Restaurer', style: const TextStyle(color: Colors.blue)),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -60,7 +97,6 @@ class _PremiumPageState extends State<PremiumPage> {
                   ),
                   const SizedBox(height: 40),
                   
-                  // Illustration Box
                   Container(
                     width: double.infinity,
                     height: 200,
@@ -71,10 +107,9 @@ class _PremiumPageState extends State<PremiumPage> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        // Remplacement de l'image par une icône stylisée
-                        Icon(Icons.auto_awesome_motion_rounded, 
+                        const Icon(Icons.auto_awesome_motion_rounded, 
                           size: 100, 
-                          color: const Color(0xFF4F73FB).withOpacity(0.2)
+                          color: Color(0xFF4F73FB)
                         ),
                         Positioned(
                           bottom: 20,
@@ -84,20 +119,12 @@ class _PremiumPageState extends State<PremiumPage> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
+                                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
                               ],
                             ),
                             child: Text(
                               loc?.get('live_env') ?? 'Environnement en direct',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF1A1C1E),
-                              ),
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                             ),
                           ),
                         ),
@@ -106,24 +133,17 @@ class _PremiumPageState extends State<PremiumPage> {
                   ),
                   const SizedBox(height: 24),
                   
-                  // Pagination dots
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildDot(false),
-                      _buildDot(true),
-                      _buildDot(false),
-                      _buildDot(false),
-                    ],
+                    children: [_buildDot(false), _buildDot(true), _buildDot(false), _buildDot(false)],
                   ),
                   const SizedBox(height: 40),
 
-                  // Plans
                   _buildPlanOption(
                     id: 'yearly',
                     title: loc?.get('premium_yearly_detail') ?? 'Abonnement annuel',
                     price: '29,99 €',
-                    monthlyPrice: '2,50 € / mois',
+                    monthlyPrice: '2,50 € / Mois',
                     isBestValue: true,
                     loc: loc,
                   ),
@@ -132,7 +152,7 @@ class _PremiumPageState extends State<PremiumPage> {
                     id: 'monthly',
                     title: loc?.get('premium_monthly_detail') ?? 'Abonnement mensuel',
                     price: '2,99 €',
-                    monthlyPrice: '2,99 € / mois',
+                    monthlyPrice: '2,99 € / Mois',
                     isBestValue: false,
                     loc: loc,
                   ),
@@ -141,17 +161,12 @@ class _PremiumPageState extends State<PremiumPage> {
             ),
           ),
           
-          // Bottom Actions
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, -5),
-                ),
+                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5)),
               ],
             ),
             child: Column(
@@ -159,23 +174,16 @@ class _PremiumPageState extends State<PremiumPage> {
               children: [
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 58,
                   child: ElevatedButton(
                     onPressed: () {
                       final price = _selectedPlan == 'yearly' ? '29,99 €' : '2,99 €';
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (c) => PaymentPage(plan: _selectedPlan, price: price),
-                        ),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (c) => PaymentPage(plan: _selectedPlan, price: price)));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4F73FB),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(29)),
                       elevation: 0,
                     ),
                     child: Text(
@@ -190,21 +198,12 @@ class _PremiumPageState extends State<PremiumPage> {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const PrivacyPolicyPage())),
-                      child: Text(
-                        loc?.get('privacy_policy') ?? 'Politique de confidentialité',
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                      ),
+                      child: Text(loc?.get('privacy_policy') ?? 'Politique de confidentialité', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text('|', style: TextStyle(color: Colors.grey.shade300)),
-                    ),
+                    Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text('|', style: TextStyle(color: Colors.grey.shade300))),
                     GestureDetector(
                       onTap: () {},
-                      child: Text(
-                        loc?.get('terms_of_service') ?? 'Conditions d\'utilisation',
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                      ),
+                      child: Text(loc?.get('terms_of_service') ?? 'Conditions d\'utilisation', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                     ),
                   ],
                 ),
@@ -216,11 +215,29 @@ class _PremiumPageState extends State<PremiumPage> {
     );
   }
 
+  Future<void> _handleRestore() async {
+    setState(() => _isRestoring = true);
+    final sub = Provider.of<SubscriptionService>(context, listen: false);
+    await sub.restorePurchases();
+    
+    // Un petit délai pour laisser le temps à la Edge Function de répondre si un achat est trouvé
+    await Future.delayed(const Duration(seconds: 3));
+    
+    if (mounted) {
+      setState(() => _isRestoring = false);
+      // Si après 3s l'utilisateur n'est toujours pas premium (et donc pas redirigé par le listener)
+      if (!sub.isPremium) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Aucun abonnement actif trouvé.'))
+        );
+      }
+    }
+  }
+
   Widget _buildDot(bool isActive) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 20 : 6,
-      height: 6,
+      width: isActive ? 20 : 6, height: 6,
       decoration: BoxDecoration(
         color: isActive ? const Color(0xFF1A1C1E) : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(3),
@@ -228,14 +245,7 @@ class _PremiumPageState extends State<PremiumPage> {
     );
   }
 
-  Widget _buildPlanOption({
-    required String id,
-    required String title,
-    required String price,
-    required String monthlyPrice,
-    bool isBestValue = false,
-    AppLocalizations? loc,
-  }) {
+  Widget _buildPlanOption({required String id, required String title, required String price, required String monthlyPrice, bool isBestValue = false, AppLocalizations? loc}) {
     final isSelected = _selectedPlan == id;
     return GestureDetector(
       onTap: () => setState(() => _selectedPlan = id),
@@ -248,10 +258,7 @@ class _PremiumPageState extends State<PremiumPage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isSelected ? const Color(0xFF4F73FB) : Colors.grey.shade200,
-                width: 2,
-              ),
+              border: Border.all(color: isSelected ? const Color(0xFF4F73FB) : Colors.grey.shade200, width: 2),
             ),
             child: Row(
               children: [
@@ -259,29 +266,17 @@ class _PremiumPageState extends State<PremiumPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
+                      Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text(
-                        loc?.get('manage_unlimited') ?? 'Gérez tous vos tickets sans limite',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                      ),
+                      Text(loc?.get('manage_unlimited') ?? 'Gérez tous vos tickets sans limite', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      price,
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      monthlyPrice,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                    ),
+                    Text(price, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    Text(monthlyPrice, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                   ],
                 ),
               ],
@@ -289,28 +284,14 @@ class _PremiumPageState extends State<PremiumPage> {
           ),
           if (isBestValue)
             Positioned(
-              top: -12,
-              left: 12,
+              top: -12, left: 12,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF4F73FB),
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(color: const Color(0xFF4F73FB).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))
-                  ],
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.trending_down_rounded, color: Colors.white, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      loc?.get('best_value_badge') ?? 'Meilleure valeur',
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+                child: Text(loc?.get('best_value_badge') ?? 'Meilleure valeur', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
               ),
             ),
         ],

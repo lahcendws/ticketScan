@@ -17,6 +17,35 @@ class _PaymentPageState extends State<PaymentPage> {
   bool _isProcessing = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Écouter les changements de statut Premium pour fermer la page en cas de succès
+    final subService = Provider.of<SubscriptionService>(context, listen: false);
+    subService.addListener(_onSubscriptionChanged);
+  }
+
+  @override
+  void dispose() {
+    // Très important : retirer l'écouteur pour éviter les fuites mémoire
+    Provider.of<SubscriptionService>(context, listen: false).removeListener(_onSubscriptionChanged);
+    super.dispose();
+  }
+
+  void _onSubscriptionChanged() {
+    final subService = Provider.of<SubscriptionService>(context, listen: false);
+    if (subService.isPremium && mounted) {
+      // Si l'utilisateur est passé Premium, on ferme tout et on retourne à l'accueil
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Félicitations ! Vous êtes maintenant Premium 🚀'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
 
@@ -120,9 +149,6 @@ class _PaymentPageState extends State<PaymentPage> {
 
     try {
       final subService = Provider.of<SubscriptionService>(context, listen: false);
-      
-      // On utilise l'ID produit que vous aurez configuré dans la console Google Play
-      // Exemple: 'premium_monthly_299' ou 'premium_yearly_2999'
       final productId = widget.plan == 'yearly' ? 'premium_yearly' : 'premium_monthly';
       
       final success = await subService.upgradeToPremium(productId);
@@ -132,7 +158,6 @@ class _PaymentPageState extends State<PaymentPage> {
           const SnackBar(content: Text('Le service Google Play n\'est pas disponible pour le moment.')),
         );
       }
-      // Note: Le succès réel est géré par l'écouteur de flux dans SubscriptionService
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
