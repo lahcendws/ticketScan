@@ -8,7 +8,6 @@ import '../../core/services/supabase_service.dart';
 import '../../core/services/subscription_service.dart';
 import '../../core/services/pdf_service.dart';
 import 'premium_page.dart';
-import 'dart:convert';
 
 class TicketDetailPage extends StatefulWidget {
   final TicketModel ticket;
@@ -99,7 +98,6 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       final dateParts = _dateController.text.split('/');
       final newDate = DateTime(int.parse(dateParts[2]), int.parse(dateParts[1]), int.parse(dateParts[0]));
       
-      // LOGIQUE : Calculer la durée de garantie originale pour la reporter sur la nouvelle date
       final originalDuration = widget.ticket.warrantyEndDate.difference(widget.ticket.date);
       final newWarrantyEndDate = newDate.add(originalDuration);
 
@@ -116,7 +114,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         'store_name': _storeController.text,
         'total_amount': double.parse(_amountController.text.replaceAll(',', '.')),
         'date': newDate.toIso8601String(),
-        'warranty_end_date': newWarrantyEndDate.toIso8601String(), // AJOUT : Correction auto date fin garantie
+        'warranty_end_date': newWarrantyEndDate.toIso8601String(),
         'products': newProducts,
       };
 
