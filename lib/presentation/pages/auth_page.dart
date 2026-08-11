@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/app_localizations.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import 'home_page.dart';
 import 'privacy_policy_page.dart'; // Import ajouté
+import 'forgot_password_page.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -21,6 +23,49 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
   bool _isLogin = true;
   bool _isLoading = false;
   bool _obscurePassword = true;
+  
+  void _showForgotEmailDialog() {
+    final loc = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(loc?.get('forgot_email_title') ?? 'Email oublié ?'),
+        content: Text(
+          loc?.get('forgot_email_content') ?? 'Instructions pour retrouver votre email...',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(loc?.get('cancel') ?? 'Fermer'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _contactSupport();
+            },
+            child: Text(loc?.get('contact_support_button') ?? 'Contacter le support'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _contactSupport() async {
+    final String subject = Uri.encodeComponent("[TicketScan] Aide Connexion / Identifiant oublié");
+    final String body = Uri.encodeComponent("Bonjour, je n'arrive pas à retrouver mon identifiant TicketScan. Voici mes informations (Nom, justificatif de paiement si Premium, etc.) : ");
+    final Uri emailLaunchUri = Uri.parse("mailto:lahcen.boukkoutti@outlook.fr?subject=$subject&body=$body");
+
+    try {
+      if (await canLaunchUrl(emailLaunchUri)) {
+        await launchUrl(emailLaunchUri);
+      } else {
+        throw 'Impossible d\'ouvrir l\'application email';
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à lahcen.boukkoutti@outlook.fr')));
+    }
+  }
+
   
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -140,6 +185,31 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                         prefixIcon: Icons.lock_outline,
                         suffixIcon: IconButton(icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _obscurePassword = !_obscurePassword)),
                       ),
+                      if (_isLogin) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton(
+                              onPressed: _showForgotEmailDialog,
+                              child: Text(
+                                loc?.get('forgot_email') ?? 'Identifiant oublié ?',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                              ),
+                              child: Text(
+                                loc?.get('forgot_password') ?? 'Mot de passe oublié ?',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 24),
                       PrimaryButton(
                         text: _isLogin ? (loc?.get('sign_in') ?? 'Se connecter') : (loc?.get('sign_up') ?? 'S\'inscrire'),

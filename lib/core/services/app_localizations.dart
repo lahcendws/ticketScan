@@ -66,6 +66,18 @@ class AppLocalizations {
     'delete_account_warning': 'Attention : cette action est irréversible. Toutes vos données seront supprimées.',
     'dark_mode': 'Mode sombre',
     'language': 'Langue',
+    'forgot_password': 'Mot de passe oublié ?',
+    'forgot_email': 'Identifiant / Email oublié ?',
+    'reset_password': 'Réinitialiser le mot de passe',
+    'send_reset_link': 'Envoyer le lien de réinitialisation',
+    'new_password': 'Nouveau mot de passe',
+    'confirm_password': 'Confirmer le mot de passe',
+    'passwords_dont_match': 'Les mots de passe ne correspondent pas',
+    'password_reset_success': 'Votre mot de passe a été réinitialisé avec succès !',
+    'reset_link_sent': 'Un lien de réinitialisation a été envoyé à votre adresse email.',
+    'forgot_email_title': 'Email oublié ?',
+    'forgot_email_content': 'Pour retrouver votre compte, nous vous invitons à :\n\n1. Rechercher "TicketScan" dans vos boîtes mail pour retrouver l\'email d\'inscription.\n\n2. Si vous avez un abonnement Premium actif, contactez le support avec votre justificatif pour retrouver votre compte.',
+    'contact_support_button': 'Contacter le support',
   };
 
   static const Map<String, String> _en = {
@@ -124,6 +136,18 @@ class AppLocalizations {
     'delete_account_warning': 'Warning: this action is irreversible. All your data will be deleted.',
     'dark_mode': 'Dark mode',
     'language': 'Language',
+    'forgot_password': 'Forgot password?',
+    'forgot_email': 'Forgot Email?',
+    'reset_password': 'Reset Password',
+    'send_reset_link': 'Send Reset Link',
+    'new_password': 'New Password',
+    'confirm_password': 'Confirm Password',
+    'passwords_dont_match': 'Passwords do not match',
+    'password_reset_success': 'Your password has been successfully reset!',
+    'reset_link_sent': 'A password reset link has been sent to your email address.',
+    'forgot_email_title': 'Forgot Email?',
+    'forgot_email_content': 'To find your account, we suggest you:\n\n1. Search for "TicketScan" in your email inboxes to find the registration email.\n\n2. If you have an active Premium subscription, contact support with your proof of purchase to locate your account.',
+    'contact_support_button': 'Contact Support',
   };
 
   String get(String key) {

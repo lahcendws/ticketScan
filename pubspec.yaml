@@ -2,8 +2,8 @@ name: ticketscan_new
 description: "A new Flutter project."
 publish_to: 'none'
 
-# REPARTIR À ZÉRO
-version: 1.0.0+3
+# PASSAGE AUX TESTS FERMÉS
+version: 1.0.0+5
 
 environment:
   sdk: ^3.10.8
@@ -42,10 +42,15 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.13.1
 
+# CONFIGURATION POUR ICÔNES ADAPTATIVES (ARRONDIES SUR XIAOMI)
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: false
   image_path: "assets/icons/app_icon.png"
+  # Le background doit correspondre à la couleur dominante des bords de votre image
+  adaptive_icon_background: "#0062ff"
+  # Le foreground est votre image. Android appliquera le masque arrondi dessus.
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
   min_sdk_android: 21
 
 flutter:

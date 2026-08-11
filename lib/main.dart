@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'dart:async';
+import 'presentation/pages/reset_password_page.dart';
 
 import 'core/services/supabase_service.dart';
 import 'core/services/notification_service.dart';
@@ -16,6 +18,8 @@ import 'presentation/themes/app_theme.dart';
 import 'core/services/app_localizations.dart';
 import 'supabase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -61,6 +65,7 @@ class TicketScanApp extends StatefulWidget {
 
 class _TicketScanAppState extends State<TicketScanApp> {
   ThemeMode _themeMode = ThemeMode.system;
+  StreamSubscription<AuthState>? _authSubscription;
 
   @override
   void initState() {
@@ -74,6 +79,21 @@ class _TicketScanAppState extends State<TicketScanApp> {
         });
       }
     });
+
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      if (event == AuthChangeEvent.passwordRecovery && mounted) {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (context) => const ResetPasswordPage()),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -82,6 +102,7 @@ class _TicketScanAppState extends State<TicketScanApp> {
     
     return MaterialApp(
       title: 'TicketScan',
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

@@ -29,8 +29,8 @@ class SupabaseService {
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
-  static Future<void> resetPassword(String email) async {
-    await _auth.resetPasswordForEmail(email);
+  static Future<void> resetPassword(String email, {String? redirectTo}) async {
+    await _auth.resetPasswordForEmail(email, redirectTo: redirectTo);
   }
 
   static Future<List<Map<String, dynamic>>> getTickets({int limit = 20, int offset = 0}) async {
