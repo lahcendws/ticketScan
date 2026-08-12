@@ -97,7 +97,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Future<void> _contactSupport() async {
     final String subject = Uri.encodeComponent("[TicketScan] Aide Connexion / Identifiant oublié");
     final String body = Uri.encodeComponent("Bonjour, je n'arrive pas à retrouver mon identifiant TicketScan. Voici mes informations (Nom, justificatif de paiement si Premium, etc.) : ");
-    final Uri emailLaunchUri = Uri.parse("mailto:lahcen.boukkoutti@outlook.fr?subject=$subject&body=$body");
+    final Uri emailLaunchUri = Uri.parse("mailto:ticketscan1.help@outlook.froutlook.fr?subject=$subject&body=$body");
 
     try {
       if (await canLaunchUrl(emailLaunchUri)) {
@@ -106,7 +106,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         throw 'Impossible d\'ouvrir l\'application email';
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à lahcen.boukkoutti@outlook.fr')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à ticketscan1.help@outlook.froutlook.fr')));
     }
   }
 

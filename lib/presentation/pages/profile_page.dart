@@ -39,7 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final String subject = Uri.encodeComponent("[TicketScan] Feedback / Support");
     final String body = Uri.encodeComponent("Bonjour, j'utilise le compte ${_user?.email}. Voici mon message : ");
     // NOUVELLE ADRESSE MAIL APPLIQUÉE
-    final Uri emailLaunchUri = Uri.parse("mailto:lahcen.boukkoutti@outlook.fr?subject=$subject&body=$body");
+    final Uri emailLaunchUri = Uri.parse("mailto:ticketscan1.help@outlook.froutlook.fr?subject=$subject&body=$body");
 
     try {
       if (await canLaunchUrl(emailLaunchUri)) {
@@ -48,7 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
         throw 'Impossible d\'ouvrir l\'application email';
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à lahcen.boukkoutti@outlook.fr')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à ticketscan1.help@outlook.froutlook.fr')));
     }
   }
 

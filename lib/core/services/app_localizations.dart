@@ -78,6 +78,22 @@ class AppLocalizations {
     'forgot_email_title': 'Email oublié ?',
     'forgot_email_content': 'Pour retrouver votre compte, nous vous invitons à :\n\n1. Rechercher "TicketScan" dans vos boîtes mail pour retrouver l\'email d\'inscription.\n\n2. Si vous avez un abonnement Premium actif, contactez le support avec votre justificatif pour retrouver votre compte.',
     'contact_support_button': 'Contacter le support',
+    // Auth error messages
+    'error_title': 'Erreur de connexion',
+    'error_invalid_credentials': 'Email ou mot de passe incorrect. Veuillez vérifier vos identifiants et réessayer.',
+    'error_email_not_confirmed': 'Votre adresse email n\'a pas encore été confirmée. Veuillez vérifier votre boîte de réception.',
+    'error_user_not_found': 'Aucun compte trouvé avec cette adresse email.',
+    'error_weak_password': 'Le mot de passe doit contenir au moins 6 caractères.',
+    'error_email_taken': 'Un compte existe déjà avec cette adresse email.',
+    'error_too_many_requests': 'Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.',
+    'error_network': 'Erreur de connexion réseau. Vérifiez votre connexion internet et réessayez.',
+    'error_generic': 'Une erreur est survenue. Veuillez réessayer.',
+    'error_signup_title': 'Erreur d\'inscription',
+    // Auth success messages
+    'success_email_not_confirmed_title': 'Email non confirmé',
+    'success_email_not_confirmed_msg': 'Veuillez vérifier votre boîte mail et cliquer sur le lien de confirmation.',
+    'success_account_created_title': 'Compte créé !',
+    'success_account_created_msg': 'Un email de confirmation vous a été envoyé.',
   };
 
   static const Map<String, String> _en = {
@@ -148,6 +164,22 @@ class AppLocalizations {
     'forgot_email_title': 'Forgot Email?',
     'forgot_email_content': 'To find your account, we suggest you:\n\n1. Search for "TicketScan" in your email inboxes to find the registration email.\n\n2. If you have an active Premium subscription, contact support with your proof of purchase to locate your account.',
     'contact_support_button': 'Contact Support',
+    // Auth error messages
+    'error_title': 'Sign in error',
+    'error_invalid_credentials': 'Incorrect email or password. Please check your credentials and try again.',
+    'error_email_not_confirmed': 'Your email address has not been confirmed yet. Please check your inbox.',
+    'error_user_not_found': 'No account found with this email address.',
+    'error_weak_password': 'Password must be at least 6 characters long.',
+    'error_email_taken': 'An account already exists with this email address.',
+    'error_too_many_requests': 'Too many attempts. Please wait a few minutes before trying again.',
+    'error_network': 'Network connection error. Please check your internet connection and try again.',
+    'error_generic': 'An error occurred. Please try again.',
+    'error_signup_title': 'Sign up error',
+    // Auth success messages
+    'success_email_not_confirmed_title': 'Email not confirmed',
+    'success_email_not_confirmed_msg': 'Please check your inbox and click the confirmation link.',
+    'success_account_created_title': 'Account created!',
+    'success_account_created_msg': 'A confirmation email has been sent to you.',
   };
 
   String get(String key) {

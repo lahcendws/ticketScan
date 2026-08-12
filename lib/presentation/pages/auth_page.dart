@@ -53,7 +53,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
   Future<void> _contactSupport() async {
     final String subject = Uri.encodeComponent("[TicketScan] Aide Connexion / Identifiant oublié");
     final String body = Uri.encodeComponent("Bonjour, je n'arrive pas à retrouver mon identifiant TicketScan. Voici mes informations (Nom, justificatif de paiement si Premium, etc.) : ");
-    final Uri emailLaunchUri = Uri.parse("mailto:lahcen.boukkoutti@outlook.fr?subject=$subject&body=$body");
+    final Uri emailLaunchUri = Uri.parse("mailto:ticketscan1.help@outlook.froutlook.fr?subject=$subject&body=$body");
 
     try {
       if (await canLaunchUrl(emailLaunchUri)) {
@@ -62,7 +62,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
         throw 'Impossible d\'ouvrir l\'application email';
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à lahcen.boukkoutti@outlook.fr')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à ticketscan1.help@outlook.froutlook.fr')));
     }
   }
 
@@ -90,8 +90,35 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  String _mapAuthError(String errorMessage, AppLocalizations? loc) {
+    final msg = errorMessage.toLowerCase();
+    if (msg.contains('invalid login credentials') || msg.contains('invalid_credentials')) {
+      return loc?.get('error_invalid_credentials') ?? 'Email ou mot de passe incorrect.';
+    }
+    if (msg.contains('email not confirmed') || msg.contains('email_not_confirmed')) {
+      return loc?.get('error_email_not_confirmed') ?? 'Votre email n\'a pas été confirmé.';
+    }
+    if (msg.contains('user not found') || msg.contains('user_not_found')) {
+      return loc?.get('error_user_not_found') ?? 'Aucun compte trouvé avec cette adresse.';
+    }
+    if (msg.contains('weak password') || msg.contains('weak_password')) {
+      return loc?.get('error_weak_password') ?? 'Le mot de passe doit contenir au moins 6 caractères.';
+    }
+    if (msg.contains('already registered') || msg.contains('user_already_exists') || msg.contains('already been registered')) {
+      return loc?.get('error_email_taken') ?? 'Un compte existe déjà avec cette adresse.';
+    }
+    if (msg.contains('rate limit') || msg.contains('too many requests') || msg.contains('over_request_rate_limit')) {
+      return loc?.get('error_too_many_requests') ?? 'Trop de tentatives. Veuillez patienter.';
+    }
+    if (msg.contains('network') || msg.contains('socket') || msg.contains('connection')) {
+      return loc?.get('error_network') ?? 'Erreur de connexion réseau.';
+    }
+    return loc?.get('error_generic') ?? 'Une erreur est survenue.';
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final loc = AppLocalizations.of(context);
     setState(() => _isLoading = true);
     try {
       if (_isLogin) {
@@ -99,16 +126,28 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
         if (response.session != null && mounted) {
           Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomePage()));
         } else if (mounted) {
-          _showInfoDialog(title: 'Email non confirmé', message: 'Veuillez vérifier votre boîte mail et cliquer sur le lien de confirmation.');
+          _showInfoDialog(
+            title: loc?.get('success_email_not_confirmed_title') ?? 'Email non confirmé',
+            message: loc?.get('success_email_not_confirmed_msg') ?? 'Veuillez vérifier votre boîte mail.',
+          );
         }
       } else {
         await SupabaseService.signUpWithEmail(_emailController.text.trim(), _passwordController.text);
         if (mounted) {
-          _showInfoDialog(title: 'Compte créé !', message: 'Un email de confirmation vous a été envoyé.', onConfirm: () => setState(() => _isLogin = true));
+          _showInfoDialog(
+            title: loc?.get('success_account_created_title') ?? 'Compte créé !',
+            message: loc?.get('success_account_created_msg') ?? 'Un email de confirmation vous a été envoyé.',
+            onConfirm: () => setState(() => _isLogin = true),
+          );
         }
       }
     } catch (e) {
-      _showErrorSnackBar('Erreur: ${e.toString()}');
+      if (mounted) {
+        final errorTitle = _isLogin
+            ? (loc?.get('error_title') ?? 'Erreur de connexion')
+            : (loc?.get('error_signup_title') ?? 'Erreur d\'inscription');
+        _showErrorDialog(title: errorTitle, message: _mapAuthError(e.toString(), loc));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -118,15 +157,56 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [TextButton(onPressed: () { Navigator.pop(context); onConfirm?.call(); }, child: const Text('OK'))],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: Icon(Icons.check_circle_outline, color: Colors.green.shade600, size: 48),
+        title: Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+        content: Text(message, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4)),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () { Navigator.pop(context); onConfirm?.call(); },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: Text(AppLocalizations.of(context)?.get('ok') ?? 'OK'),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Theme.of(context).colorScheme.error));
+  void _showErrorDialog({required String title, required String message}) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: Icon(Icons.error_outline, color: Colors.red.shade600, size: 48),
+        title: Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+        content: Text(message, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4)),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade600,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: Text(AppLocalizations.of(context)?.get('ok') ?? 'OK'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _toggleAuthMode() {
@@ -185,31 +265,6 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                         prefixIcon: Icons.lock_outline,
                         suffixIcon: IconButton(icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _obscurePassword = !_obscurePassword)),
                       ),
-                      if (_isLogin) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            TextButton(
-                              onPressed: _showForgotEmailDialog,
-                              child: Text(
-                                loc?.get('forgot_email') ?? 'Identifiant oublié ?',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
-                              ),
-                              child: Text(
-                                loc?.get('forgot_password') ?? 'Mot de passe oublié ?',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
                       const SizedBox(height: 24),
                       PrimaryButton(
                         text: _isLogin ? (loc?.get('sign_in') ?? 'Se connecter') : (loc?.get('sign_up') ?? 'S\'inscrire'),
@@ -218,9 +273,29 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 24),
                       Center(
-                        child: TextButton(onPressed: _toggleAuthMode, child: Text(_isLogin ? 'Pas encore de compte ? S\'inscrire' : 'Déjà un compte ? Se connecter')),
+                        child: TextButton(
+                          onPressed: _toggleAuthMode,
+                          child: Text(_isLogin ? 'Pas encore de compte ? S\'inscrire' : 'Déjà un compte ? Se connecter'),
+                        ),
                       ),
-                      const SizedBox(height: 40),
+                      if (_isLogin) ...[
+                        Center(
+                          child: TextButton(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                            ),
+                            child: Text(
+                              loc?.get('forgot_password') ?? 'Mot de passe oublié ?',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Theme.of(context).primaryColor.withOpacity(0.85),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 30),
                       // LIEN LÉGAL OBLIGATOIRE
                       Center(
                         child: TextButton(
