@@ -42,15 +42,15 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.13.1
 
-# CONFIGURATION POUR ICÔNES ADAPTATIVES (ARRONDIES SUR XIAOMI)
+# CONFIGURATION POUR ICÔNES ADAPTATIVES (CORRIGÉE)
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: false
   image_path: "assets/icons/app_icon.png"
-  # Le background doit correspondre à la couleur dominante des bords de votre image
+  # Mode adaptatif Android 8.0+
   adaptive_icon_background: "#0062ff"
-  # Le foreground est votre image. Android appliquera le masque arrondi dessus.
-  adaptive_icon_foreground: "assets/icons/app_icon.png"
+  # Utilisation de la nouvelle image avec marges de sécurité
+  adaptive_icon_foreground: "assets/icons/app_icon_adaptive.png"
   min_sdk_android: 21
 
 flutter:
