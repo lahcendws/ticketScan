@@ -33,8 +33,8 @@ class OCRService {
           currency: content['currency']?.toString() ?? '€',
           products: (content['products'] as List?)?.map((p) => Map<String, dynamic>.from(p)).toList() ?? [],
           extractedText: [],
-          // On prend la garantie la plus longue trouvée dans les produits
-          warrantyYears: 2,
+          // Garantie renvoyée par l'edge function, sinon 2 ans par défaut
+          warrantyYears: int.tryParse(content['warrantyYears']?.toString() ?? '') ?? 2,
         );
       }
       throw Exception('Erreur serveur: ${response.status}');

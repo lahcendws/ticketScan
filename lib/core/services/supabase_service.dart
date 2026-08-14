@@ -39,6 +39,27 @@ class SupabaseService {
     return await _client.from('tickets').select().eq('user_id', userId).order('created_at', ascending: false).limit(limit).range(offset, offset + limit - 1);
   }
 
+  // Récupère TOUS les tickets (pagination de 1000 max par requête Supabase)
+  static Future<List<Map<String, dynamic>>> getAllTickets() async {
+    final userId = currentUser?.id;
+    if (userId == null) throw Exception('User not authenticated');
+    final allTickets = <Map<String, dynamic>>[];
+    const pageSize = 1000;
+    var offset = 0;
+    while (true) {
+      final page = await _client
+          .from('tickets')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .range(offset, offset + pageSize - 1);
+      allTickets.addAll(page);
+      if (page.length < pageSize) break;
+      offset += pageSize;
+    }
+    return allTickets;
+  }
+
   static Stream<List<Map<String, dynamic>>> getTicketsStream() {
     return _client.auth.onAuthStateChange.asyncExpand((authState) {
       final userId = authState.session?.user.id;

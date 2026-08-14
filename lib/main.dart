@@ -72,13 +72,7 @@ class _TicketScanAppState extends State<TicketScanApp> {
     super.initState();
     _themeMode = ThemeService.themeMode;
     
-    ThemeService.init().then((_) {
-      if (mounted) {
-        setState(() {
-          _themeMode = ThemeService.themeMode;
-        });
-      }
-    });
+    ThemeService.themeModeNotifier.addListener(_onThemeChanged);
 
     _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
@@ -90,8 +84,17 @@ class _TicketScanAppState extends State<TicketScanApp> {
     });
   }
 
+  void _onThemeChanged() {
+    if (mounted) {
+      setState(() {
+        _themeMode = ThemeService.themeMode;
+      });
+    }
+  }
+
   @override
   void dispose() {
+    ThemeService.themeModeNotifier.removeListener(_onThemeChanged);
     _authSubscription?.cancel();
     super.dispose();
   }

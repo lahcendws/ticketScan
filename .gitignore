@@ -13,6 +13,9 @@
 migrate_working_dir/
 .env
 key.properties
+# Secrets / clés de signature (ne jamais committer)
+upload-keystore.jks
+token debug firebase.txt
 
 # IntelliJ related
 *.iml

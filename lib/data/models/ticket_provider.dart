@@ -16,7 +16,7 @@ class TicketProvider extends ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
-      final ticketsData = await SupabaseService.getTickets();
+      final ticketsData = await SupabaseService.getAllTickets();
       _tickets = ticketsData.map((data) => TicketModel.fromMap(data)).toList();
       notifyListeners();
     } catch (e) {
@@ -34,12 +34,7 @@ class TicketProvider extends ChangeNotifier {
       final ticketWithId = TicketModel.fromMap(response);
       _tickets.insert(0, ticketWithId);
       
-      await NotificationService.scheduleWarrantyNotification(
-        id: ticketWithId.id.hashCode,
-        productName: ticketWithId.products.isNotEmpty ? (ticketWithId.products.first['name']?.toString() ?? 'Produit') : 'Produit',
-        storeName: ticketWithId.storeName,
-        warrantyEndDate: ticketWithId.warrantyEndDate,
-      );
+      await _scheduleWarrantyReminder(ticketWithId);
       
       notifyListeners();
     } catch (e) {
@@ -68,6 +63,11 @@ class TicketProvider extends ChangeNotifier {
         );
         _tickets[index] = updatedTicket;
         notifyListeners();
+
+        // La garantie a pu changer : on reprogramme le rappel
+        if (data['warranty_end_date'] != null) {
+          await _rescheduleWarrantyReminder(updatedTicket);
+        }
       }
     } catch (e) {
       _setError('Erreur lors de la mise à jour: $e');
@@ -85,6 +85,8 @@ class TicketProvider extends ChangeNotifier {
         await SupabaseService.deleteTicketImage(url);
       }
       await SupabaseService.deleteTicket(ticketId);
+      // Annule le rappel planifié pour ce ticket
+      await NotificationService.cancelWarrantyNotification(ticketId);
       _tickets.removeWhere((t) => t.id == ticketId);
       notifyListeners();
     } catch (e) {
@@ -92,6 +94,24 @@ class TicketProvider extends ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  Future<void> _scheduleWarrantyReminder(TicketModel ticket) async {
+    final ticketId = ticket.id;
+    if (ticketId == null) return;
+    await NotificationService.scheduleWarrantyNotification(
+      id: NotificationService.notificationIdForTicket(ticketId),
+      productName: ticket.products.isNotEmpty ? (ticket.products.first['name']?.toString() ?? 'Produit') : 'Produit',
+      storeName: ticket.storeName,
+      warrantyEndDate: ticket.warrantyEndDate,
+    );
+  }
+
+  Future<void> _rescheduleWarrantyReminder(TicketModel ticket) async {
+    final ticketId = ticket.id;
+    if (ticketId == null) return;
+    await NotificationService.cancelWarrantyNotification(ticketId);
+    await _scheduleWarrantyReminder(ticket);
   }
 
   void _clearError() { _error = null; notifyListeners(); }

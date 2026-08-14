@@ -3,9 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
 
 class ThemeService {
-  static ThemeMode _themeMode = ThemeMode.system;
+  static final ValueNotifier<ThemeMode> themeModeNotifier =
+      ValueNotifier<ThemeMode>(ThemeMode.system);
 
-  static ThemeMode get themeMode => _themeMode;
+  static ThemeMode get themeMode => themeModeNotifier.value;
 
   static Future<void> init() async {
     try {
@@ -15,13 +16,13 @@ class ThemeService {
       if (savedTheme != null) {
         switch (savedTheme) {
           case 'light':
-            _themeMode = ThemeMode.light;
+            themeModeNotifier.value = ThemeMode.light;
             break;
           case 'dark':
-            _themeMode = ThemeMode.dark;
+            themeModeNotifier.value = ThemeMode.dark;
             break;
           default:
-            _themeMode = ThemeMode.system;
+            themeModeNotifier.value = ThemeMode.system;
         }
       }
     } catch (e) {
@@ -30,7 +31,7 @@ class ThemeService {
   }
 
   static Future<void> setThemeMode(ThemeMode themeMode) async {
-    _themeMode = themeMode;
+    themeModeNotifier.value = themeMode;
     
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -54,7 +55,7 @@ class ThemeService {
   }
 
   static bool isDarkMode(BuildContext context) {
-    switch (_themeMode) {
+    switch (themeModeNotifier.value) {
       case ThemeMode.light:
         return false;
       case ThemeMode.dark:
@@ -65,7 +66,7 @@ class ThemeService {
   }
 
   static String getThemeModeString() {
-    switch (_themeMode) {
+    switch (themeModeNotifier.value) {
       case ThemeMode.light:
         return 'Clair';
       case ThemeMode.dark:
