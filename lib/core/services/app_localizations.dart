@@ -101,6 +101,21 @@ class AppLocalizations {
     'success_email_not_confirmed_msg': 'Veuillez vérifier votre boîte mail et cliquer sur le lien de confirmation.',
     'success_account_created_title': 'Compte créé !',
     'success_account_created_msg': 'Un email de confirmation vous a été envoyé.',
+    'no_warranty_title': 'Aucun produit sous garantie',
+    'no_warranty_banner': 'Aucun produit garanti — le ticket ne sera pas enregistré',
+    'no_warranty_msg': 'Ce ticket ne présente aucun produit sous garantie. Il ne sera pas enregistré : sans produit garanti, il est inutile pour le suivi des garanties. Activez la garantie sur au moins un produit pour le conserver, ou abandonnez ce scan.',
+    'abandon_scan': 'Abandonner le scan',
+    'edit_warranty': 'Modifier la garantie',
+    'verification_title': 'Vérification',
+    'date_label': 'Date (JJ/MM/AAAA)',
+    'warranty_years_label': 'Garantie (années)',
+    'edit_products_warranty': 'Modifier les produits & Garantie :',
+    'no_products_detected': 'Aucun produit détecté',
+    'product_hint': 'Produit',
+    'price_hint': 'Prix',
+    'error_image': 'Erreur image',
+    'error_prefix': 'Erreur : ',
+    'invalid_date_format': 'Format de date invalide',
   };
 
   static const Map<String, String> _en = {
@@ -194,6 +209,21 @@ class AppLocalizations {
     'success_email_not_confirmed_msg': 'Please check your inbox and click the confirmation link.',
     'success_account_created_title': 'Account created!',
     'success_account_created_msg': 'A confirmation email has been sent to you.',
+    'no_warranty_title': 'No product under warranty',
+    'no_warranty_banner': 'No product under warranty — the ticket will not be saved',
+    'no_warranty_msg': 'This receipt has no product under warranty. It will not be saved: without a warranty product, it is useless for warranty tracking. Enable the warranty on at least one product to keep it, or abandon this scan.',
+    'abandon_scan': 'Abandon scan',
+    'edit_warranty': 'Edit warranty',
+    'verification_title': 'Verification',
+    'date_label': 'Date (DD/MM/YYYY)',
+    'warranty_years_label': 'Warranty (years)',
+    'edit_products_warranty': 'Edit products & Warranty:',
+    'no_products_detected': 'No products detected',
+    'product_hint': 'Product',
+    'price_hint': 'Price',
+    'error_image': 'Image error',
+    'error_prefix': 'Error: ',
+    'invalid_date_format': 'Invalid date format',
   };
 
   String get(String key) {
