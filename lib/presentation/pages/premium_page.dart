@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/app_localizations.dart';
@@ -13,12 +14,32 @@ class PremiumPage extends StatefulWidget {
 }
 
 class _PremiumPageState extends State<PremiumPage> {
+  static const List<String> _slides = [
+    'assets/images/panel1_tickets_illimites.png',
+    'assets/images/panel2_rappels_garantie.png',
+    'assets/images/panel3_tickets_partout.png',
+  ];
+
   String _selectedPlan = 'yearly';
   bool _isRestoring = false;
+  int _currentSlide = 0;
+  late final PageController _pageController;
+  Timer? _slideshowTimer;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
+    // Diaporama auto : avance toutes les 4 secondes
+    _slideshowTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || !_pageController.hasClients) return;
+      _currentSlide = (_currentSlide + 1) % _slides.length;
+      _pageController.animateToPage(
+        _currentSlide,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
     // Écouter les changements de statut pour rediriger en cas de restauration réussie
     final subService = Provider.of<SubscriptionService>(context, listen: false);
     subService.addListener(_onSubscriptionChanged);
@@ -26,6 +47,8 @@ class _PremiumPageState extends State<PremiumPage> {
 
   @override
   void dispose() {
+    _slideshowTimer?.cancel();
+    _pageController.dispose();
     Provider.of<SubscriptionService>(context, listen: false).removeListener(_onSubscriptionChanged);
     super.dispose();
   }
@@ -107,24 +130,19 @@ class _PremiumPageState extends State<PremiumPage> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        const Icon(Icons.auto_awesome_motion_rounded, 
-                          size: 100, 
-                          color: Color(0xFF4F73FB)
-                        ),
-                        Positioned(
-                          bottom: 20,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
-                              ],
-                            ),
-                            child: Text(
-                              loc?.get('live_env') ?? 'Environnement en direct',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: PageView.builder(
+                            controller: _pageController,
+                            itemCount: _slides.length,
+                            onPageChanged: (index) {
+                              setState(() => _currentSlide = index);
+                            },
+                            itemBuilder: (context, index) => Image.asset(
+                              _slides[index],
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
                             ),
                           ),
                         ),
@@ -135,7 +153,7 @@ class _PremiumPageState extends State<PremiumPage> {
                   
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [_buildDot(false), _buildDot(true), _buildDot(false), _buildDot(false)],
+                    children: List.generate(_slides.length, (index) => _buildDot(index == _currentSlide)),
                   ),
                   const SizedBox(height: 40),
 

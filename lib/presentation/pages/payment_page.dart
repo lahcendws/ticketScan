@@ -14,6 +14,10 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
+  static const Color _primaryColor = Color(0xFF4F73FB);
+  static const Color _darkTextColor = Color(0xFF1A1C1E);
+  static const Color _lightBlue = Color(0xFFF5F7FF);
+
   bool _isProcessing = false;
 
   @override
@@ -31,14 +35,16 @@ class _PaymentPageState extends State<PaymentPage> {
     super.dispose();
   }
 
+  bool get _isYearly => widget.plan == 'yearly';
+
   void _onSubscriptionChanged() {
     final subService = Provider.of<SubscriptionService>(context, listen: false);
     if (subService.isPremium && mounted) {
       // Si l'utilisateur est passé Premium, on ferme tout et on retourne à l'accueil
       Navigator.of(context).popUntil((route) => route.isFirst);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Félicitations ! Vous êtes maintenant Premium 🚀'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)?.get('premium_activated') ?? 'Félicitations ! Vous êtes maintenant Premium 🚀'),
           backgroundColor: Colors.green,
         ),
       );
@@ -48,97 +54,150 @@ class _PaymentPageState extends State<PaymentPage> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
+    final isYearly = _isYearly;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(loc?.get('upgrade_premium') ?? 'Passer au Premium'),
+        backgroundColor: Colors.white,
         elevation: 0,
+        title: Text(
+          loc?.get('upgrade_premium') ?? 'Passer au Premium',
+          style: const TextStyle(color: _darkTextColor, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.security_rounded,
-              size: 80,
-              color: Colors.blue,
-            ),
-            const SizedBox(height: 32),
-            Text(
-              loc?.get('premium_plan') ?? 'Abonnement Premium',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 20),
+              Text(
+                isYearly
+                    ? (loc?.get('premium_yearly_detail') ?? 'Abonnement annuel')
+                    : (loc?.get('premium_monthly_detail') ?? 'Abonnement mensuel'),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: _darkTextColor,
+                  letterSpacing: -0.5,
+                ),
               ),
-              child: Row(
+              const SizedBox(height: 12),
+              Text(
+                loc?.get('premium_unlock_msg') ?? 'Accès illimité à toutes les fonctions',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: _lightBlue,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          widget.plan == 'yearly' 
-                              ? (loc?.get('yearly') ?? 'Annuel') 
-                              : (loc?.get('monthly') ?? 'Mensuel'),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: _primaryColor.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(Icons.auto_awesome_motion_rounded, color: _primaryColor, size: 28),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isYearly
+                                    ? (loc?.get('yearly') ?? 'Annuel')
+                                    : (loc?.get('monthly') ?? 'Mensuel'),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: _darkTextColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                loc?.get('manage_unlimited') ?? 'Gérez tous vos tickets sans limite',
+                                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         Text(
-                          loc?.get('premium_unlock_msg') ?? 'Accès illimité à toutes les fonctions',
-                          style: const TextStyle(fontSize: 14, color: Colors.blueGrey),
+                          widget.price,
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _primaryColor),
                         ),
                       ],
                     ),
                   ),
-                  Text(
-                    widget.price,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
+                  if (isYearly)
+                    Positioned(
+                      top: -12,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _primaryColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          loc?.get('best_value_badge') ?? 'Meilleure valeur',
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                  ),
                 ],
               ),
-            ),
-            const Spacer(),
-            const Text(
-              'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: _isProcessing ? null : _processNativePayment,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
-                ),
-                child: _isProcessing
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                    : Text(
-                        'Payer via Google Play',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+              const Spacer(),
+              Text(
+                loc?.get('payment_secure_note') ??
+                    'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
               ),
-            ),
-            const SizedBox(height: 24),
-          ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 58,
+                child: ElevatedButton(
+                  onPressed: _isProcessing ? null : _processNativePayment,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(29)),
+                    elevation: 0,
+                    disabledBackgroundColor: _primaryColor.withOpacity(0.5),
+                  ),
+                  child: _isProcessing
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : Text(
+                          loc?.get('pay_google_play') ?? 'Payer via Google Play',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
@@ -149,13 +208,17 @@ class _PaymentPageState extends State<PaymentPage> {
 
     try {
       final subService = Provider.of<SubscriptionService>(context, listen: false);
-      final productId = widget.plan == 'yearly' ? 'premium_yearly' : 'premium_monthly';
+      final productId = _isYearly ? 'premium_yearly' : 'premium_monthly';
       
       final success = await subService.upgradeToPremium(productId);
 
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Le service Google Play n\'est pas disponible pour le moment.')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)?.get('play_play_unavailable') ?? 'Le service Google Play n\'est pas disponible pour le moment.',
+            ),
+          ),
         );
       }
     } catch (e) {
