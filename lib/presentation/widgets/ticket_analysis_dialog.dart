@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../core/services/app_localizations.dart';
 import '../../core/services/ocr_service.dart';
 
 class TicketAnalysisDialog extends StatefulWidget {
@@ -67,7 +68,7 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     Navigator.of(context).pop(result);
   }
 
-  void _onSave() {
+  Future<void> _onSave() async {
     try {
       final dateStr = _dateController.text.trim();
       final dateParts = dateStr.split('/');
@@ -104,12 +105,54 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
         warrantyYears: finalWarranty,
       );
 
+      // Un ticket sans produit sous garantie n'est d'aucune utilité pour le
+      // suivi des garanties : on ne l'enregistre pas tant que l'utilisateur
+      // n'a pas coché une garantie sur au moins un produit.
+      if (!_hasWarrantyProduct) {
+        await _warnNoWarranty();
+        return;
+      }
+
       _close(updatedAnalysis);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur: ${e.toString()}'), backgroundColor: Colors.red),
       );
     }
+  }
+
+  bool get _hasWarrantyProduct => _productWarrantyStates.any((w) => w);
+
+  Future<void> _warnNoWarranty() async {
+    final loc = AppLocalizations.of(context);
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(loc?.get('no_warranty_title') ?? 'Aucun produit sous garantie'),
+        content: Text(
+          loc?.get('no_warranty_msg') ??
+              'Ce ticket ne présente aucun produit sous garantie. Il ne sera pas enregistré : sans produit garanti, il est inutile pour le suivi des garanties. Activez la garantie sur au moins un produit pour le conserver, ou abandonnez ce scan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _close(null);
+            },
+            child: Text(loc?.get('abandon_scan') ?? 'Abandonner le scan'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              loc?.get('edit_warranty') ?? 'Modifier la garantie',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4F73FB)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -140,6 +183,29 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
                     const SizedBox(height: 24),
                     const Text('Modifier les produits & Garantie:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 12),
+                    if (!_hasWarrantyProduct) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                AppLocalizations.of(context)?.get('no_warranty_banner') ??
+                                    'Aucun produit garanti — le ticket ne sera pas enregistré',
+                                style: const TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     _buildEditableProductsList(),
                   ],
                 ),

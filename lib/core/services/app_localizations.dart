@@ -101,6 +101,11 @@ class AppLocalizations {
     'success_email_not_confirmed_msg': 'Veuillez vérifier votre boîte mail et cliquer sur le lien de confirmation.',
     'success_account_created_title': 'Compte créé !',
     'success_account_created_msg': 'Un email de confirmation vous a été envoyé.',
+    'no_warranty_title': 'Aucun produit sous garantie',
+    'no_warranty_banner': 'Aucun produit garanti — le ticket ne sera pas enregistré',
+    'no_warranty_msg': 'Ce ticket ne présente aucun produit sous garantie. Il ne sera pas enregistré : sans produit garanti, il est inutile pour le suivi des garanties. Activez la garantie sur au moins un produit pour le conserver, ou abandonnez ce scan.',
+    'abandon_scan': 'Abandonner le scan',
+    'edit_warranty': 'Modifier la garantie',
   };
 
   static const Map<String, String> _en = {
@@ -194,6 +199,11 @@ class AppLocalizations {
     'success_email_not_confirmed_msg': 'Please check your inbox and click the confirmation link.',
     'success_account_created_title': 'Account created!',
     'success_account_created_msg': 'A confirmation email has been sent to you.',
+    'no_warranty_title': 'No product under warranty',
+    'no_warranty_banner': 'No product under warranty — the ticket will not be saved',
+    'no_warranty_msg': 'This receipt has no product under warranty. It will not be saved: without a warranty product, it is useless for warranty tracking. Enable the warranty on at least one product to keep it, or abandon this scan.',
+    'abandon_scan': 'Abandon scan',
+    'edit_warranty': 'Edit warranty',
   };
 
   String get(String key) {
