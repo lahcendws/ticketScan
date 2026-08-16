@@ -21,7 +21,6 @@ class _PremiumPageState extends State<PremiumPage> {
   ];
 
   String _selectedPlan = 'yearly';
-  bool _isRestoring = false;
   int _currentSlide = 0;
   late final PageController _pageController;
   Timer? _slideshowTimer;
@@ -80,14 +79,6 @@ class _PremiumPageState extends State<PremiumPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          TextButton(
-            onPressed: _isRestoring ? null : _handleRestore,
-            child: _isRestoring 
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(loc?.get('restore') ?? 'Restaurer', style: const TextStyle(color: Colors.blue)),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -231,25 +222,6 @@ class _PremiumPageState extends State<PremiumPage> {
         ],
       ),
     );
-  }
-
-  Future<void> _handleRestore() async {
-    setState(() => _isRestoring = true);
-    final sub = Provider.of<SubscriptionService>(context, listen: false);
-    await sub.restorePurchases();
-    
-    // Un petit délai pour laisser le temps à la Edge Function de répondre si un achat est trouvé
-    await Future.delayed(const Duration(seconds: 3));
-    
-    if (mounted) {
-      setState(() => _isRestoring = false);
-      // Si après 3s l'utilisateur n'est toujours pas premium (et donc pas redirigé par le listener)
-      if (!sub.isPremium) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Aucun abonnement actif trouvé.'))
-        );
-      }
-    }
   }
 
   Widget _buildDot(bool isActive) {
