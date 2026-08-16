@@ -116,6 +116,17 @@ class AppLocalizations {
     'error_image': 'Erreur image',
     'error_prefix': 'Erreur : ',
     'invalid_date_format': 'Format de date invalide',
+    'restore': 'Restaurer',
+    'share': 'Partager',
+    'expired': 'Expiré',
+    'total': 'Total',
+    'filters_soon': 'Bientôt disponible',
+    'generic_error': 'Erreur',
+    'no_results': 'Aucun résultat trouvé',
+    'scan_first_ticket': 'Scannez votre premier ticket',
+    'scan_soon': 'Scanner bientôt',
+    'scan_ticket': 'Scanner un ticket',
+    'delete_ticket_warning': 'Ce ticket sera supprimé définitivement.',
   };
 
   static const Map<String, String> _en = {
@@ -224,6 +235,17 @@ class AppLocalizations {
     'error_image': 'Image error',
     'error_prefix': 'Error: ',
     'invalid_date_format': 'Invalid date format',
+    'restore': 'Restore',
+    'share': 'Share',
+    'expired': 'Expired',
+    'total': 'Total',
+    'filters_soon': 'Coming soon',
+    'generic_error': 'Error',
+    'no_results': 'No results found',
+    'scan_first_ticket': 'Scan your first receipt',
+    'scan_soon': 'Scan coming soon',
+    'scan_ticket': 'Scan a receipt',
+    'delete_ticket_warning': 'This ticket will be permanently deleted.',
   };
 
   String get(String key) {

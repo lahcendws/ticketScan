@@ -117,7 +117,7 @@ class TicketCard extends StatelessWidget {
                         onSelected: (value) {
                           switch (value) {
                             case 'delete':
-                              onDelete?.call();
+                              _confirmDelete(context);
                               break;
                             case 'share':
                               _shareTicket(context);
@@ -148,13 +148,16 @@ class TicketCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete, size: 20, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text('Supprimer', style: TextStyle(color: Colors.red)),
+                                const Icon(Icons.delete, size: 20, color: Colors.red),
+                                const SizedBox(width: 8),
+                                Text(
+                                  localizations?.get('delete') ?? 'Supprimer',
+                                  style: const TextStyle(color: Colors.red),
+                                ),
                               ],
                             ),
                           ),
@@ -186,6 +189,34 @@ class TicketCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(loc?.get('delete') ?? 'Supprimer'),
+        content: Text(loc?.get('delete_ticket_warning') ?? 'Ce ticket sera supprimé définitivement.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(loc?.get('cancel') ?? 'Annuler'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              onDelete?.call();
+            },
+            child: Text(
+              loc?.get('delete') ?? 'Supprimer',
+              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
     );
   }

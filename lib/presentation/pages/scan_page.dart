@@ -81,6 +81,7 @@ class _ScanPageState extends State<ScanPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isProcessing = false);
+        await CameraService.cameraController?.resumePreview();
         _showErrorDialog(e.toString());
       }
     }
