@@ -124,6 +124,9 @@ class TicketModel {
     );
   }
 
-  bool isWarrantyExpiringSoon() => warrantyEndDate.difference(DateTime.now()).inDays <= 30;
+  bool isWarrantyExpiringSoon() {
+    final days = warrantyEndDate.difference(DateTime.now()).inDays;
+    return days > 0 && days <= 30;
+  }
   bool isWarrantyExpired() => DateTime.now().isAfter(warrantyEndDate);
 }

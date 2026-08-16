@@ -121,8 +121,8 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       await Provider.of<TicketProvider>(context, listen: false).updateTicket(ticketId, updatedData);
 
       if (mounted) {
-        setState(() { _isEditing = false; _isSaving = false; });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ticket mis à jour')));
+        Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
