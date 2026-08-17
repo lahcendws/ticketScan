@@ -49,9 +49,9 @@ flutter_launcher_icons:
   ios: false
   image_path: "assets/icons/app_icon.png"
   # Mode adaptatif Android 8.0+
-  adaptive_icon_background: "#0062ff"
+  adaptive_icon_background: "#FFFFFF"
   # Utilisation de la nouvelle image avec marges de sécurité
-  adaptive_icon_foreground: "assets/icons/app_icon_adaptive.png"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
   min_sdk_android: 21
 
 flutter:
