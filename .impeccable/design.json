@@ -1,0 +1,637 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-31T00:00:00.000Z",
+  "title": "Design System: TicketScan",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Trustworthy Blue",
+        "canonical": "oklch(69% 0.19 254)",
+        "tonalRamp": [
+          "#0d47a1",
+          "#1565c0",
+          "#1976d2",
+          "#1e88e5",
+          "#42a5f5",
+          "#4a90e2",
+          "#64b5f6",
+          "#90caf9",
+          "#bbdefb",
+          "#e3f2fd"
+        ]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Trustworthy Blue Dark",
+        "canonical": "oklch(40% 0.18 254)",
+        "tonalRamp": [
+          "#0d47a1",
+          "#1565c0",
+          "#1976d2",
+          "#1e88e5",
+          "#42a5f5",
+          "#4a90e2",
+          "#64b5f6",
+          "#90caf9",
+          "#bbdefb",
+          "#e3f2fd"
+        ]
+      },
+      "primary-light": {
+        "role": "primary",
+        "displayName": "Trustworthy Blue Light",
+        "canonical": "oklch(90% 0.04 254)",
+        "tonalRamp": [
+          "#0d47a1",
+          "#1565c0",
+          "#1976d2",
+          "#1e88e5",
+          "#42a5f5",
+          "#4a90e2",
+          "#64b5f6",
+          "#90caf9",
+          "#bbdefb",
+          "#e3f2fd"
+        ]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Fresh Teal",
+        "canonical": "oklch(78% 0.14 164)",
+        "tonalRamp": [
+          "#004d40",
+          "#00695c",
+          "#00897b",
+          "#26a69a",
+          "#4db6ac",
+          "#50e3c2",
+          "#80cbc4",
+          "#a5d6a7",
+          "#c8e6c9",
+          "#e0f2f1"
+        ]
+      },
+      "secondary-dark": {
+        "role": "secondary",
+        "displayName": "Fresh Teal Dark",
+        "canonical": "oklch(50% 0.15 164)",
+        "tonalRamp": [
+          "#004d40",
+          "#00695c",
+          "#00897b",
+          "#26a69a",
+          "#4db6ac",
+          "#50e3c2",
+          "#80cbc4",
+          "#a5d6a7",
+          "#c8e6c9",
+          "#e0f2f1"
+        ]
+      },
+      "secondary-light": {
+        "role": "secondary",
+        "displayName": "Fresh Teal Light",
+        "canonical": "oklch(92% 0.04 164)",
+        "tonalRamp": [
+          "#004d40",
+          "#00695c",
+          "#00897b",
+          "#26a69a",
+          "#4db6ac",
+          "#50e3c2",
+          "#80cbc4",
+          "#a5d6a7",
+          "#c8e6c9",
+          "#e0f2f1"
+        ]
+      },
+      "accent": {
+        "role": "accent",
+        "displayName": "Attention Coral",
+        "canonical": "oklch(63% 0.21 24)",
+        "tonalRamp": [
+          "#b71c1c",
+          "#c62828",
+          "#d32f2f",
+          "#e53935",
+          "#f44336",
+          "#ff6b6b",
+          "#ff8a80",
+          "#ffab91",
+          "#ffccbc",
+          "#ffd9c6"
+        ]
+      },
+      "accent-dark": {
+        "role": "accent",
+        "displayName": "Attention Coral Dark",
+        "canonical": "oklch(45% 0.22 24)",
+        "tonalRamp": [
+          "#b71c1c",
+          "#c62828",
+          "#d32f2f",
+          "#e53935",
+          "#f44336",
+          "#ff6b6b",
+          "#ff8a80",
+          "#ffab91",
+          "#ffccbc",
+          "#ffd9c6"
+        ]
+      },
+      "accent-light": {
+        "role": "accent",
+        "displayName": "Attention Coral Light",
+        "canonical": "oklch(85% 0.18 24)",
+        "tonalRamp": [
+          "#b71c1c",
+          "#c62828",
+          "#d32f2f",
+          "#e53935",
+          "#f44336",
+          "#ff6b6b",
+          "#ff8a80",
+          "#ffab91",
+          "#ffccbc",
+          "#ffd9c6"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Soft Gray",
+        "canonical": "oklch(97% 0.00 200)",
+        "tonalRamp": [
+          "#f8f9fa",
+          "#f8f9fa",
+          "#f8f9fa",
+          "#f8f9fa",
+          "#f8f9fa",
+          "#f8f9fa",
+          "#f8f9fa",
+          "#f8f9fa",
+          "#f8f9fa",
+          "#f8f9fa"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Clean White",
+        "canonical": "oklch(98% 0.00 0)",
+        "tonalRamp": [
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Clean White",
+        "canonical": "oklch(98% 0.00 0)",
+        "tonalRamp": [
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff"
+        ]
+      },
+      "dark-background": {
+        "role": "neutral",
+        "displayName": "Deep Navy",
+        "canonical": "oklch(18% 0.01 250)",
+        "tonalRamp": [
+          "#0c0c17",
+          "#151a2e",
+          "#1a1a2e",
+          "#212b42",
+          "#283756",
+          "#2f436a",
+          "#364f7e",
+          "#3d5b92",
+          "#4467a6",
+          "#4b73ba"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "canonical": "oklch(22% 0.02 250)",
+        "tonalRamp": [
+          "#0c0c17",
+          "#151a2e",
+          "#16213e",
+          "#1d2b51",
+          "#253664",
+          "#2d4077",
+          "#354b8a",
+          "#3d559d",
+          "#4560b0",
+          "#4d6bc3"
+        ]
+      },
+      "dark-card": {
+        "role": "neutral",
+        "displayName": "Dark Card",
+        "canonical": "oklch(15% 0.02 250)",
+        "tonalRamp": [
+          "#080b1b",
+          "#0f142a",
+          "#0f3460",
+          "#152041",
+          "#1b2c62",
+          "#213883",
+          "#2744a4",
+          "#2d50c5",
+          "#335ce6",
+          "#3968ff"
+        ]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Dark Blue Text",
+        "canonical": "oklch(32% 0.05 250)",
+        "tonalRamp": [
+          "#0a1a2e",
+          "#152b42",
+          "#1f3c56",
+          "#294e6a",
+          "#34607e",
+          "#2c3e50",
+          "#3e5062",
+          "#506274",
+          "#627486",
+          "#748698"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Medium Gray Text",
+        "canonical": "oklch(55% 0.02 240)",
+        "tonalRamp": [
+          "#495057",
+          "#52585f",
+          "#5b6167",
+          "#646a6f",
+          "#6d7377",
+          "#7f8c8d",
+          "#8c999a",
+          "#99a6a7",
+          "#a6b3b4",
+          "#b3c0c1"
+        ]
+      },
+      "dark-text-primary": {
+        "role": "neutral",
+        "displayName": "Light Gray Text",
+        "canonical": "oklch(88% 0.01 240)",
+        "tonalRamp": [
+          "#b0b0b0",
+          "#b8b8b8",
+          "#c0c0c0",
+          "#c8c8c8",
+          "#d0d0d0",
+          "#d8d8d8",
+          "#e0e0e0",
+          "#e8e8e8",
+          "#f0f0f0",
+          "#ecf0f1"
+        ]
+      },
+      "dark-text-secondary": {
+        "role": "neutral",
+        "displayName": "Medium Light Gray Text",
+        "canonical": "oklch(72% 0.01 240)",
+        "tonalRamp": [
+          "#8a8a8a",
+          "#929292",
+          "#9a9a9a",
+          "#a2a2a2",
+          "#aaaaaa",
+          "#b2b2b2",
+          "#bdc3c7",
+          "#cacaca",
+          "#d7d7d7",
+          "#e4e4e4"
+        ]
+      },
+      "success": {
+        "role": "success",
+        "displayName": "Success Green",
+        "canonical": "oklch(58% 0.15 142)",
+        "tonalRamp": [
+          "#1b5e20",
+          "#2e7d32",
+          "#388e3c",
+          "#43a047",
+          "#4caf50",
+          "#66bb6a",
+          "#81c784",
+          "#a5d6a7",
+          "#c8e6c9",
+          "#dcedc8"
+        ]
+      },
+      "warning": {
+        "role": "warning",
+        "displayName": "Warning Orange",
+        "canonical": "oklch(72% 0.18 45)",
+        "tonalRamp": [
+          "#bf360c",
+          "#d84315",
+          "#e64a19",
+          "#ef6c00",
+          "#ff9800",
+          "#ffb74d",
+          "#ffcc80",
+          "#ffe0b2",
+          "#fff3e0",
+          "#fff8e1"
+        ]
+      },
+      "error": {
+        "role": "error",
+        "displayName": "Error Red",
+        "canonical": "oklch(44% 0.18 22)",
+        "tonalRamp": [
+          "#b71c1c",
+          "#c62828",
+          "#d32f2f",
+          "#e53935",
+          "#f44336",
+          "#e74c3c",
+          "#ef5350",
+          "#f48fb1",
+          "#f8bbd0",
+          "#fce4ec"
+        ]
+      },
+      "error-dark": {
+        "role": "error",
+        "displayName": "Error Red Dark",
+        "canonical": "oklch(30% 0.18 22)",
+        "tonalRamp": [
+          "#b71c1c",
+          "#c62828",
+          "#d32f2f",
+          "#e53935",
+          "#f44336",
+          "#e74c3c",
+          "#ef5350",
+          "#f48fb1",
+          "#f8bbd0",
+          "#fce4ec"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "App titles, major section headers, promotional headlines"
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles, important section headings"
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card headers, list item titles, form section labels"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Paragraph text, descriptive content, form field labels"
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form field labels, button text, navigation items, status tags"
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Button text, ensuring consistent weight and sizing across interactive elements"
+      }
+    },
+    "shadows": [
+      {
+        "name": "subtle-elevation",
+        "value": "0 2px 6px rgba(0,0,0,0.08)",
+        "purpose": "Applied to cards and containers for subtle depth"
+      },
+      {
+        "name": "focus-elevation",
+        "value": "0 4px 12px rgba(0,0,0,0.12)",
+        "purpose": "Used on pressed/focused buttons and interactive elements"
+      },
+      {
+        "name": "modal-elevation",
+        "value": "0 8px 24px rgba(0,0,0,0.16)",
+        "purpose": "Applied to dialogs, modals, and popups for clear separation from background"
+      },
+      {
+        "name": "navigation-elevation",
+        "value": "0 4px 8px rgba(0,0,0,0.1)",
+        "purpose": "Used on bottom navigation bar for subtle separation from content"
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Default easing for state transitions"
+      },
+      {
+        "name": "ease-decelerate",
+        "value": "cubic-bezier(0, 0, 0.2, 1)",
+        "purpose": "Easing for decelerating motions"
+      },
+      {
+        "name": "ease-accelerate",
+        "value": "cubic-bezier(0.4, 0, 1, 1)",
+        "purpose": "Easing for accelerating motions"
+      },
+      {
+        "name": "ease-sharp",
+        "value": "cubic-bezier(0.4, 0, 0.6, 1)",
+        "purpose": "Easing for sharp motions"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "xs",
+        "value": "320px"
+      },
+      {
+        "name": "sm",
+        "value": "360px"
+      },
+      {
+        "name": "md",
+        "value": "414px"
+      },
+      {
+        "name": "lg",
+        "value": "768px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action button for primary user interactions",
+      "html": "<button class=\"ds-btn-primary\">VALIDATE TICKET</button>",
+      "css": ".ds-btn-primary { background: #4a90e2; color: #fff; border-radius: 12px; padding: 12px 24px; height: 50px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(0.875rem, 2.25vw, 1.375rem); font-weight: 600; line-height: 1.4; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: all 0.2s ease; } .ds-btn-primary:hover { background: #357abd; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); } .ds-btn-primary:active { transform: translateY(0); } .ds-btn-primary:focus { outline: 2px solid #4a90e2; outline-offset: 2px; } .ds-btn-primary:disabled { background: #bdc3c7; color: #7f8c8d; cursor: not-allowed; transform: none; box-shadow: none; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary action button for supplementary interactions",
+      "html": "<button class=\"ds-btn-secondary\">MANUAL ENTRY</button>",
+      "css": ".ds-btn-secondary { background: #50e3c2; color: #fff; border-radius: 12px; padding: 12px 24px; height: 50px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(0.875rem, 2.25vw, 1.375rem); font-weight: 600; line-height: 1.4; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: all 0.2s ease; } .ds-btn-secondary:hover { background: #26a69a; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); } .ds-btn-secondary:active { transform: translateY(0); } .ds-btn-secondary:focus { outline: 2px solid #50e3c2; outline-offset: 2px; } .ds-btn-secondary:disabled { background: #bdc3c7; color: #7f8c8d; cursor: not-allowed; transform: none; box-shadow: none; }"
+    },
+    {
+      "name": "Accent Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "Action button for critical alerts and warnings",
+      "html": "<button class=\"ds-btn-accent\">FLASHLIGHT</button>",
+      "css": ".ds-btn-accent { background: #ff6b6b; color: #fff; border-radius: 12px; padding: 12px 24px; height: 50px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(0.875rem, 2.25vw, 1.375rem); font-weight: 600; line-height: 1.4; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: all 0.2s ease; } .ds-btn-accent:hover { background: #ff5252; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); } .ds-btn-accent:active { transform: translateY(0); } .ds-btn-accent:focus { outline: 2px solid #ff6b6b; outline-offset: 2px; } .ds-btn-accent:disabled { background: #bdc3c7; color: #7f8c8d; cursor: not-allowed; transform: none; box-shadow: none; }"
+    },
+    {
+      "name": "Outline Primary Button",
+      "kind": "button",
+      "refersTo": "button-outline-primary",
+      "description": "Outlined button for secondary actions",
+      "html": "<button class=\"ds-btn-outline-primary\">CANCEL</button>",
+      "css": ".ds-btn-outline-primary { background: transparent; color: #4a90e2; border-radius: 12px; padding: 12px 24px; height: 50px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(0.875rem, 2.25vw, 1.375rem); font-weight: 600; line-height: 1.4; border: 2px solid #4a90e2; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: all 0.2s ease; } .ds-btn-outline-primary:hover { background: rgba(74,144,226,0.1); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); } .ds-btn-outline-primary:active { transform: translateY(0); } .ds-btn-outline-primary:focus { outline: 2px solid #4a90e2; outline-offset: 2px; } .ds-btn-outline-primary:disabled { background: transparent; color: #bdc3c7; border-color: #bdc3c7; cursor: not-allowed; transform: none; box-shadow: none; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard text input field for forms",
+      "html": "<input class=\"ds-input-field\" type=\"text\" placeholder=\"Enter ticket code...\">",
+      "css": ".ds-input-field { background: #fff; color: #2c3e50; border-radius: 12px; padding: 12px 16px; height: 50px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 400; line-height: 1.6; border: 1px solid #7f8c8d; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: all 0.2s ease; } .ds-input-field:focus { outline: none; border-color: #4a90e2; border-width: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); } .ds-input-field:disabled { background: #f8f9fa; color: #bdc3c7; cursor: not-allowed; } .ds-input-field::placeholder { color: #bdc3c7; opacity: 1; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Container component for grouping related information",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Ticket Details</h3><p class=\"ds-card-content\">Sample ticket information goes here</p></div>",
+      "css": ".ds-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); } .ds-card-title { color: #2c3e50; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(1.25rem, 3vw, 2rem); font-weight: 600; line-height: 1.4; margin: 0 0 16px 0; } .ds-card-content { color: #2c3e50; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(1rem, 2.5vw, 1.5rem); font-weight: 400; line-height: 1.6; }"
+    },
+    {
+      "name": "Navigation Item",
+      "kind": "nav",
+      "refersTo": "navigation-item",
+      "description": "Bottom navigation bar item",
+      "html": "<div class=\"ds-nav-item\"><span class=\"ds-nav-icon\">🎫</span><span class=\"ds-nav-label\">Tickets</span></div>",
+      "css": ".ds-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; color: #7f8c8d; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(0.75rem, 2vw, 1.125rem); font-weight: 500; line-height: 1.4; } .ds-nav-item .ds-nav-icon { font-size: 24px; margin-bottom: 4px; } .ds-nav-item .ds-nav-label { display: block; } .ds-nav-item:hover { color: #4a90e2; } .ds-nav-item.active { color: #4a90e2; }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Status tag for ticket information",
+      "html": "<span class=\"ds-badge\">VALID</span>",
+      "css": ".ds-badge { background: #ff6b6b; color: #fff; border-radius: 4px; padding: 4px 8px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(0.75rem, 2vw, 1.125rem); font-weight: 500; line-height: 1.4; }"
+    },
+    {
+      "name": "Outline Badge",
+      "kind": "chip",
+      "refersTo": "badge-outline",
+      "description": "Outlined status tag for ticket information",
+      "html": "<span class=\"ds-badge-outline\">EXPIRING SOON</span>",
+      "css": ".ds-badge-outline { background: transparent; color: #ff6b6b; border-radius: 4px; padding: 4px 8px; border: 1px solid #ff6b6b; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: clamp(0.75rem, 2vw, 1.125rem); font-weight: 500; line-height: 1.4; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Accessible Event Companion",
+    "overview": "TicketScan embodies the philosophy of democratizing event access through intuitive, mobile-first design. Rather than relying on expensive specialized hardware, the app transforms everyday smartphones into powerful ticket validation tools. The design prioritizes clarity, speed, and reliability—essential qualities for high-pressure event entry scenarios where split-second decisions impact attendee experience.\n\nThe visual language balances professionalism with approachability, using a calm blue primary palette that conveys trust and security, complemented by vibrant teal and coral accents that guide attention to critical actions. Typography is clean and highly legible, ensuring information is readable at a glance even in varying lighting conditions. Interactive elements provide clear tactile feedback, building user confidence in each validation action.",
+    "keyCharacteristics": [
+      "Mobile-first, touch-optimized interface designed for quick interactions",
+      "High-contrast, legible typography for readability in varied lighting",
+      "Consistent spacing and alignment for predictable touch targets",
+      "Clear visual hierarchy that guides users to primary actions",
+      "Subtle elevation and shadow use for depth without visual clutter",
+      "Accessible color combinations meeting WCAG AA standards",
+      "Responsive layout adapting to various smartphone screen sizes"
+    ],
+    "rules": [
+      {
+        "name": "The Trustworthy Blue Rule",
+        "body": "Use Trustworthy Blue (#4A90E2) for primary actions and key interactive elements to maintain visual consistency and brand recognition",
+        "section": "colors"
+      },
+      {
+        "name": "The Touch Target Rule",
+        "body": "Maintain minimum 48x48px touch targets for all interactive elements to ensure accessibility",
+        "section": "layout"
+      },
+      {
+        "name": "The Consistent Radius Rule",
+        "body": "Apply 16px radius (lg) to cards and containers for a consistent, modern feel",
+        "section": "shapes"
+      },
+      {
+        "name": "The 8px Grid Rule",
+        "body": "Use the 8px grid system for all spacing, positioning, and sizing decisions",
+        "section": "layout"
+      },
+      {
+        "name": "The Tactile Feedback Rule",
+        "body": "Elevate interactive elements on press/focus with subtle shadow (0 4px 12px rgba(0,0,0,0.12)) to provide tactile feedback",
+        "section": "elevation"
+      },
+      {
+        "name": "The Secondary Teal Rule",
+        "body": "Use Fresh Teal (#50E3C2) for secondary actions and supplementary information",
+        "section": "colors"
+      },
+      {
+        "name": "The Attention Coral Rule",
+        "body": "Reserve Attention Coral (#FF6B6B) for error states, warnings, and critical alerts requiring immediate attention",
+        "section": "colors"
+      },
+      {
+        "name": "The Vertical Rhythm Rule",
+        "body": "Maintain consistent vertical rhythm with 12-16px spacing between related elements and 24px between distinct sections",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "Do use the Trustworthy Blue (#4A90E2) for primary actions and key interactive elements to maintain visual consistency and brand recognition",
+      "Do maintain minimum 48x48px touch targets for all interactive elements to ensure accessibility",
+      "Do apply 16px radius (lg) to cards and containers for a consistent, modern feel",
+      "Do use the 8px grid system for all spacing, positioning, and sizing decisions",
+      "Do elevate interactive elements on press/focus with subtle shadow (0 4px 12px rgba(0,0,0,0.12)) to provide tactile feedback",
+      "Do use Fresh Teal (#50E3C2) for secondary actions and supplementary information",
+      "Do reserve Attention Coral (#FF6B6B) for error states, warnings, and critical alerts requiring immediate attention",
+      "Do maintain consistent vertical rhythm with 12-16px spacing between related elements and 24px between distinct sections"
+    ],
+    "donts": [
+      "Don't use pure black (#000000) for text—use Dark Blue (#2C3E50) in light mode and light gray (#ECF0F1) in dark mode for better readability",
+      "Don't create touch targets smaller than 48x48px, as this impairs usability especially in mobile contexts",
+      "Don't mix different radius values within the same element type—inconsistent rounding creates visual noise",
+      "Don't use borders as the primary means of defining element boundaries—prefer elevation and background color changes",
+      "Don't apply elevation to static elements that don't change state—reserve lift for interactive components",
+      "Don't use the Accent Coral (#FF6B6B) for primary actions or frequent interactive elements—its impact diminishes with overuse",
+      "Don't reduce padding below 8px on any side, as this creates cramped layouts and increases risk of accidental activation",
+      "Don't use font weights below 400 for body text—light weights impair readability on mobile screens"
+    ]
+  }
+}
