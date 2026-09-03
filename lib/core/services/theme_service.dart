@@ -12,7 +12,7 @@ class ThemeService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedTheme = prefs.getString(AppConstants.prefThemeMode);
-      
+
       if (savedTheme != null) {
         switch (savedTheme) {
           case 'light':
@@ -32,11 +32,11 @@ class ThemeService {
 
   static Future<void> setThemeMode(ThemeMode themeMode) async {
     themeModeNotifier.value = themeMode;
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       String themeString;
-      
+
       switch (themeMode) {
         case ThemeMode.light:
           themeString = 'light';
@@ -47,7 +47,7 @@ class ThemeService {
         default:
           themeString = 'system';
       }
-      
+
       await prefs.setString(AppConstants.prefThemeMode, themeString);
     } catch (e) {
       print('Erreur sauvegarde thème: $e');

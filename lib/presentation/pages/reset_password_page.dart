@@ -16,7 +16,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -35,7 +35,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     final loc = AppLocalizations.of(context);
     try {
       final newPassword = _passwordController.text;
-      
+
       await Supabase.instance.client.auth.updateUser(
         UserAttributes(password: newPassword),
       );
@@ -45,7 +45,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: Text(loc?.get('reset_password') ?? 'Réinitialiser le mot de passe'),
+            title: Text(
+              loc?.get('reset_password') ?? 'Réinitialiser le mot de passe',
+            ),
             content: Text(
               loc?.get('password_reset_success') ??
                   'Votre mot de passe a été réinitialisé avec succès !',
@@ -61,7 +63,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   );
                 },
                 child: const Text('OK'),
-              )
+              ),
             ],
           ),
         );
@@ -89,7 +91,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Theme.of(context).colorScheme.onBackground,
-        automaticallyImplyLeading: false, // Don't show back button since we came from deep link
+        automaticallyImplyLeading:
+            false, // Don't show back button since we came from deep link
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -103,9 +106,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 Text(
                   loc?.get('reset_password') ?? 'Nouveau mot de passe',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -122,8 +125,13 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   obscureText: _obscurePassword,
                   prefixIcon: Icons.lock_outline,
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -138,19 +146,28 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _confirmPasswordController,
-                  label: loc?.get('confirm_password') ?? 'Confirmer le mot de passe',
+                  label:
+                      loc?.get('confirm_password') ??
+                      'Confirmer le mot de passe',
                   obscureText: _obscureConfirmPassword,
                   prefixIcon: Icons.lock_outline,
                   suffixIcon: IconButton(
-                    icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () => setState(
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Veuillez confirmer votre mot de passe';
                     }
                     if (value != _passwordController.text) {
-                      return loc?.get('passwords_dont_match') ?? 'Les mots de passe ne correspondent pas';
+                      return loc?.get('passwords_dont_match') ??
+                          'Les mots de passe ne correspondent pas';
                     }
                     return null;
                   },

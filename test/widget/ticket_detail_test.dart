@@ -10,7 +10,9 @@ import 'package:ticketscan_new/data/models/ticket_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
-  testWidgets('TicketDetailPage displays products cleanly (no braces)', (WidgetTester tester) async {
+  testWidgets('TicketDetailPage displays products cleanly (no braces)', (
+    WidgetTester tester,
+  ) async {
     final testTicket = TicketModel(
       id: '123',
       storeName: 'BOULANGER',
@@ -18,7 +20,7 @@ void main() {
       totalAmount: 150.0,
       currency: '€',
       products: [
-        {'name': 'Aspirateur', 'price': '150.00', 'hasWarranty': true}
+        {'name': 'Aspirateur', 'price': '150.00', 'hasWarranty': true},
       ],
       imageUrls: [],
       warrantyEndDate: DateTime.now().add(const Duration(days: 365)),
@@ -47,7 +49,7 @@ void main() {
 
     // Vérifier que le nom du produit est affiché seul
     expect(find.text('Aspirateur'), findsOneWidget);
-    
+
     // Vérifier qu'il n'y a PAS d'accolades dans l'affichage du produit
     expect(find.textContaining('{'), findsNothing);
   });

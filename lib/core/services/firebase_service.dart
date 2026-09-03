@@ -75,12 +75,12 @@
 //       final storeName = data['storeName']?.toString().toLowerCase() ?? '';
 //       final products = List<String>.from(data['products'] ?? []);
 //       final extractedText = List<String>.from(data['extractedText'] ?? []);
-      
+
 //       return storeName.contains(searchTerm.toLowerCase()) ||
 //              products.any((product) => product.toLowerCase().contains(searchTerm.toLowerCase())) ||
 //              extractedText.any((text) => text.toLowerCase().contains(searchTerm.toLowerCase()));
 //     }).toList();
-    
+
 //     return results;
 //   }
 
@@ -88,7 +88,7 @@
 //   static Future<String> uploadTicketImage(String filePath, String fileName) async {
 //     final userId = currentUser?.uid;
 //     if (userId == null) throw Exception('User not authenticated');
-    
+
 //     try {
 //       final file = File(filePath);
 //       if (!await file.exists()) {
@@ -128,7 +128,7 @@
 //     final thirtyDaysLater = Timestamp.fromDate(
 //       DateTime.now().add(const Duration(days: 30))
 //     );
-    
+
 //     return getTicketsCollection()
 //         .where('warrantyEndDate', isGreaterThan: now)
 //         .where('warrantyEndDate', isLessThan: thirtyDaysLater)

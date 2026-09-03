@@ -7,14 +7,14 @@ class TicketsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           localizations?.get('my_tickets') ?? 'Mes Tickets',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         elevation: 0,
         actions: [
@@ -22,7 +22,12 @@ class TicketsPage extends StatelessWidget {
             icon: const Icon(Icons.filter_list),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(localizations?.get('filters_soon') ?? 'Filtres bientôt disponibles')),
+                SnackBar(
+                  content: Text(
+                    localizations?.get('filters_soon') ??
+                        'Filtres bientôt disponibles',
+                  ),
+                ),
               );
             },
           ),
@@ -32,7 +37,11 @@ class TicketsPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(localizations?.get('scan_soon') ?? 'Scan bientôt disponible')),
+            SnackBar(
+              content: Text(
+                localizations?.get('scan_soon') ?? 'Scan bientôt disponible',
+              ),
+            ),
           );
         },
         backgroundColor: Theme.of(context).primaryColor,
@@ -43,7 +52,7 @@ class TicketsPage extends StatelessWidget {
 
   Widget _buildEmptyState(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -64,18 +73,13 @@ class TicketsPage extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             localizations?.get('no_tickets') ?? 'Aucun ticket',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            localizations?.get('scan_first_ticket') ?? 'Scannez votre premier ticket pour commencer',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+            localizations?.get('scan_first_ticket') ??
+                'Scannez votre premier ticket pour commencer',
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -84,7 +88,9 @@ class TicketsPage extends StatelessWidget {
               // TODO: Naviguer vers le scan
             },
             icon: const Icon(Icons.camera_alt),
-            label: Text(localizations?.get('scan_ticket') ?? 'Scanner un ticket'),
+            label: Text(
+              localizations?.get('scan_ticket') ?? 'Scanner un ticket',
+            ),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(

@@ -26,17 +26,27 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   void _initializeAnimations() {
-    _logoController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
-    _textController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
-    _logoAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
-    _textAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _textController, curve: Curves.easeInOut));
+    _logoController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _textController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _logoAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
+    );
+    _textAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _textController, curve: Curves.easeInOut),
+    );
     _logoController.forward().then((_) => _textController.forward());
   }
 
   Future<void> _initializeApp() async {
     await Future.delayed(const Duration(milliseconds: 2000));
     final status = await VersionService.checkVersion();
-    
+
     if (status != null) {
       if (status['maintenance'] == true) {
         _showMaintenanceDialog();
@@ -51,7 +61,10 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     if (!mounted) return;
     final user = SupabaseService.currentUser;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => user != null ? const HomePage() : const AuthPage()),
+      MaterialPageRoute(
+        builder: (context) =>
+            user != null ? const HomePage() : const AuthPage(),
+      ),
     );
   }
 
@@ -61,11 +74,17 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Mise à jour requise'),
-        content: const Text('Une nouvelle version est disponible. Veuillez mettre à jour pour continuer.'),
+        content: const Text(
+          'Une nouvelle version est disponible. Veuillez mettre à jour pour continuer.',
+        ),
         actions: [
           ElevatedButton(
             onPressed: () async {
-              if (url.isNotEmpty) await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+              if (url.isNotEmpty)
+                await launchUrl(
+                  Uri.parse(url),
+                  mode: LaunchMode.externalApplication,
+                );
             },
             child: const Text('Mettre à jour'),
           ),
@@ -75,7 +94,14 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   }
 
   void _showMaintenanceDialog() {
-    showDialog(context: context, barrierDismissible: false, builder: (context) => const AlertDialog(title: Text('Maintenance'), content: Text('Application en maintenance.')));
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        title: Text('Maintenance'),
+        content: Text('Application en maintenance.'),
+      ),
+    );
   }
 
   @override
@@ -98,16 +124,26 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
               builder: (context, child) => Transform.scale(
                 scale: _logoAnimation.value,
                 child: Container(
-                  width: 120, height: 120,
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 8))],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     // UTILISATION DE VOTRE NOUVELLE ICÔNE ICI
-                    child: Image.asset('assets/icons/app_icon.png', fit: BoxFit.cover),
+                    child: Image.asset(
+                      'assets/icons/app_icon.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
@@ -117,7 +153,13 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
               animation: _textAnimation,
               builder: (context, child) => Opacity(
                 opacity: _textAnimation.value,
-                child: Text('TicketScan', style: Theme.of(context).textTheme.displayMedium?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+                child: Text(
+                  'TicketScan',
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 64),

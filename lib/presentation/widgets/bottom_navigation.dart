@@ -76,7 +76,11 @@ class CustomBottomNavigation extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(Icons.add_a_photo_outlined, color: Colors.white, size: 28),
+          child: const Icon(
+            Icons.add_a_photo_outlined,
+            color: Colors.white,
+            size: 28,
+          ),
         ),
       ),
     );
@@ -89,8 +93,8 @@ class CustomBottomNavigation extends StatelessWidget {
     required BuildContext context,
   }) {
     final isSelected = currentIndex == index;
-    final color = isSelected 
-        ? Theme.of(context).primaryColor 
+    final color = isSelected
+        ? Theme.of(context).primaryColor
         : Colors.grey.shade500;
 
     return Material(
@@ -102,11 +106,7 @@ class CustomBottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          child: Icon(
-            isSelected ? selectedIcon : icon,
-            color: color,
-            size: 28,
-          ),
+          child: Icon(isSelected ? selectedIcon : icon, color: color, size: 28),
         ),
       ),
     );

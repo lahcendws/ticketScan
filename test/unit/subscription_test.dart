@@ -11,9 +11,8 @@ void main() {
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      //etetstst
-      service = SubscriptionService.internal(); 
-      await service.init(isTest: true); 
+      service = SubscriptionService.internal();
+      await service.init(isTest: true);
     });
 
     test('Initial logic should be free', () {
@@ -26,10 +25,28 @@ void main() {
 
     test('canScan should be true when less than 3 total tickets exist', () {
       final now = DateTime.now();
-      
+
       final tickets = [
-        TicketModel(storeName: 'A', date: now, totalAmount: 10, currency: '€', products: [], imageUrls: [], warrantyEndDate: now.add(const Duration(days: 365)), createdAt: now),
-        TicketModel(storeName: 'B', date: now, totalAmount: 10, currency: '€', products: [], imageUrls: [], warrantyEndDate: now.add(const Duration(days: 365)), createdAt: now),
+        TicketModel(
+          storeName: 'A',
+          date: now,
+          totalAmount: 10,
+          currency: '€',
+          products: [],
+          imageUrls: [],
+          warrantyEndDate: now.add(const Duration(days: 365)),
+          createdAt: now,
+        ),
+        TicketModel(
+          storeName: 'B',
+          date: now,
+          totalAmount: 10,
+          currency: '€',
+          products: [],
+          imageUrls: [],
+          warrantyEndDate: now.add(const Duration(days: 365)),
+          createdAt: now,
+        ),
       ];
 
       expect(service.canScan(tickets), isTrue);
@@ -37,11 +54,38 @@ void main() {
 
     test('canScan should be false when 3 total tickets exist', () {
       final now = DateTime.now();
-      
+
       final tickets = [
-        TicketModel(storeName: 'A', date: now, totalAmount: 10, currency: '€', products: [], imageUrls: [], warrantyEndDate: now.add(const Duration(days: 365)), createdAt: now),
-        TicketModel(storeName: 'B', date: now, totalAmount: 10, currency: '€', products: [], imageUrls: [], warrantyEndDate: now.add(const Duration(days: 365)), createdAt: now),
-        TicketModel(storeName: 'C', date: now, totalAmount: 10, currency: '€', products: [], imageUrls: [], warrantyEndDate: now.add(const Duration(days: 365)), createdAt: now),
+        TicketModel(
+          storeName: 'A',
+          date: now,
+          totalAmount: 10,
+          currency: '€',
+          products: [],
+          imageUrls: [],
+          warrantyEndDate: now.add(const Duration(days: 365)),
+          createdAt: now,
+        ),
+        TicketModel(
+          storeName: 'B',
+          date: now,
+          totalAmount: 10,
+          currency: '€',
+          products: [],
+          imageUrls: [],
+          warrantyEndDate: now.add(const Duration(days: 365)),
+          createdAt: now,
+        ),
+        TicketModel(
+          storeName: 'C',
+          date: now,
+          totalAmount: 10,
+          currency: '€',
+          products: [],
+          imageUrls: [],
+          warrantyEndDate: now.add(const Duration(days: 365)),
+          createdAt: now,
+        ),
       ];
 
       expect(service.canScan(tickets), isFalse);
@@ -49,11 +93,38 @@ void main() {
 
     test('canScan should count expired tickets too (total limit rule)', () {
       final now = DateTime.now();
-      
+
       final tickets = [
-        TicketModel(storeName: 'A', date: now, totalAmount: 10, currency: '€', products: [], imageUrls: [], warrantyEndDate: now.add(const Duration(days: 365)), createdAt: now),
-        TicketModel(storeName: 'B', date: now, totalAmount: 10, currency: '€', products: [], imageUrls: [], warrantyEndDate: now.subtract(const Duration(days: 1)), createdAt: now),
-        TicketModel(storeName: 'C', date: now, totalAmount: 10, currency: '€', products: [], imageUrls: [], warrantyEndDate: now.subtract(const Duration(days: 1)), createdAt: now),
+        TicketModel(
+          storeName: 'A',
+          date: now,
+          totalAmount: 10,
+          currency: '€',
+          products: [],
+          imageUrls: [],
+          warrantyEndDate: now.add(const Duration(days: 365)),
+          createdAt: now,
+        ),
+        TicketModel(
+          storeName: 'B',
+          date: now,
+          totalAmount: 10,
+          currency: '€',
+          products: [],
+          imageUrls: [],
+          warrantyEndDate: now.subtract(const Duration(days: 1)),
+          createdAt: now,
+        ),
+        TicketModel(
+          storeName: 'C',
+          date: now,
+          totalAmount: 10,
+          currency: '€',
+          products: [],
+          imageUrls: [],
+          warrantyEndDate: now.subtract(const Duration(days: 1)),
+          createdAt: now,
+        ),
       ];
 
       // Même expirés, les 3 tickets bloquent le scan (règle stricte)

@@ -9,18 +9,18 @@ class AppTheme {
   static const Color backgroundColor = Color(0xFFF8F9FA);
   static const Color surfaceColor = Color(0xFFFFFFFF);
   static const Color cardColor = Color(0xFFFFFFFF);
-  
+
   // Couleurs sombres
   static const Color darkBackgroundColor = Color(0xFF1A1A2E);
   static const Color darkSurfaceColor = Color(0xFF16213E);
   static const Color darkCardColor = Color(0xFF0F3460);
-  
+
   // Couleurs texte
   static const Color textPrimary = Color(0xFF2C3E50);
   static const Color textSecondary = Color(0xFF7F8C8D);
   static const Color darkTextPrimary = Color(0xFFECF0F1);
   static const Color darkTextSecondary = Color(0xFFBDC3C7);
-  
+
   // Couleurs de statut
   static const Color successColor = Color(0xFF27AE60);
   static const Color warningColor = Color(0xFFF39C12);
@@ -59,9 +59,7 @@ class AppTheme {
         color: cardColor,
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -167,10 +165,7 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-      iconTheme: IconThemeData(
-        color: textSecondary,
-        size: 24,
-      ),
+      iconTheme: IconThemeData(color: textSecondary, size: 24),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: surfaceColor,
         selectedItemColor: primaryColor,
@@ -214,9 +209,7 @@ class AppTheme {
         color: darkCardColor,
         elevation: 4,
         shadowColor: Colors.black.withOpacity(0.3),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -322,10 +315,7 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-      iconTheme: IconThemeData(
-        color: darkTextSecondary,
-        size: 24,
-      ),
+      iconTheme: IconThemeData(color: darkTextSecondary, size: 24),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: darkSurfaceColor,
         selectedItemColor: primaryColor,

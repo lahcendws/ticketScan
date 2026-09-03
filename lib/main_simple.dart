@@ -4,7 +4,7 @@ import 'presentation/themes/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   runApp(const TicketScanApp());
 }
 

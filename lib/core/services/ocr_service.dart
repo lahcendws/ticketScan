@@ -5,7 +5,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class OCRService {
   static final _supabase = Supabase.instance.client;
 
-  static Future<TicketAnalysis> extractTextFromImages(List<String> imagePaths) async {
+  static Future<TicketAnalysis> extractTextFromImages(
+    List<String> imagePaths,
+  ) async {
     try {
       // Convertir toutes les images en Base64
       List<String> base64Images = [];
@@ -22,19 +24,29 @@ class OCRService {
 
       if (response.status == 200) {
         final dynamic data = response.data;
-        Map<String, dynamic> content = (data is String) ? jsonDecode(data) : Map<String, dynamic>.from(data);
+        Map<String, dynamic> content = (data is String)
+            ? jsonDecode(data)
+            : Map<String, dynamic>.from(data);
 
         return TicketAnalysis(
           storeName: content['storeName']?.toString() ?? 'Magasin',
           storeAddress: content['storeAddress']?.toString(),
           category: content['category']?.toString() ?? 'Électronique',
-          date: DateTime.tryParse(content['date']?.toString() ?? '') ?? DateTime.now(),
-          totalAmount: double.tryParse(content['totalAmount']?.toString() ?? '0') ?? 0.0,
+          date:
+              DateTime.tryParse(content['date']?.toString() ?? '') ??
+              DateTime.now(),
+          totalAmount:
+              double.tryParse(content['totalAmount']?.toString() ?? '0') ?? 0.0,
           currency: content['currency']?.toString() ?? '€',
-          products: (content['products'] as List?)?.map((p) => Map<String, dynamic>.from(p)).toList() ?? [],
+          products:
+              (content['products'] as List?)
+                  ?.map((p) => Map<String, dynamic>.from(p))
+                  .toList() ??
+              [],
           extractedText: [],
           // Garantie renvoyée par l'edge function, sinon 2 ans par défaut
-          warrantyYears: int.tryParse(content['warrantyYears']?.toString() ?? '') ?? 2,
+          warrantyYears:
+              int.tryParse(content['warrantyYears']?.toString() ?? '') ?? 2,
         );
       }
       throw Exception('Erreur serveur: ${response.status}');

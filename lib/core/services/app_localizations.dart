@@ -8,7 +8,8 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   static const Map<String, String> _fr = {
     'app_name': 'TicketScan',
@@ -53,7 +54,8 @@ class AppLocalizations {
     'per_month': '/ Mois',
     'per_year': '/ An',
     'limit_reached_msg': 'Vous avez utilisé vos 3 tickets gratuits.',
-    'limit_reached_sub': 'Votre accès est limité. Abonnez-vous dès maintenant pour bénéficier d\'un accès complet.',
+    'limit_reached_sub':
+        'Votre accès est limité. Abonnez-vous dès maintenant pour bénéficier d\'un accès complet.',
     'subscribe': 'Souscrire',
     'terms_of_service': 'Conditions d\'utilisation',
     'premium_yearly_detail': 'Abonnement annuel',
@@ -62,15 +64,18 @@ class AppLocalizations {
     'yearly': 'Annuel',
     'monthly': 'Mensuel',
     'premium_unlock_msg': 'Accès illimité à toutes les fonctions',
-    'payment_secure_note': 'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.',
+    'payment_secure_note':
+        'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.',
     'pay_google_play': 'Payer via Google Play',
     'premium_activated': 'Félicitations ! Vous êtes maintenant Premium 🚀',
-    'play_play_unavailable': 'Le service Google Play n\'est pas disponible pour le moment.',
+    'play_play_unavailable':
+        'Le service Google Play n\'est pas disponible pour le moment.',
     'live_env': 'Environnement en direct',
     'premium_banner_msg': 'Passez à la version Premium',
     'contact_support': 'Contacter le support',
     'delete_account': 'Supprimer mon compte',
-    'delete_account_warning': 'Attention : cette action est irréversible. Toutes vos données seront supprimées.',
+    'delete_account_warning':
+        'Attention : cette action est irréversible. Toutes vos données seront supprimées.',
     'dark_mode': 'Mode sombre',
     'language': 'Langue',
     'forgot_password': 'Mot de passe oublié ?',
@@ -80,30 +85,42 @@ class AppLocalizations {
     'new_password': 'Nouveau mot de passe',
     'confirm_password': 'Confirmer le mot de passe',
     'passwords_dont_match': 'Les mots de passe ne correspondent pas',
-    'password_reset_success': 'Votre mot de passe a été réinitialisé avec succès !',
-    'reset_link_sent': 'Un lien de réinitialisation a été envoyé à votre adresse email.',
+    'password_reset_success':
+        'Votre mot de passe a été réinitialisé avec succès !',
+    'reset_link_sent':
+        'Un lien de réinitialisation a été envoyé à votre adresse email.',
     'forgot_email_title': 'Email oublié ?',
-    'forgot_email_content': 'Pour retrouver votre compte, nous vous invitons à :\n\n1. Rechercher "TicketScan" dans vos boîtes mail pour retrouver l\'email d\'inscription.\n\n2. Si vous avez un abonnement Premium actif, contactez le support avec votre justificatif pour retrouver votre compte.',
+    'forgot_email_content':
+        'Pour retrouver votre compte, nous vous invitons à :\n\n1. Rechercher "TicketScan" dans vos boîtes mail pour retrouver l\'email d\'inscription.\n\n2. Si vous avez un abonnement Premium actif, contactez le support avec votre justificatif pour retrouver votre compte.',
     'contact_support_button': 'Contacter le support',
     // Auth error messages
     'error_title': 'Erreur de connexion',
-    'error_invalid_credentials': 'Email ou mot de passe incorrect. Veuillez vérifier vos identifiants et réessayer.',
-    'error_email_not_confirmed': 'Votre adresse email n\'a pas encore été confirmée. Veuillez vérifier votre boîte de réception.',
+    'error_invalid_credentials':
+        'Email ou mot de passe incorrect. Veuillez vérifier vos identifiants et réessayer.',
+    'error_email_not_confirmed':
+        'Votre adresse email n\'a pas encore été confirmée. Veuillez vérifier votre boîte de réception.',
     'error_user_not_found': 'Aucun compte trouvé avec cette adresse email.',
-    'error_weak_password': 'Le mot de passe doit contenir au moins 6 caractères.',
+    'error_weak_password':
+        'Le mot de passe doit contenir au moins 6 caractères.',
     'error_email_taken': 'Un compte existe déjà avec cette adresse email.',
-    'error_too_many_requests': 'Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.',
-    'error_network': 'Erreur de connexion réseau. Vérifiez votre connexion internet et réessayez.',
+    'error_too_many_requests':
+        'Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.',
+    'error_network':
+        'Erreur de connexion réseau. Vérifiez votre connexion internet et réessayez.',
     'error_generic': 'Une erreur est survenue. Veuillez réessayer.',
     'error_signup_title': 'Erreur d\'inscription',
     // Auth success messages
     'success_email_not_confirmed_title': 'Email non confirmé',
-    'success_email_not_confirmed_msg': 'Veuillez vérifier votre boîte mail et cliquer sur le lien de confirmation.',
+    'success_email_not_confirmed_msg':
+        'Veuillez vérifier votre boîte mail et cliquer sur le lien de confirmation.',
     'success_account_created_title': 'Compte créé !',
-    'success_account_created_msg': 'Un email de confirmation vous a été envoyé.',
+    'success_account_created_msg':
+        'Un email de confirmation vous a été envoyé.',
     'no_warranty_title': 'Aucun produit sous garantie',
-    'no_warranty_banner': 'Aucun produit garanti — le ticket ne sera pas enregistré',
-    'no_warranty_msg': 'Ce ticket ne présente aucun produit sous garantie. Il ne sera pas enregistré : sans produit garanti, il est inutile pour le suivi des garanties. Activez la garantie sur au moins un produit pour le conserver, ou abandonnez ce scan.',
+    'no_warranty_banner':
+        'Aucun produit garanti — le ticket ne sera pas enregistré',
+    'no_warranty_msg':
+        'Ce ticket ne présente aucun produit sous garantie. Il ne sera pas enregistré : sans produit garanti, il est inutile pour le suivi des garanties. Activez la garantie sur au moins un produit pour le conserver, ou abandonnez ce scan.',
     'abandon_scan': 'Abandonner le scan',
     'edit_warranty': 'Modifier la garantie',
     'verification_title': 'Vérification',
@@ -172,7 +189,8 @@ class AppLocalizations {
     'per_month': '/ Month',
     'per_year': '/ Year',
     'limit_reached_msg': 'You have used your 3 free tickets.',
-    'limit_reached_sub': 'Your access is limited. Subscribe now to enjoy full access.',
+    'limit_reached_sub':
+        'Your access is limited. Subscribe now to enjoy full access.',
     'subscribe': 'Subscribe',
     'terms_of_service': 'Terms of Service',
     'premium_yearly_detail': 'Yearly subscription',
@@ -181,7 +199,8 @@ class AppLocalizations {
     'yearly': 'Yearly',
     'monthly': 'Monthly',
     'premium_unlock_msg': 'Unlimited access to all features',
-    'payment_secure_note': 'Payment is securely processed by Google Play. You can cancel anytime in your Google Play settings.',
+    'payment_secure_note':
+        'Payment is securely processed by Google Play. You can cancel anytime in your Google Play settings.',
     'pay_google_play': 'Pay with Google Play',
     'premium_activated': 'Congratulations! You are now Premium 🚀',
     'play_play_unavailable': 'Google Play service is not available right now.',
@@ -189,7 +208,8 @@ class AppLocalizations {
     'premium_banner_msg': 'Upgrade to Premium version',
     'contact_support': 'Contact Support',
     'delete_account': 'Delete my account',
-    'delete_account_warning': 'Warning: this action is irreversible. All your data will be deleted.',
+    'delete_account_warning':
+        'Warning: this action is irreversible. All your data will be deleted.',
     'dark_mode': 'Dark mode',
     'language': 'Language',
     'forgot_password': 'Forgot password?',
@@ -200,29 +220,38 @@ class AppLocalizations {
     'confirm_password': 'Confirm Password',
     'passwords_dont_match': 'Passwords do not match',
     'password_reset_success': 'Your password has been successfully reset!',
-    'reset_link_sent': 'A password reset link has been sent to your email address.',
+    'reset_link_sent':
+        'A password reset link has been sent to your email address.',
     'forgot_email_title': 'Forgot Email?',
-    'forgot_email_content': 'To find your account, we suggest you:\n\n1. Search for "TicketScan" in your email inboxes to find the registration email.\n\n2. If you have an active Premium subscription, contact support with your proof of purchase to locate your account.',
+    'forgot_email_content':
+        'To find your account, we suggest you:\n\n1. Search for "TicketScan" in your email inboxes to find the registration email.\n\n2. If you have an active Premium subscription, contact support with your proof of purchase to locate your account.',
     'contact_support_button': 'Contact Support',
     // Auth error messages
     'error_title': 'Sign in error',
-    'error_invalid_credentials': 'Incorrect email or password. Please check your credentials and try again.',
-    'error_email_not_confirmed': 'Your email address has not been confirmed yet. Please check your inbox.',
+    'error_invalid_credentials':
+        'Incorrect email or password. Please check your credentials and try again.',
+    'error_email_not_confirmed':
+        'Your email address has not been confirmed yet. Please check your inbox.',
     'error_user_not_found': 'No account found with this email address.',
     'error_weak_password': 'Password must be at least 6 characters long.',
     'error_email_taken': 'An account already exists with this email address.',
-    'error_too_many_requests': 'Too many attempts. Please wait a few minutes before trying again.',
-    'error_network': 'Network connection error. Please check your internet connection and try again.',
+    'error_too_many_requests':
+        'Too many attempts. Please wait a few minutes before trying again.',
+    'error_network':
+        'Network connection error. Please check your internet connection and try again.',
     'error_generic': 'An error occurred. Please try again.',
     'error_signup_title': 'Sign up error',
     // Auth success messages
     'success_email_not_confirmed_title': 'Email not confirmed',
-    'success_email_not_confirmed_msg': 'Please check your inbox and click the confirmation link.',
+    'success_email_not_confirmed_msg':
+        'Please check your inbox and click the confirmation link.',
     'success_account_created_title': 'Account created!',
     'success_account_created_msg': 'A confirmation email has been sent to you.',
     'no_warranty_title': 'No product under warranty',
-    'no_warranty_banner': 'No product under warranty — the ticket will not be saved',
-    'no_warranty_msg': 'This receipt has no product under warranty. It will not be saved: without a warranty product, it is useless for warranty tracking. Enable the warranty on at least one product to keep it, or abandon this scan.',
+    'no_warranty_banner':
+        'No product under warranty — the ticket will not be saved',
+    'no_warranty_msg':
+        'This receipt has no product under warranty. It will not be saved: without a warranty product, it is useless for warranty tracking. Enable the warranty on at least one product to keep it, or abandon this scan.',
     'abandon_scan': 'Abandon scan',
     'edit_warranty': 'Edit warranty',
     'verification_title': 'Verification',
@@ -249,17 +278,21 @@ class AppLocalizations {
   };
 
   String get(String key) {
-    Map<String, String> translations = (locale.languageCode == 'en') ? _en : _fr;
+    Map<String, String> translations = (locale.languageCode == 'en')
+        ? _en
+        : _fr;
     return translations[key] ?? key;
   }
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
   @override
   bool isSupported(Locale locale) => ['en', 'fr'].contains(locale.languageCode);
   @override
-  Future<AppLocalizations> load(Locale locale) async => AppLocalizations(locale);
+  Future<AppLocalizations> load(Locale locale) async =>
+      AppLocalizations(locale);
   @override
   bool shouldReload(LocalizationsDelegate<AppLocalizations> old) => false;
 }

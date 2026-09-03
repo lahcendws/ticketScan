@@ -6,7 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin _notifications = 
+  static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
 
   static bool _initialized = false;
@@ -80,12 +80,12 @@ class NotificationService {
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'warranty_channel',
-      'Rappels de Garantie',
-      channelDescription: 'Notifications pour les fins de garantie',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
+          'warranty_channel',
+          'Rappels de Garantie',
+          channelDescription: 'Notifications pour les fins de garantie',
+          importance: Importance.high,
+          priority: Priority.high,
+        );
 
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
@@ -99,7 +99,8 @@ class NotificationService {
       platformChannelSpecifics,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle, // FIX: Utilise des alarmes inexactes pour éviter le plantage
+      androidScheduleMode: AndroidScheduleMode
+          .inexactAllowWhileIdle, // FIX: Utilise des alarmes inexactes pour éviter le plantage
     );
   }
 

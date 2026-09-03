@@ -33,8 +33,14 @@ class VersionService {
   // MÉTHODE ISOLÉE POUR LES TESTS
   static bool isUpdateRequired(String currentVersion, String minVersion) {
     try {
-      List<int> currentParts = currentVersion.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-      List<int> minParts = minVersion.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      List<int> currentParts = currentVersion
+          .split('.')
+          .map((e) => int.tryParse(e) ?? 0)
+          .toList();
+      List<int> minParts = minVersion
+          .split('.')
+          .map((e) => int.tryParse(e) ?? 0)
+          .toList();
 
       for (int i = 0; i < 3; i++) {
         int curr = i < currentParts.length ? currentParts[i] : 0;

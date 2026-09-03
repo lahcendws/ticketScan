@@ -16,7 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
-  
+
   final List<Widget> _pages = [
     const TicketsPage(),
     const SearchPage(),
@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    
+
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
       if (event.session == null && mounted) {
         Navigator.of(context).pushAndRemoveUntil(
@@ -40,9 +40,9 @@ class _HomePageState extends State<HomePage> {
   void _onTabTapped(int index) {
     if (index == 2) {
       // Ouvre le scan en plein écran au lieu de changer d'onglet
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const ScanPage()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => const ScanPage()));
     } else {
       setState(() {
         // Ajustement de l'index car on a retiré la page de scan de la liste _pages
@@ -54,10 +54,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: CustomBottomNavigation(
         // On recalcule l'index pour la barre de navigation
         currentIndex: _currentIndex >= 2 ? _currentIndex + 1 : _currentIndex,

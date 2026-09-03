@@ -31,7 +31,10 @@ class _PaymentPageState extends State<PaymentPage> {
   @override
   void dispose() {
     // Très important : retirer l'écouteur pour éviter les fuites mémoire
-    Provider.of<SubscriptionService>(context, listen: false).removeListener(_onSubscriptionChanged);
+    Provider.of<SubscriptionService>(
+      context,
+      listen: false,
+    ).removeListener(_onSubscriptionChanged);
     super.dispose();
   }
 
@@ -44,7 +47,10 @@ class _PaymentPageState extends State<PaymentPage> {
       Navigator.of(context).popUntil((route) => route.isFirst);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)?.get('premium_activated') ?? 'Félicitations ! Vous êtes maintenant Premium 🚀'),
+          content: Text(
+            AppLocalizations.of(context)?.get('premium_activated') ??
+                'Félicitations ! Vous êtes maintenant Premium 🚀',
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -63,7 +69,11 @@ class _PaymentPageState extends State<PaymentPage> {
         elevation: 0,
         title: Text(
           loc?.get('upgrade_premium') ?? 'Passer au Premium',
-          style: const TextStyle(color: _darkTextColor, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          style: const TextStyle(
+            color: _darkTextColor,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
         ),
       ),
       body: SafeArea(
@@ -76,7 +86,8 @@ class _PaymentPageState extends State<PaymentPage> {
               Text(
                 isYearly
                     ? (loc?.get('premium_yearly_detail') ?? 'Abonnement annuel')
-                    : (loc?.get('premium_monthly_detail') ?? 'Abonnement mensuel'),
+                    : (loc?.get('premium_monthly_detail') ??
+                          'Abonnement mensuel'),
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
@@ -86,7 +97,8 @@ class _PaymentPageState extends State<PaymentPage> {
               ),
               const SizedBox(height: 12),
               Text(
-                loc?.get('premium_unlock_msg') ?? 'Accès illimité à toutes les fonctions',
+                loc?.get('premium_unlock_msg') ??
+                    'Accès illimité à toutes les fonctions',
                 style: TextStyle(
                   fontSize: 15,
                   color: Colors.grey.shade600,
@@ -112,7 +124,11 @@ class _PaymentPageState extends State<PaymentPage> {
                             color: _primaryColor.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(Icons.auto_awesome_motion_rounded, color: _primaryColor, size: 28),
+                          child: const Icon(
+                            Icons.auto_awesome_motion_rounded,
+                            color: _primaryColor,
+                            size: 28,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -131,8 +147,12 @@ class _PaymentPageState extends State<PaymentPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                loc?.get('manage_unlimited') ?? 'Gérez tous vos tickets sans limite',
-                                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                loc?.get('manage_unlimited') ??
+                                    'Gérez tous vos tickets sans limite',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
                               ),
                             ],
                           ),
@@ -140,7 +160,11 @@ class _PaymentPageState extends State<PaymentPage> {
                         const SizedBox(width: 12),
                         Text(
                           widget.price,
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: _primaryColor),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: _primaryColor,
+                          ),
                         ),
                       ],
                     ),
@@ -150,14 +174,21 @@ class _PaymentPageState extends State<PaymentPage> {
                       top: -12,
                       left: 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: _primaryColor,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           loc?.get('best_value_badge') ?? 'Meilleure valeur',
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -179,7 +210,9 @@ class _PaymentPageState extends State<PaymentPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primaryColor,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(29)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(29),
+                    ),
                     elevation: 0,
                     disabledBackgroundColor: _primaryColor.withOpacity(0.5),
                   ),
@@ -187,11 +220,18 @@ class _PaymentPageState extends State<PaymentPage> {
                       ? const SizedBox(
                           width: 24,
                           height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
                       : Text(
-                          loc?.get('pay_google_play') ?? 'Payer via Google Play',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          loc?.get('pay_google_play') ??
+                              'Payer via Google Play',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ),
@@ -207,25 +247,29 @@ class _PaymentPageState extends State<PaymentPage> {
     setState(() => _isProcessing = true);
 
     try {
-      final subService = Provider.of<SubscriptionService>(context, listen: false);
+      final subService = Provider.of<SubscriptionService>(
+        context,
+        listen: false,
+      );
       final productId = _isYearly ? 'premium_yearly' : 'premium_monthly';
-      
+
       final success = await subService.upgradeToPremium(productId);
 
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context)?.get('play_play_unavailable') ?? 'Le service Google Play n\'est pas disponible pour le moment.',
+              AppLocalizations.of(context)?.get('play_play_unavailable') ??
+                  'Le service Google Play n\'est pas disponible pour le moment.',
             ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur : $e')));
       }
     } finally {
       if (mounted) setState(() => _isProcessing = false);

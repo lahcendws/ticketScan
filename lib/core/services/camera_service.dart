@@ -28,7 +28,8 @@ class CameraService {
   }
 
   static CameraController? get cameraController => _cameraController;
-  static bool get isInitialized => _cameraController?.value.isInitialized ?? false;
+  static bool get isInitialized =>
+      _cameraController?.value.isInitialized ?? false;
 
   static Future<bool> requestCameraPermission() async {
     final status = await Permission.camera.request();
@@ -41,7 +42,7 @@ class CameraService {
     }
     try {
       if (Platform.isAndroid) {
-         await _cameraController!.setFlashMode(FlashMode.off);
+        await _cameraController!.setFlashMode(FlashMode.off);
       }
       final XFile picture = await _cameraController!.takePicture();
       return picture.path;
@@ -55,7 +56,7 @@ class CameraService {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1200, 
+        maxWidth: 1200,
         maxHeight: 1200,
         imageQuality: 80,
       );
