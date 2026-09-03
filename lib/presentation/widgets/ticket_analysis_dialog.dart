@@ -23,7 +23,7 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
   late TextEditingController _dateController;
   late TextEditingController _amountController;
   late TextEditingController _warrantyController;
-  
+
   // Liste de contrôleurs et états pour les produits
   final List<TextEditingController> _productNameControllers = [];
   final List<TextEditingController> _productPriceControllers = [];
@@ -41,12 +41,18 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     _amountController = TextEditingController(
       text: widget.analysis.totalAmount.toStringAsFixed(2),
     );
-    _warrantyController = TextEditingController(text: widget.analysis.warrantyYears.toString());
+    _warrantyController = TextEditingController(
+      text: widget.analysis.warrantyYears.toString(),
+    );
 
     // Initialiser les contrôleurs et les états de garantie
     for (var product in widget.analysis.products) {
-      _productNameControllers.add(TextEditingController(text: product['name']?.toString() ?? ''));
-      _productPriceControllers.add(TextEditingController(text: product['price']?.toString() ?? '0.00'));
+      _productNameControllers.add(
+        TextEditingController(text: product['name']?.toString() ?? ''),
+      );
+      _productPriceControllers.add(
+        TextEditingController(text: product['price']?.toString() ?? '0.00'),
+      );
       _productWarrantyStates.add(product['hasWarranty'] == true);
     }
   }
@@ -72,7 +78,11 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     try {
       final dateStr = _dateController.text.trim();
       final dateParts = dateStr.split('/');
-      if (dateParts.length != 3) throw Exception(AppLocalizations.of(context)?.get('invalid_date_format') ?? 'Format de date invalide');
+      if (dateParts.length != 3)
+        throw Exception(
+          AppLocalizations.of(context)?.get('invalid_date_format') ??
+              'Format de date invalide',
+        );
 
       final DateTime finalDate = DateTime(
         int.parse(dateParts[2].trim()),
@@ -80,9 +90,14 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
         int.parse(dateParts[0].trim()),
       );
 
-      String amountStr = _amountController.text.replaceAll(' ', '').replaceAll(',', '.').replaceAll('€', '').trim();
+      String amountStr = _amountController.text
+          .replaceAll(' ', '')
+          .replaceAll(',', '.')
+          .replaceAll('€', '')
+          .trim();
       final double finalAmount = double.tryParse(amountStr) ?? 0.0;
-      final int finalWarranty = int.tryParse(_warrantyController.text.trim()) ?? 2;
+      final int finalWarranty =
+          int.tryParse(_warrantyController.text.trim()) ?? 2;
 
       // Récupérer les produits modifiés avec leur état de garantie
       final List<Map<String, dynamic>> updatedProducts = [];
@@ -117,7 +132,9 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${AppLocalizations.of(context)?.get('error_prefix') ?? 'Erreur : '}${e.toString()}'),
+          content: Text(
+            '${AppLocalizations.of(context)?.get('error_prefix') ?? 'Erreur : '}${e.toString()}',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -133,7 +150,9 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(loc?.get('no_warranty_title') ?? 'Aucun produit sous garantie'),
+        title: Text(
+          loc?.get('no_warranty_title') ?? 'Aucun produit sous garantie',
+        ),
         content: Text(
           loc?.get('no_warranty_msg') ??
               'Ce ticket ne présente aucun produit sous garantie. Il ne sera pas enregistré : sans produit garanti, il est inutile pour le suivi des garanties. Activez la garantie sur au moins un produit pour le conserver, ou abandonnez ce scan.',
@@ -150,7 +169,10 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               loc?.get('edit_warranty') ?? 'Modifier la garantie',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4F73FB)),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF4F73FB),
+              ),
             ),
           ),
         ],
@@ -165,7 +187,9 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -178,32 +202,71 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
                   children: [
                     _buildImagePreview(),
                     const SizedBox(height: 24),
-                    _buildFormField(controller: _storeController, label: loc?.get('store_name') ?? 'Magasin', icon: Icons.store),
+                    _buildFormField(
+                      controller: _storeController,
+                      label: loc?.get('store_name') ?? 'Magasin',
+                      icon: Icons.store,
+                    ),
                     const SizedBox(height: 16),
-                    _buildFormField(controller: _dateController, label: loc?.get('date_label') ?? 'Date (JJ/MM/AAAA)', icon: Icons.calendar_today, keyboardType: TextInputType.datetime),
+                    _buildFormField(
+                      controller: _dateController,
+                      label: loc?.get('date_label') ?? 'Date (JJ/MM/AAAA)',
+                      icon: Icons.calendar_today,
+                      keyboardType: TextInputType.datetime,
+                    ),
                     const SizedBox(height: 16),
-                    _buildFormField(controller: _amountController, label: loc?.get('total_amount') ?? 'Montant total', icon: Icons.euro, keyboardType: TextInputType.number),
+                    _buildFormField(
+                      controller: _amountController,
+                      label: loc?.get('total_amount') ?? 'Montant total',
+                      icon: Icons.euro,
+                      keyboardType: TextInputType.number,
+                    ),
                     const SizedBox(height: 16),
-                    _buildFormField(controller: _warrantyController, label: loc?.get('warranty_years_label') ?? 'Garantie (années)', icon: Icons.security, keyboardType: TextInputType.number),
+                    _buildFormField(
+                      controller: _warrantyController,
+                      label:
+                          loc?.get('warranty_years_label') ??
+                          'Garantie (années)',
+                      icon: Icons.security,
+                      keyboardType: TextInputType.number,
+                    ),
                     const SizedBox(height: 24),
-                    Text(loc?.get('edit_products_warranty') ?? 'Modifier les produits & Garantie :', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(
+                      loc?.get('edit_products_warranty') ??
+                          'Modifier les produits & Garantie :',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     if (!_hasWarrantyProduct) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.orange.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.orange,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 loc?.get('no_warranty_banner') ??
                                     'Aucun produit garanti — le ticket ne sera pas enregistré',
-                                style: const TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.w600),
+                                style: const TextStyle(
+                                  color: Colors.orange,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
@@ -229,7 +292,10 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor,
-        borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
       ),
       child: Row(
         children: [
@@ -237,11 +303,19 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              AppLocalizations.of(context)?.get('verification_title') ?? 'Vérification',
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              AppLocalizations.of(context)?.get('verification_title') ??
+                  'Vérification',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-          IconButton(onPressed: () => _close(null), icon: const Icon(Icons.close, color: Colors.white)),
+          IconButton(
+            onPressed: () => _close(null),
+            icon: const Icon(Icons.close, color: Colors.white),
+          ),
         ],
       ),
     );
@@ -267,7 +341,8 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
               children: [
                 const Icon(Icons.error_outline, color: Colors.red),
                 Text(
-                  AppLocalizations.of(context)?.get('error_image') ?? 'Erreur image',
+                  AppLocalizations.of(context)?.get('error_image') ??
+                      'Erreur image',
                   style: const TextStyle(fontSize: 10),
                 ),
               ],
@@ -278,7 +353,12 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     );
   }
 
-  Widget _buildFormField({required TextEditingController controller, required String label, required IconData icon, TextInputType? keyboardType}) {
+  Widget _buildFormField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+  }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
@@ -286,30 +366,43 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
         labelText: label,
         prefixIcon: Icon(icon, size: 20),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
     );
   }
 
   Widget _buildEditableProductsList() {
     if (_productNameControllers.isEmpty) {
-      return Text(AppLocalizations.of(context)?.get('no_products_detected') ?? 'Aucun produit détecté');
+      return Text(
+        AppLocalizations.of(context)?.get('no_products_detected') ??
+            'Aucun produit détecté',
+      );
     }
-    
+
     return Column(
       children: List.generate(_productNameControllers.length, (index) {
         final bool isGuaranteed = _productWarrantyStates[index];
-        
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
               // BOUTON GARANTIE RESTAURÉ
               IconButton(
-                icon: Icon(isGuaranteed ? Icons.verified_user : Icons.verified_user_outlined),
+                icon: Icon(
+                  isGuaranteed
+                      ? Icons.verified_user
+                      : Icons.verified_user_outlined,
+                ),
                 color: isGuaranteed ? Colors.green : Colors.grey,
-                onPressed: () => setState(() => _productWarrantyStates[index] = !isGuaranteed),
-                tooltip: AppLocalizations.of(context)?.get('warranty') ?? 'Garantie',
+                onPressed: () => setState(
+                  () => _productWarrantyStates[index] = !isGuaranteed,
+                ),
+                tooltip:
+                    AppLocalizations.of(context)?.get('warranty') ?? 'Garantie',
               ),
               Expanded(
                 flex: 3,
@@ -317,9 +410,14 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
                   controller: _productNameControllers[index],
                   style: const TextStyle(fontSize: 13),
                   decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)?.get('product_hint') ?? 'Produit',
+                    hintText:
+                        AppLocalizations.of(context)?.get('product_hint') ??
+                        'Produit',
                     border: const OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
                   ),
                 ),
               ),
@@ -330,11 +428,19 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
                   controller: _productPriceControllers[index],
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.right,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                   decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)?.get('price_hint') ?? 'Prix',
+                    hintText:
+                        AppLocalizations.of(context)?.get('price_hint') ??
+                        'Prix',
                     border: const OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
                   ),
                 ),
               ),
@@ -356,15 +462,23 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
             child: OutlinedButton(
               onPressed: () => _close(null),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 14,
+                ),
                 minimumSize: const Size(0, 48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(29)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(29),
+                ),
               ),
               child: Text(
                 loc?.get('cancel') ?? 'Annuler',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -376,15 +490,23 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 14,
+                ),
                 minimumSize: const Size(0, 48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(29)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(29),
+                ),
               ),
               child: Text(
                 loc?.get('save') ?? 'Enregistrer',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

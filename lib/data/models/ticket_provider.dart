@@ -33,9 +33,9 @@ class TicketProvider extends ChangeNotifier {
       final response = await SupabaseService.addTicket(ticket.toMap());
       final ticketWithId = TicketModel.fromMap(response);
       _tickets.insert(0, ticketWithId);
-      
+
       await _scheduleWarrantyReminder(ticketWithId);
-      
+
       notifyListeners();
     } catch (e) {
       _setError('Erreur: $e');
@@ -56,10 +56,18 @@ class TicketProvider extends ChangeNotifier {
         final currentTicket = _tickets[index];
         final updatedTicket = currentTicket.copyWith(
           storeName: data['store_name'] ?? currentTicket.storeName,
-          date: data['date'] != null ? DateTime.parse(data['date']) : currentTicket.date,
-          totalAmount: (data['total_amount'] as num?)?.toDouble() ?? currentTicket.totalAmount,
-          products: data['products'] != null ? List<Map<String, dynamic>>.from(data['products']) : currentTicket.products,
-          warrantyEndDate: data['warranty_end_date'] != null ? DateTime.parse(data['warranty_end_date']) : currentTicket.warrantyEndDate,
+          date: data['date'] != null
+              ? DateTime.parse(data['date'])
+              : currentTicket.date,
+          totalAmount:
+              (data['total_amount'] as num?)?.toDouble() ??
+              currentTicket.totalAmount,
+          products: data['products'] != null
+              ? List<Map<String, dynamic>>.from(data['products'])
+              : currentTicket.products,
+          warrantyEndDate: data['warranty_end_date'] != null
+              ? DateTime.parse(data['warranty_end_date'])
+              : currentTicket.warrantyEndDate,
         );
         _tickets[index] = updatedTicket;
         notifyListeners();
@@ -101,7 +109,9 @@ class TicketProvider extends ChangeNotifier {
     if (ticketId == null) return;
     await NotificationService.scheduleWarrantyNotification(
       id: NotificationService.notificationIdForTicket(ticketId),
-      productName: ticket.products.isNotEmpty ? (ticket.products.first['name']?.toString() ?? 'Produit') : 'Produit',
+      productName: ticket.products.isNotEmpty
+          ? (ticket.products.first['name']?.toString() ?? 'Produit')
+          : 'Produit',
       storeName: ticket.storeName,
       warrantyEndDate: ticket.warrantyEndDate,
     );
@@ -114,7 +124,18 @@ class TicketProvider extends ChangeNotifier {
     await _scheduleWarrantyReminder(ticket);
   }
 
-  void _clearError() { _error = null; notifyListeners(); }
-  void _setLoading(bool loading) { _isLoading = loading; notifyListeners(); }
-  void _setError(String error) { _error = error; notifyListeners(); }
+  void _clearError() {
+    _error = null;
+    notifyListeners();
+  }
+
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setError(String error) {
+    _error = error;
+    notifyListeners();
+  }
 }

@@ -9,13 +9,13 @@ import '../../data/models/ticket_model.dart';
 class SubscriptionService extends ChangeNotifier {
   static final SubscriptionService _instance = SubscriptionService._internal();
   factory SubscriptionService() => _instance;
-  
+
   SubscriptionService.internal();
   SubscriptionService._internal();
 
   bool _isPremium = false;
   final int _freeLimit = 3;
-  
+
   InAppPurchase? _iapInstance;
   InAppPurchase get _iap => _iapInstance ??= InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
@@ -31,19 +31,23 @@ class SubscriptionService extends ChangeNotifier {
   Future<void> init({bool isTest = false}) async {
     if (!isTest) {
       await refreshSubscriptionStatus();
-      
+
       final bool available = await _iap.isAvailable();
       if (available) {
         _subscription = _iap.purchaseStream.listen(
-          _listenToPurchaseUpdated, 
-          onDone: () => _subscription?.cancel(), 
-          onError: (e) => debugPrint('Erreur IAP Stream: $e')
+          _listenToPurchaseUpdated,
+          onDone: () => _subscription?.cancel(),
+          onError: (e) => debugPrint('Erreur IAP Stream: $e'),
         );
       }
 
       SupabaseService.authStateChanges.listen((event) {
-        if (event.session != null) refreshSubscriptionStatus();
-        else { _isPremium = false; notifyListeners(); }
+        if (event.session != null)
+          refreshSubscriptionStatus();
+        else {
+          _isPremium = false;
+          notifyListeners();
+        }
       });
     }
   }
@@ -56,9 +60,12 @@ class SubscriptionService extends ChangeNotifier {
     }
   }
 
-  void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
+  void _listenToPurchaseUpdated(
+    List<PurchaseDetails> purchaseDetailsList,
+  ) async {
     for (var purchaseDetails in purchaseDetailsList) {
-      if (purchaseDetails.status == PurchaseStatus.purchased || purchaseDetails.status == PurchaseStatus.restored) {
+      if (purchaseDetails.status == PurchaseStatus.purchased ||
+          purchaseDetails.status == PurchaseStatus.restored) {
         bool valid = await _verifyPurchase(purchaseDetails);
         if (valid) {
           await refreshSubscriptionStatus();
@@ -91,7 +98,11 @@ class SubscriptionService extends ChangeNotifier {
     final userId = SupabaseService.currentUser?.id;
     if (userId == null) return;
     try {
-      final response = await Supabase.instance.client.from('profiles').select('is_premium').eq('id', userId).maybeSingle();
+      final response = await Supabase.instance.client
+          .from('profiles')
+          .select('is_premium')
+          .eq('id', userId)
+          .maybeSingle();
       if (response != null) {
         _isPremium = response['is_premium'] ?? false;
         notifyListeners();
@@ -105,9 +116,13 @@ class SubscriptionService extends ChangeNotifier {
     final bool available = await _iap.isAvailable();
     if (!available) return false;
     final Set<String> kIds = <String>{planId};
-    final ProductDetailsResponse response = await _iap.queryProductDetails(kIds);
+    final ProductDetailsResponse response = await _iap.queryProductDetails(
+      kIds,
+    );
     if (response.productDetails.isEmpty) return false;
-    final PurchaseParam purchaseParam = PurchaseParam(productDetails: response.productDetails.first);
+    final PurchaseParam purchaseParam = PurchaseParam(
+      productDetails: response.productDetails.first,
+    );
     return await _iap.buyNonConsumable(purchaseParam: purchaseParam);
   }
 }

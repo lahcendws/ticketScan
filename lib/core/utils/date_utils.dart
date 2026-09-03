@@ -55,15 +55,17 @@ class AppDateUtils {
   // Vérifier si une date est aujourd'hui
   static bool isToday(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   // Vérifier si une date est hier
   static bool isYesterday(DateTime date) {
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    return date.year == yesterday.year && 
-           date.month == yesterday.month && 
-           date.day == yesterday.day;
+    return date.year == yesterday.year &&
+        date.month == yesterday.month &&
+        date.day == yesterday.day;
   }
 
   // Vérifier si une date est cette semaine
@@ -71,9 +73,9 @@ class AppDateUtils {
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
     final weekEnd = weekStart.add(const Duration(days: 6));
-    
-    return date.isAfter(weekStart.subtract(const Duration(days: 1))) && 
-           date.isBefore(weekEnd.add(const Duration(days: 1)));
+
+    return date.isAfter(weekStart.subtract(const Duration(days: 1))) &&
+        date.isBefore(weekEnd.add(const Duration(days: 1)));
   }
 
   // Vérifier si une date est ce mois
@@ -103,9 +105,13 @@ class AppDateUtils {
         return years == 1 ? 'Il y a 1 an' : 'Il y a $years ans';
       }
     } else if (difference.inHours > 0) {
-      return difference.inHours == 1 ? 'Il y a 1 heure' : 'Il y a ${difference.inHours} heures';
+      return difference.inHours == 1
+          ? 'Il y a 1 heure'
+          : 'Il y a ${difference.inHours} heures';
     } else if (difference.inMinutes > 0) {
-      return difference.inMinutes == 1 ? 'Il y a 1 minute' : 'Il y a ${difference.inMinutes} minutes';
+      return difference.inMinutes == 1
+          ? 'Il y a 1 minute'
+          : 'Il y a ${difference.inMinutes} minutes';
     } else {
       return 'À l\'instant';
     }
@@ -172,9 +178,9 @@ class AppDateUtils {
   // Vérifier si une date est demain
   static bool isTomorrow(DateTime date) {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
-    return date.year == tomorrow.year && 
-           date.month == tomorrow.month && 
-           date.day == tomorrow.day;
+    return date.year == tomorrow.year &&
+        date.month == tomorrow.month &&
+        date.day == tomorrow.day;
   }
 
   // Calculer l'âge d'un ticket en jours

@@ -8,7 +8,7 @@ class TicketModel {
   final double totalAmount;
   final String? currency;
   final String? category;
-  final List<Map<String, dynamic>> products; 
+  final List<Map<String, dynamic>> products;
   final List<String> imageUrls;
   final DateTime warrantyEndDate;
   final List<String> extractedText;
@@ -53,7 +53,9 @@ class TicketModel {
       parsedProducts = rawProducts.map((item) {
         if (item is Map) return Map<String, dynamic>.from(item);
         if (item is String && item.startsWith('{')) {
-          try { return Map<String, dynamic>.from(jsonDecode(item)); } catch (_) {}
+          try {
+            return Map<String, dynamic>.from(jsonDecode(item));
+          } catch (_) {}
         }
         return {'name': item.toString(), 'price': '0.00'};
       }).toList();
@@ -64,11 +66,15 @@ class TicketModel {
     dynamic rawUrls = data['image_urls'] ?? data['image_url'];
     if (rawUrls != null) {
       if (rawUrls is List) {
-        urls = rawUrls.map((e) => e.toString().replaceAll(RegExp(r'[\[\]" ]'), '')).toList();
+        urls = rawUrls
+            .map((e) => e.toString().replaceAll(RegExp(r'[\[\]" ]'), ''))
+            .toList();
       } else if (rawUrls is String) {
         if (rawUrls.startsWith('[')) {
           try {
-            urls = List<String>.from(jsonDecode(rawUrls)).map((e) => e.replaceAll(RegExp(r'[\[\]" ]'), '')).toList();
+            urls = List<String>.from(
+              jsonDecode(rawUrls),
+            ).map((e) => e.replaceAll(RegExp(r'[\[\]" ]'), '')).toList();
           } catch (_) {
             urls = [rawUrls.replaceAll(RegExp(r'[\[\]" ]'), '')];
           }
@@ -88,9 +94,13 @@ class TicketModel {
       category: data['category'] ?? 'Autre',
       products: parsedProducts,
       imageUrls: urls.where((u) => u.isNotEmpty).toList(),
-      warrantyEndDate: DateTime.parse(data['warranty_end_date'] ?? DateTime.now().toIso8601String()),
+      warrantyEndDate: DateTime.parse(
+        data['warranty_end_date'] ?? DateTime.now().toIso8601String(),
+      ),
       extractedText: List<String>.from(data['extracted_text'] ?? []),
-      createdAt: DateTime.parse(data['created_at'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(
+        data['created_at'] ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 
@@ -128,5 +138,6 @@ class TicketModel {
     final days = warrantyEndDate.difference(DateTime.now()).inDays;
     return days > 0 && days <= 30;
   }
+
   bool isWarrantyExpired() => DateTime.now().isAfter(warrantyEndDate);
 }

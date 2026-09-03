@@ -48,7 +48,10 @@ class _PremiumPageState extends State<PremiumPage> {
   void dispose() {
     _slideshowTimer?.cancel();
     _pageController.dispose();
-    Provider.of<SubscriptionService>(context, listen: false).removeListener(_onSubscriptionChanged);
+    Provider.of<SubscriptionService>(
+      context,
+      listen: false,
+    ).removeListener(_onSubscriptionChanged);
     super.dispose();
   }
 
@@ -89,7 +92,8 @@ class _PremiumPageState extends State<PremiumPage> {
                 children: [
                   const SizedBox(height: 10),
                   Text(
-                    loc?.get('limit_reached_msg') ?? 'Désolé, votre essai est expiré.',
+                    loc?.get('limit_reached_msg') ??
+                        'Désolé, votre essai est expiré.',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
@@ -110,7 +114,7 @@ class _PremiumPageState extends State<PremiumPage> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
-                  
+
                   Container(
                     width: double.infinity,
                     height: 200,
@@ -141,16 +145,21 @@ class _PremiumPageState extends State<PremiumPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_slides.length, (index) => _buildDot(index == _currentSlide)),
+                    children: List.generate(
+                      _slides.length,
+                      (index) => _buildDot(index == _currentSlide),
+                    ),
                   ),
                   const SizedBox(height: 40),
 
                   _buildPlanOption(
                     id: 'yearly',
-                    title: loc?.get('premium_yearly_detail') ?? 'Abonnement annuel',
+                    title:
+                        loc?.get('premium_yearly_detail') ??
+                        'Abonnement annuel',
                     price: '29,99 €',
                     monthlyPrice: '2,50 € / Mois',
                     isBestValue: true,
@@ -159,7 +168,9 @@ class _PremiumPageState extends State<PremiumPage> {
                   const SizedBox(height: 16),
                   _buildPlanOption(
                     id: 'monthly',
-                    title: loc?.get('premium_monthly_detail') ?? 'Abonnement mensuel',
+                    title:
+                        loc?.get('premium_monthly_detail') ??
+                        'Abonnement mensuel',
                     price: '2,99 €',
                     monthlyPrice: '2,99 € / Mois',
                     isBestValue: false,
@@ -169,13 +180,17 @@ class _PremiumPageState extends State<PremiumPage> {
               ),
             ),
           ),
-          
+
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5)),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, -5),
+                ),
               ],
             ),
             child: Column(
@@ -186,18 +201,31 @@ class _PremiumPageState extends State<PremiumPage> {
                   height: 58,
                   child: ElevatedButton(
                     onPressed: () {
-                      final price = _selectedPlan == 'yearly' ? '29,99 €' : '2,99 €';
-                      Navigator.push(context, MaterialPageRoute(builder: (c) => PaymentPage(plan: _selectedPlan, price: price)));
+                      final price = _selectedPlan == 'yearly'
+                          ? '29,99 €'
+                          : '2,99 €';
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (c) =>
+                              PaymentPage(plan: _selectedPlan, price: price),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4F73FB),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(29)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(29),
+                      ),
                       elevation: 0,
                     ),
                     child: Text(
                       '${loc?.get('subscribe') ?? 'Souscrire'} →',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -206,13 +234,38 @@ class _PremiumPageState extends State<PremiumPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const PrivacyPolicyPage())),
-                      child: Text(loc?.get('privacy_policy') ?? 'Politique de confidentialité', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (c) => const PrivacyPolicyPage(),
+                        ),
+                      ),
+                      child: Text(
+                        loc?.get('privacy_policy') ??
+                            'Politique de confidentialité',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text('|', style: TextStyle(color: Colors.grey.shade300))),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        '|',
+                        style: TextStyle(color: Colors.grey.shade300),
+                      ),
+                    ),
                     GestureDetector(
                       onTap: () {},
-                      child: Text(loc?.get('terms_of_service') ?? 'Conditions d\'utilisation', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                      child: Text(
+                        loc?.get('terms_of_service') ??
+                            'Conditions d\'utilisation',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -227,7 +280,8 @@ class _PremiumPageState extends State<PremiumPage> {
   Widget _buildDot(bool isActive) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 20 : 6, height: 6,
+      width: isActive ? 20 : 6,
+      height: 6,
       decoration: BoxDecoration(
         color: isActive ? const Color(0xFF1A1C1E) : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(3),
@@ -235,7 +289,14 @@ class _PremiumPageState extends State<PremiumPage> {
     );
   }
 
-  Widget _buildPlanOption({required String id, required String title, required String price, required String monthlyPrice, bool isBestValue = false, AppLocalizations? loc}) {
+  Widget _buildPlanOption({
+    required String id,
+    required String title,
+    required String price,
+    required String monthlyPrice,
+    bool isBestValue = false,
+    AppLocalizations? loc,
+  }) {
     final isSelected = _selectedPlan == id;
     return GestureDetector(
       onTap: () => setState(() => _selectedPlan = id),
@@ -248,7 +309,12 @@ class _PremiumPageState extends State<PremiumPage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isSelected ? const Color(0xFF4F73FB) : Colors.grey.shade200, width: 2),
+              border: Border.all(
+                color: isSelected
+                    ? const Color(0xFF4F73FB)
+                    : Colors.grey.shade200,
+                width: 2,
+              ),
             ),
             child: Row(
               children: [
@@ -256,17 +322,42 @@ class _PremiumPageState extends State<PremiumPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text(loc?.get('manage_unlimited') ?? 'Gérez tous vos tickets sans limite', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                      Text(
+                        loc?.get('manage_unlimited') ??
+                            'Gérez tous vos tickets sans limite',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(price, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    Text(monthlyPrice, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    Text(
+                      price,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      monthlyPrice,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -274,14 +365,25 @@ class _PremiumPageState extends State<PremiumPage> {
           ),
           if (isBestValue)
             Positioned(
-              top: -12, left: 12,
+              top: -12,
+              left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF4F73FB),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(loc?.get('best_value_badge') ?? 'Meilleure valeur', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                child: Text(
+                  loc?.get('best_value_badge') ?? 'Meilleure valeur',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
         ],

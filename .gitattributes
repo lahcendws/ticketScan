@@ -1,0 +1,17 @@
+# Force LF line endings for Dart/Flutter source files
+# évite les conflits de format entre Windows (local) et Linux (CI GitHub Actions)
+
+*.dart text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Fichiers binaires (ne pas toucher aux fins de ligne)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary

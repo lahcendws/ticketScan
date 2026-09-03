@@ -47,13 +47,16 @@ class TicketCard extends StatelessWidget {
                       child: ticket.imageUrls.isNotEmpty
                           ? Image.network(
                               // FIX : Utilisation de getPublicUrl
-                              SupabaseService.getPublicUrl(ticket.imageUrls.first),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Icon(
-                                Icons.store,
-                                color: Theme.of(context).primaryColor,
-                                size: 28,
+                              SupabaseService.getPublicUrl(
+                                ticket.imageUrls.first,
                               ),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    Icons.store,
+                                    color: Theme.of(context).primaryColor,
+                                    size: 28,
+                                  ),
                             )
                           : Icon(
                               Icons.store,
@@ -69,15 +72,17 @@ class TicketCard extends StatelessWidget {
                       children: [
                         Text(
                           ticket.storeName,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          DateFormat('dd MMMM yyyy', locale).format(ticket.date),
+                          DateFormat(
+                            'dd MMMM yyyy',
+                            locale,
+                          ).format(ticket.date),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -87,7 +92,10 @@ class TicketCard extends StatelessWidget {
                     children: [
                       if (ticket.isWarrantyExpiringSoon())
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.orange.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
@@ -95,7 +103,11 @@ class TicketCard extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.warning_amber, size: 14, color: Colors.orange),
+                              const Icon(
+                                Icons.warning_amber,
+                                size: 14,
+                                color: Colors.orange,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 localizations?.get('warranty') ?? 'Garantie',
@@ -110,10 +122,7 @@ class TicketCard extends StatelessWidget {
                         ),
                       const SizedBox(width: 4),
                       PopupMenuButton<String>(
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: Colors.grey[600],
-                        ),
+                        icon: Icon(Icons.more_vert, color: Colors.grey[600]),
                         onSelected: (value) {
                           switch (value) {
                             case 'delete':
@@ -152,7 +161,11 @@ class TicketCard extends StatelessWidget {
                             value: 'delete',
                             child: Row(
                               children: [
-                                const Icon(Icons.delete, size: 20, color: Colors.red),
+                                const Icon(
+                                  Icons.delete,
+                                  size: 20,
+                                  color: Colors.red,
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   localizations?.get('delete') ?? 'Supprimer',
@@ -182,7 +195,11 @@ class TicketCard extends StatelessWidget {
                   if (ticket.isWarrantyExpired())
                     Text(
                       localizations?.get('expired') ?? 'Expiré',
-                      style: const TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                 ],
               ),
@@ -200,7 +217,10 @@ class TicketCard extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(loc?.get('delete') ?? 'Supprimer'),
-        content: Text(loc?.get('delete_ticket_warning') ?? 'Ce ticket sera supprimé définitivement.'),
+        content: Text(
+          loc?.get('delete_ticket_warning') ??
+              'Ce ticket sera supprimé définitivement.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -213,7 +233,10 @@ class TicketCard extends StatelessWidget {
             },
             child: Text(
               loc?.get('delete') ?? 'Supprimer',
-              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -223,14 +246,20 @@ class TicketCard extends StatelessWidget {
 
   void _shareTicket(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)?.get('filters_soon') ?? 'Bientôt disponible')),
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context)?.get('filters_soon') ??
+              'Bientôt disponible',
+        ),
+      ),
     );
   }
 
   void _editTicket(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => TicketDetailPage(ticket: ticket, initialEditMode: true),
+        builder: (context) =>
+            TicketDetailPage(ticket: ticket, initialEditMode: true),
       ),
     );
   }

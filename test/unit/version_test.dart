@@ -31,7 +31,7 @@ void main() {
       final mockResponse = {
         'min_version': '1.0.0',
         'is_under_maintenance': true,
-        'update_url': 'http://test.com'
+        'update_url': 'http://test.com',
       };
 
       final bool isMaintenance = mockResponse['is_under_maintenance'] as bool;
@@ -39,11 +39,10 @@ void main() {
     });
 
     test('Maintenance flag should be false by default if missing', () {
-      final mockResponse = {
-        'min_version': '1.0.0',
-      };
-      
-      final bool isMaintenance = (mockResponse['is_under_maintenance'] as bool?) ?? false;
+      final mockResponse = {'min_version': '1.0.0'};
+
+      final bool isMaintenance =
+          (mockResponse['is_under_maintenance'] as bool?) ?? false;
       expect(isMaintenance, false);
     });
   });

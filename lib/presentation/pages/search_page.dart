@@ -48,7 +48,9 @@ class _SearchPageState extends State<SearchPage> {
         _searchResults = tickets;
       });
     } catch (e) {
-      _showErrorSnackBar(AppLocalizations.of(context)?.get('generic_error') ?? 'Erreur');
+      _showErrorSnackBar(
+        AppLocalizations.of(context)?.get('generic_error') ?? 'Erreur',
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -60,9 +62,7 @@ class _SearchPageState extends State<SearchPage> {
         content: Text(message),
         backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -70,7 +70,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(loc?.get('search_tickets') ?? 'Rechercher'),
@@ -109,9 +109,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           if (!_hasSearched) _buildSearchSuggestions(loc),
-          Expanded(
-            child: _buildSearchResults(),
-          ),
+          Expanded(child: _buildSearchResults()),
         ],
       ),
     );
@@ -125,16 +123,16 @@ class _SearchPageState extends State<SearchPage> {
         children: [
           Text(
             loc?.get('quick_search') ?? 'Recherche rapide',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 24),
           Text(
             loc?.get('recent_searches') ?? 'Recherches récentes',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 16),
           Container(
@@ -165,9 +163,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildSearchResults() {
     final loc = AppLocalizations.of(context);
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (!_hasSearched) {
@@ -187,9 +183,9 @@ class _SearchPageState extends State<SearchPage> {
             const SizedBox(height: 16),
             Text(
               loc?.get('no_results') ?? 'Aucun résultat trouvé',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),

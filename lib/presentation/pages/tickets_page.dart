@@ -33,18 +33,32 @@ class _TicketsPageState extends State<TicketsPage> {
   Future<void> _exportToCSV(List<TicketModel> tickets) async {
     final loc = AppLocalizations.of(context);
     final sub = Provider.of<SubscriptionService>(context, listen: false);
-    if (!sub.isPremium) { _showUpgradeDialog(loc); return; }
+    if (!sub.isPremium) {
+      _showUpgradeDialog(loc);
+      return;
+    }
     if (tickets.isEmpty) return;
 
     try {
       List<List<dynamic>> rows = [];
-      rows.add([loc?.get('store_name'), loc?.get('date'), "Total (€)", loc?.get('warranty_end_date')]);
+      rows.add([
+        loc?.get('store_name'),
+        loc?.get('date'),
+        "Total (€)",
+        loc?.get('warranty_end_date'),
+      ]);
       for (var t in tickets) {
-        rows.add([t.storeName, "${t.date.day}/${t.date.month}/${t.date.year}", t.totalAmount.toStringAsFixed(2), "${t.warrantyEndDate.day}/${t.warrantyEndDate.month}/${t.warrantyEndDate.year}"]);
+        rows.add([
+          t.storeName,
+          "${t.date.day}/${t.date.month}/${t.date.year}",
+          t.totalAmount.toStringAsFixed(2),
+          "${t.warrantyEndDate.day}/${t.warrantyEndDate.month}/${t.warrantyEndDate.year}",
+        ]);
       }
       String csvData = const ListToCsvConverter().convert(rows);
       final directory = await getTemporaryDirectory();
-      final path = "${directory.path}/export_${DateTime.now().millisecondsSinceEpoch}.csv";
+      final path =
+          "${directory.path}/export_${DateTime.now().millisecondsSinceEpoch}.csv";
       final file = File(path);
       await file.writeAsString(csvData);
       await Share.shareXFiles([XFile(path)]);
@@ -60,8 +74,20 @@ class _TicketsPageState extends State<TicketsPage> {
         title: Text(loc?.get('upgrade_premium') ?? 'Premium'),
         content: Text(loc?.get('limit_reached_msg') ?? 'Limite atteinte'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(loc?.get('cancel') ?? 'OK')),
-          ElevatedButton(onPressed: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())); }, child: Text(loc?.get('upgrade_premium') ?? 'Upgrade')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(loc?.get('cancel') ?? 'OK'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PremiumPage()),
+              );
+            },
+            child: Text(loc?.get('upgrade_premium') ?? 'Upgrade'),
+          ),
         ],
       ),
     );
@@ -72,34 +98,61 @@ class _TicketsPageState extends State<TicketsPage> {
     final loc = AppLocalizations.of(context);
     final sub = Provider.of<SubscriptionService>(context);
     final provider = Provider.of<TicketProvider>(context);
-    
+
     final canScan = sub.canScan(provider.tickets);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(loc?.get('my_tickets') ?? 'Tickets', style: const TextStyle(fontWeight: FontWeight.bold)),
-        actions: [IconButton(icon: const Icon(Icons.download), onPressed: () => _exportToCSV(provider.tickets))],
+        title: Text(
+          loc?.get('my_tickets') ?? 'Tickets',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: () => _exportToCSV(provider.tickets),
+          ),
+        ],
       ),
       body: Column(
         children: [
           if (!sub.isPremium && !canScan)
             InkWell(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PremiumPage()),
+              ),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 color: Colors.orange.withOpacity(0.15),
                 child: Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.orange,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        loc?.get('limit_reached_msg') ?? 'Limite de 3 tickets atteinte.',
-                        style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 13),
+                        loc?.get('limit_reached_msg') ??
+                            'Limite de 3 tickets atteinte.',
+                        style: const TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: Colors.orange, size: 20),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Colors.orange,
+                      size: 20,
+                    ),
                   ],
                 ),
               ),
@@ -116,7 +169,8 @@ class _TicketsPageState extends State<TicketsPage> {
   }
 
   Widget _buildContent(TicketProvider provider, AppLocalizations? loc) {
-    if (provider.isLoading && provider.tickets.isEmpty) return const Center(child: CircularProgressIndicator());
+    if (provider.isLoading && provider.tickets.isEmpty)
+      return const Center(child: CircularProgressIndicator());
     if (provider.tickets.isEmpty) return _buildEmptyState(loc);
 
     return Column(
@@ -130,7 +184,11 @@ class _TicketsPageState extends State<TicketsPage> {
               final ticket = provider.tickets[index];
               return TicketCard(
                 ticket: ticket,
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => TicketDetailPage(ticket: ticket))),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => TicketDetailPage(ticket: ticket),
+                  ),
+                ),
                 onDelete: () => provider.deleteTicket(ticket.id!),
               );
             },
@@ -148,18 +206,45 @@ class _TicketsPageState extends State<TicketsPage> {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatItem(loc?.get('total') ?? 'Total', '${tickets.length}', Icons.receipt, Colors.blue),
-          _buildStatItem(loc?.get('warranty') ?? 'Warranty', '${tickets.where((t) => t.isWarrantyExpiringSoon()).length}', Icons.warning, Colors.orange),
+          _buildStatItem(
+            loc?.get('total') ?? 'Total',
+            '${tickets.length}',
+            Icons.receipt,
+            Colors.blue,
+          ),
+          _buildStatItem(
+            loc?.get('warranty') ?? 'Warranty',
+            '${tickets.where((t) => t.isWarrantyExpiringSoon()).length}',
+            Icons.warning,
+            Colors.orange,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
-    return Column(children: [Icon(icon, color: color, size: 20), Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: color)), Text(label, style: const TextStyle(fontSize: 10))]);
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 20),
+        Text(
+          value,
+          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+        ),
+        Text(label, style: const TextStyle(fontSize: 10)),
+      ],
+    );
   }
 }

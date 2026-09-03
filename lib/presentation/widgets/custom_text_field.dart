@@ -39,9 +39,9 @@ class CustomTextField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -59,19 +59,27 @@ class CustomTextField extends StatelessWidget {
             prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: enabled 
+            fillColor: enabled
                 ? Theme.of(context).inputDecorationTheme.fillColor
                 : Theme.of(context).disabledColor.withOpacity(0.1),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Theme.of(context).inputDecorationTheme.border?.borderSide.color ?? Colors.grey.shade300,
+                color:
+                    Theme.of(
+                      context,
+                    ).inputDecorationTheme.border?.borderSide.color ??
+                    Colors.grey.shade300,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Theme.of(context).inputDecorationTheme.enabledBorder?.borderSide.color ?? Colors.grey.shade300,
+                color:
+                    Theme.of(
+                      context,
+                    ).inputDecorationTheme.enabledBorder?.borderSide.color ??
+                    Colors.grey.shade300,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -94,7 +102,10 @@ class CustomTextField extends StatelessWidget {
                 width: 2,
               ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
             hintStyle: Theme.of(context).inputDecorationTheme.hintStyle,
             labelStyle: Theme.of(context).inputDecorationTheme.labelStyle,
           ),

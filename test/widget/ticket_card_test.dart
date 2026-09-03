@@ -8,7 +8,9 @@ import 'package:ticketscan_new/core/services/language_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
-  testWidgets('TicketCard displays store name and amount correctly', (WidgetTester tester) async {
+  testWidgets('TicketCard displays store name and amount correctly', (
+    WidgetTester tester,
+  ) async {
     final testTicket = TicketModel(
       storeName: 'CARREFOUR',
       date: DateTime(2024, 1, 1),
@@ -21,19 +23,16 @@ void main() {
 
     await tester.pumpWidget(
       MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => LanguageService()),
-        ],
+        providers: [ChangeNotifierProvider(create: (_) => LanguageService())],
         child: MaterialApp(
           locale: const Locale('fr', 'FR'),
           supportedLocales: const [Locale('fr', 'FR')],
           localizationsDelegates: const [
             AppLocalizations.delegate,
-            ...GlobalMaterialLocalizations.delegates, // Utilise la liste complète (Material + Cupertino + Widgets)
+            ...GlobalMaterialLocalizations
+                .delegates, // Utilise la liste complète (Material + Cupertino + Widgets)
           ],
-          home: Scaffold(
-            body: TicketCard(ticket: testTicket),
-          ),
+          home: Scaffold(body: TicketCard(ticket: testTicket)),
         ),
       ),
     );
@@ -43,7 +42,7 @@ void main() {
 
     // Vérifier que le nom du magasin est présent
     expect(find.text('CARREFOUR'), findsOneWidget);
-    
+
     // Vérifier que le montant est présent (le formatage peut varier selon la locale, on cherche la partie fixe)
     expect(find.textContaining('45.50'), findsOneWidget);
   });

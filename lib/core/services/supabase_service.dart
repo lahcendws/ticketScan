@@ -11,11 +11,17 @@ class SupabaseService {
   static User? get currentUser => _auth.currentUser;
   static Stream<AuthState> get authStateChanges => _auth.onAuthStateChange;
 
-  static Future<AuthResponse> signInWithEmail(String email, String password) async {
+  static Future<AuthResponse> signInWithEmail(
+    String email,
+    String password,
+  ) async {
     return await _auth.signInWithPassword(email: email, password: password);
   }
 
-  static Future<AuthResponse> signUpWithEmail(String email, String password) async {
+  static Future<AuthResponse> signUpWithEmail(
+    String email,
+    String password,
+  ) async {
     final response = await _auth.signUp(
       email: email,
       password: password,
@@ -33,10 +39,19 @@ class SupabaseService {
     await _auth.resetPasswordForEmail(email, redirectTo: redirectTo);
   }
 
-  static Future<List<Map<String, dynamic>>> getTickets({int limit = 20, int offset = 0}) async {
+  static Future<List<Map<String, dynamic>>> getTickets({
+    int limit = 20,
+    int offset = 0,
+  }) async {
     final userId = currentUser?.id;
     if (userId == null) throw Exception('User not authenticated');
-    return await _client.from('tickets').select().eq('user_id', userId).order('created_at', ascending: false).limit(limit).range(offset, offset + limit - 1);
+    return await _client
+        .from('tickets')
+        .select()
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .limit(limit)
+        .range(offset, offset + limit - 1);
   }
 
   // Récupère TOUS les tickets (pagination de 1000 max par requête Supabase)
@@ -64,21 +79,33 @@ class SupabaseService {
     return _client.auth.onAuthStateChange.asyncExpand((authState) {
       final userId = authState.session?.user.id;
       if (userId == null) return Stream.value([]);
-      return _client.from('tickets').stream(primaryKey: ['id']).eq('user_id', userId).order('created_at', ascending: false);
+      return _client
+          .from('tickets')
+          .stream(primaryKey: ['id'])
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
     });
   }
 
-  static Future<Map<String, dynamic>> addTicket(Map<String, dynamic> ticketData) async {
+  static Future<Map<String, dynamic>> addTicket(
+    Map<String, dynamic> ticketData,
+  ) async {
     final userId = currentUser?.id;
     if (userId == null) throw Exception('User not authenticated');
     final ticketWithUser = Map<String, dynamic>.from(ticketData);
     ticketWithUser['user_id'] = userId;
     ticketWithUser['created_at'] = DateTime.now().toIso8601String();
-    final response = await _client.from('tickets').insert(ticketWithUser).select();
+    final response = await _client
+        .from('tickets')
+        .insert(ticketWithUser)
+        .select();
     return response.first;
   }
 
-  static Future<void> updateTicket(String ticketId, Map<String, dynamic> ticketData) async {
+  static Future<void> updateTicket(
+    String ticketId,
+    Map<String, dynamic> ticketData,
+  ) async {
     await _client.from('tickets').update(ticketData).eq('id', ticketId);
   }
 
@@ -86,13 +113,22 @@ class SupabaseService {
     await _client.from('tickets').delete().eq('id', ticketId);
   }
 
-  static Future<List<Map<String, dynamic>>> searchTickets(String searchTerm) async {
+  static Future<List<Map<String, dynamic>>> searchTickets(
+    String searchTerm,
+  ) async {
     final userId = currentUser?.id;
     if (userId == null) throw Exception('User not authenticated');
-    return await _client.from('tickets').select().eq('user_id', userId).or('store_name.ilike.%$searchTerm%,category.ilike.%$searchTerm%');
+    return await _client
+        .from('tickets')
+        .select()
+        .eq('user_id', userId)
+        .or('store_name.ilike.%$searchTerm%,category.ilike.%$searchTerm%');
   }
 
-  static Future<String> uploadTicketImage(String filePath, String fileName) async {
+  static Future<String> uploadTicketImage(
+    String filePath,
+    String fileName,
+  ) async {
     final userId = currentUser?.id;
     if (userId == null) throw Exception('User not authenticated');
     try {

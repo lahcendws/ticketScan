@@ -6,10 +6,7 @@ class SearchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rechercher'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Rechercher'), elevation: 0),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -31,14 +28,14 @@ class SearchPage extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Suggestions de recherche
             _buildSearchSuggestions(context),
-            
+
             const SizedBox(height: 24),
-            
+
             // Message d'information
             Expanded(
               child: Center(
@@ -91,9 +88,9 @@ class SearchPage extends StatelessWidget {
       children: [
         Text(
           'Recherche rapide',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -101,20 +98,19 @@ class SearchPage extends StatelessWidget {
           runSpacing: 8,
           children: suggestions.map((suggestion) {
             return ActionChip(
-              avatar: Icon(
-                suggestion['icon'] as IconData,
-                size: 18,
-              ),
+              avatar: Icon(suggestion['icon'] as IconData, size: 18),
               label: Text(suggestion['text'] as String),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Recherche "${suggestion['text']}" bientôt disponible')),
+                  SnackBar(
+                    content: Text(
+                      'Recherche "${suggestion['text']}" bientôt disponible',
+                    ),
+                  ),
                 );
               },
               backgroundColor: Theme.of(context).cardColor,
-              side: BorderSide(
-                color: Theme.of(context).dividerColor,
-              ),
+              side: BorderSide(color: Theme.of(context).dividerColor),
             );
           }).toList(),
         ),

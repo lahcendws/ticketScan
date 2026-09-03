@@ -32,14 +32,24 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _signOut() async {
     await SupabaseService.signOut();
-    if (mounted) Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const AuthPage()), (r) => false);
+    if (mounted)
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const AuthPage()),
+        (r) => false,
+      );
   }
 
   Future<void> _contactSupport() async {
-    final String subject = Uri.encodeComponent("[TicketScan] Feedback / Support");
-    final String body = Uri.encodeComponent("Bonjour, j'utilise le compte ${_user?.email}. Voici mon message : ");
+    final String subject = Uri.encodeComponent(
+      "[TicketScan] Feedback / Support",
+    );
+    final String body = Uri.encodeComponent(
+      "Bonjour, j'utilise le compte ${_user?.email}. Voici mon message : ",
+    );
     // NOUVELLE ADRESSE MAIL APPLIQUÉE
-    final Uri emailLaunchUri = Uri.parse("mailto:ticketscan1.help@outlook.froutlook.fr?subject=$subject&body=$body");
+    final Uri emailLaunchUri = Uri.parse(
+      "mailto:ticketscan1.help@outlook.froutlook.fr?subject=$subject&body=$body",
+    );
 
     try {
       if (await canLaunchUrl(emailLaunchUri)) {
@@ -48,7 +58,14 @@ class _ProfilePageState extends State<ProfilePage> {
         throw 'Impossible d\'ouvrir l\'application email';
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à ticketscan1.help@outlook.froutlook.fr')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Veuillez envoyer un mail à ticketscan1.help@outlook.froutlook.fr',
+            ),
+          ),
+        );
     }
   }
 
@@ -58,10 +75,21 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(loc?.get('delete_account') ?? 'Supprimer'),
-        content: Text(loc?.get('delete_account_warning') ?? 'Action irréversible.'),
+        content: Text(
+          loc?.get('delete_account_warning') ?? 'Action irréversible.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(loc?.get('cancel') ?? 'Annuler')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(loc?.get('delete') ?? 'Supprimer', style: const TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(loc?.get('cancel') ?? 'Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              loc?.get('delete') ?? 'Supprimer',
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
         ],
       ),
     );
@@ -71,7 +99,11 @@ class _ProfilePageState extends State<ProfilePage> {
       try {
         await Supabase.instance.client.functions.invoke('delete-user');
         await SupabaseService.signOut();
-        if (mounted) Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const AuthPage()), (r) => false);
+        if (mounted)
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AuthPage()),
+            (r) => false,
+          );
       } catch (e) {
         if (mounted) setState(() => _isDeleting = false);
       }
@@ -85,7 +117,10 @@ class _ProfilePageState extends State<ProfilePage> {
     final lang = Provider.of<LanguageService>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(loc?.get('profile') ?? 'Profil'), elevation: 0),
+      appBar: AppBar(
+        title: Text(loc?.get('profile') ?? 'Profil'),
+        elevation: 0,
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -104,7 +139,13 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
           ),
-          if (_isDeleting) Container(color: Colors.black54, child: const Center(child: CircularProgressIndicator(color: Colors.white))),
+          if (_isDeleting)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
         ],
       ),
     );
@@ -113,15 +154,36 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildUserInfo(SubscriptionService sub) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
         children: [
-          CircleAvatar(radius: 30, backgroundColor: Theme.of(context).primaryColor, child: const Icon(Icons.person, color: Colors.white)),
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: Theme.of(context).primaryColor,
+            child: const Icon(Icons.person, color: Colors.white),
+          ),
           const SizedBox(width: 16),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(_user?.email ?? 'Utilisateur', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            Text(sub.isPremium ? 'PREMIUM' : 'FREE', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-          ])),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _user?.email ?? 'Utilisateur',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  sub.isPremium ? 'PREMIUM' : 'FREE',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -129,70 +191,125 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildPremiumBanner(AppLocalizations? loc) {
     return InkWell(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PremiumPage())),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const PremiumPage()),
+      ),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(gradient: LinearGradient(colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.8)]), borderRadius: BorderRadius.circular(16)),
-        child: Row(children: [
-          const Icon(Icons.stars, color: Colors.white),
-          const SizedBox(width: 12),
-          Expanded(child: Text(loc?.get('premium_banner_msg') ?? 'Passer au Premium', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-          const Icon(Icons.chevron_right, color: Colors.white),
-        ]),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).primaryColor,
+              Theme.of(context).primaryColor.withOpacity(0.8),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.stars, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                loc?.get('premium_banner_msg') ?? 'Passer au Premium',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.white),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSettings(LanguageService lang, AppLocalizations? loc) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(loc?.get('settings') ?? 'Paramètres', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-      const SizedBox(height: 12),
-      ListTile(
-        leading: const Icon(Icons.language),
-        title: Text(loc?.get('language') ?? 'Langue'),
-        trailing: PopupMenuButton<Locale>(
-          onSelected: (l) => lang.setLanguage(l),
-          itemBuilder: (c) => [
-            const PopupMenuItem(value: Locale('fr', 'FR'), child: Text('Français')),
-            const PopupMenuItem(value: Locale('en', 'US'), child: Text('English')),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          loc?.get('settings') ?? 'Paramètres',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-      ),
-      ListTile(
-        leading: const Icon(Icons.dark_mode),
-        title: Text(loc?.get('dark_mode') ?? 'Thème'),
-        trailing: PopupMenuButton<ThemeMode>(
-          onSelected: (m) => ThemeService.setThemeMode(m),
-          itemBuilder: (c) => [
-            const PopupMenuItem(value: ThemeMode.light, child: Text('Clair')),
-            const PopupMenuItem(value: ThemeMode.dark, child: Text('Sombre')),
-          ],
+        const SizedBox(height: 12),
+        ListTile(
+          leading: const Icon(Icons.language),
+          title: Text(loc?.get('language') ?? 'Langue'),
+          trailing: PopupMenuButton<Locale>(
+            onSelected: (l) => lang.setLanguage(l),
+            itemBuilder: (c) => [
+              const PopupMenuItem(
+                value: Locale('fr', 'FR'),
+                child: Text('Français'),
+              ),
+              const PopupMenuItem(
+                value: Locale('en', 'US'),
+                child: Text('English'),
+              ),
+            ],
+          ),
         ),
-      ),
-    ]);
+        ListTile(
+          leading: const Icon(Icons.dark_mode),
+          title: Text(loc?.get('dark_mode') ?? 'Thème'),
+          trailing: PopupMenuButton<ThemeMode>(
+            onSelected: (m) => ThemeService.setThemeMode(m),
+            itemBuilder: (c) => [
+              const PopupMenuItem(value: ThemeMode.light, child: Text('Clair')),
+              const PopupMenuItem(value: ThemeMode.dark, child: Text('Sombre')),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildAbout(AppLocalizations? loc) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(loc?.get('about') ?? 'À propos', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-      ListTile(
-        leading: const Icon(Icons.privacy_tip),
-        title: Text(loc?.get('privacy_policy') ?? 'Confidentialité'),
-        trailing: const Icon(Icons.chevron_right, size: 20),
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyPolicyPage())),
-      ),
-      ListTile(
-        leading: const Icon(Icons.support_agent),
-        title: Text(loc?.get('contact_support') ?? 'Support'),
-        onTap: _contactSupport,
-      ),
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          loc?.get('about') ?? 'À propos',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        ListTile(
+          leading: const Icon(Icons.privacy_tip),
+          title: Text(loc?.get('privacy_policy') ?? 'Confidentialité'),
+          trailing: const Icon(Icons.chevron_right, size: 20),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const PrivacyPolicyPage()),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.support_agent),
+          title: Text(loc?.get('contact_support') ?? 'Support'),
+          onTap: _contactSupport,
+        ),
+      ],
+    );
   }
 
   Widget _buildSignOut(AppLocalizations? loc) {
-    return Column(children: [
-      ListTile(leading: const Icon(Icons.logout), title: Text(loc?.get('sign_out') ?? 'Déconnexion'), onTap: _signOut),
-      ListTile(leading: const Icon(Icons.delete_forever, color: Colors.red), title: Text(loc?.get('delete_account') ?? 'Supprimer le compte', style: const TextStyle(color: Colors.red)), onTap: _deleteAccount),
-    ]);
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.logout),
+          title: Text(loc?.get('sign_out') ?? 'Déconnexion'),
+          onTap: _signOut,
+        ),
+        ListTile(
+          leading: const Icon(Icons.delete_forever, color: Colors.red),
+          title: Text(
+            loc?.get('delete_account') ?? 'Supprimer le compte',
+            style: const TextStyle(color: Colors.red),
+          ),
+          onTap: _deleteAccount,
+        ),
+      ],
+    );
   }
 }

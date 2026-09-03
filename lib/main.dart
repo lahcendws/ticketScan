@@ -25,25 +25,25 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await initializeDateFormatting('fr_FR', null);
-  
+
   await Supabase.initialize(
     url: SupabaseOptions.currentUrl,
     anonKey: SupabaseOptions.currentAnonKey,
   );
-  
+
   await SupabaseService.initialize();
   await NotificationService.initialize();
   await ThemeService.init();
   await CameraService.initialize();
-  
+
   final languageService = LanguageService();
   await languageService.init();
 
   final subscriptionService = SubscriptionService();
   await subscriptionService.init();
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -71,10 +71,12 @@ class _TicketScanAppState extends State<TicketScanApp> {
   void initState() {
     super.initState();
     _themeMode = ThemeService.themeMode;
-    
+
     ThemeService.themeModeNotifier.addListener(_onThemeChanged);
 
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      data,
+    ) {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.passwordRecovery && mounted) {
         navigatorKey.currentState?.push(
@@ -102,7 +104,7 @@ class _TicketScanAppState extends State<TicketScanApp> {
   @override
   Widget build(BuildContext context) {
     final languageService = Provider.of<LanguageService>(context);
-    
+
     return MaterialApp(
       title: 'TicketScan',
       navigatorKey: navigatorKey,

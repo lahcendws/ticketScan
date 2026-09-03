@@ -27,7 +27,7 @@ class LanguageService extends ChangeNotifier {
 
   Future<void> setLanguage(Locale locale) async {
     if (_currentLocale == locale) return;
-    
+
     _currentLocale = locale;
     notifyListeners();
 

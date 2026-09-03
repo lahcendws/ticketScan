@@ -35,11 +35,14 @@ class PrimaryButton extends StatelessWidget {
           backgroundColor: backgroundColor ?? Theme.of(context).primaryColor,
           foregroundColor: foregroundColor ?? Colors.white,
           elevation: 2,
-          shadowColor: (backgroundColor ?? Theme.of(context).primaryColor).withOpacity(0.3),
+          shadowColor: (backgroundColor ?? Theme.of(context).primaryColor)
+              .withOpacity(0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding:
+              padding ??
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
         child: isLoading
             ? Row(
@@ -68,10 +71,7 @@ class PrimaryButton extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (icon != null) ...[
-                    icon!,
-                    const SizedBox(width: 8),
-                  ],
+                  if (icon != null) ...[icon!, const SizedBox(width: 8)],
                   Text(
                     text,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(

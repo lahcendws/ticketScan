@@ -30,14 +30,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final loc = AppLocalizations.of(context);
     try {
       final redirectUrl = 'ticketscan://login-callback';
-      await SupabaseService.resetPassword(_emailController.text.trim(), redirectTo: redirectUrl);
-      
+      await SupabaseService.resetPassword(
+        _emailController.text.trim(),
+        redirectTo: redirectUrl,
+      );
+
       if (mounted) {
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: Text(loc?.get('reset_password') ?? 'Réinitialiser le mot de passe'),
+            title: Text(
+              loc?.get('reset_password') ?? 'Réinitialiser le mot de passe',
+            ),
             content: Text(
               loc?.get('reset_link_sent') ??
                   'Un lien de réinitialisation a été envoyé à votre adresse email.',
@@ -49,7 +54,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   Navigator.pop(context); // return to auth_page
                 },
                 child: const Text('OK'),
-              )
+              ),
             ],
           ),
         );
@@ -75,7 +80,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       builder: (context) => AlertDialog(
         title: Text(loc?.get('forgot_email_title') ?? 'Email oublié ?'),
         content: Text(
-          loc?.get('forgot_email_content') ?? 'Instructions pour retrouver votre email...',
+          loc?.get('forgot_email_content') ??
+              'Instructions pour retrouver votre email...',
         ),
         actions: [
           TextButton(
@@ -87,7 +93,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               Navigator.pop(context);
               _contactSupport();
             },
-            child: Text(loc?.get('contact_support_button') ?? 'Contacter le support'),
+            child: Text(
+              loc?.get('contact_support_button') ?? 'Contacter le support',
+            ),
           ),
         ],
       ),
@@ -95,9 +103,15 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   }
 
   Future<void> _contactSupport() async {
-    final String subject = Uri.encodeComponent("[TicketScan] Aide Connexion / Identifiant oublié");
-    final String body = Uri.encodeComponent("Bonjour, je n'arrive pas à retrouver mon identifiant TicketScan. Voici mes informations (Nom, justificatif de paiement si Premium, etc.) : ");
-    final Uri emailLaunchUri = Uri.parse("mailto:ticketscan1.help@outlook.froutlook.fr?subject=$subject&body=$body");
+    final String subject = Uri.encodeComponent(
+      "[TicketScan] Aide Connexion / Identifiant oublié",
+    );
+    final String body = Uri.encodeComponent(
+      "Bonjour, je n'arrive pas à retrouver mon identifiant TicketScan. Voici mes informations (Nom, justificatif de paiement si Premium, etc.) : ",
+    );
+    final Uri emailLaunchUri = Uri.parse(
+      "mailto:ticketscan1.help@outlook.froutlook.fr?subject=$subject&body=$body",
+    );
 
     try {
       if (await canLaunchUrl(emailLaunchUri)) {
@@ -106,7 +120,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         throw 'Impossible d\'ouvrir l\'application email';
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez envoyer un mail à ticketscan1.help@outlook.froutlook.fr')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Veuillez envoyer un mail à ticketscan1.help@outlook.froutlook.fr',
+            ),
+          ),
+        );
     }
   }
 
@@ -115,7 +136,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final loc = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(loc?.get('reset_password') ?? 'Réinitialiser le mot de passe'),
+        title: Text(
+          loc?.get('reset_password') ?? 'Réinitialiser le mot de passe',
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Theme.of(context).colorScheme.onBackground,
@@ -132,9 +155,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 Text(
                   loc?.get('reset_password') ?? 'Réinitialiser le mot de passe',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -154,7 +177,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Veuillez entrer votre adresse email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value.trim())) {
                       return 'Veuillez entrer une adresse email valide';
                     }
                     return null;
@@ -171,7 +196,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   child: TextButton(
                     onPressed: _showForgotEmailDialog,
                     child: Text(
-                      loc?.get('forgot_email') ?? 'Identifiant / Email oublié ?',
+                      loc?.get('forgot_email') ??
+                          'Identifiant / Email oublié ?',
                       style: const TextStyle(fontSize: 14),
                     ),
                   ),
