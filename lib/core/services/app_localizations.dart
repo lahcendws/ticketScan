@@ -66,7 +66,10 @@ class AppLocalizations {
     'premium_unlock_msg': 'Accès illimité à toutes les fonctions',
     'payment_secure_note':
         'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.',
+    'payment_secure_note_ios':
+        'Le paiement sera traité de manière sécurisée par l\'App Store. Vous pouvez annuler à tout moment dans vos réglages.',
     'pay_google_play': 'Payer via Google Play',
+    'pay_app_store': 'Payer via l\'App Store',
     'premium_activated': 'Félicitations ! Vous êtes maintenant Premium 🚀',
     'play_play_unavailable':
         'Le service Google Play n\'est pas disponible pour le moment.',
@@ -201,7 +204,10 @@ class AppLocalizations {
     'premium_unlock_msg': 'Unlimited access to all features',
     'payment_secure_note':
         'Payment is securely processed by Google Play. You can cancel anytime in your Google Play settings.',
+    'payment_secure_note_ios':
+        'Payment is securely processed by the App Store. You can cancel anytime in your Settings.',
     'pay_google_play': 'Pay with Google Play',
+    'pay_app_store': 'Pay with the App Store',
     'premium_activated': 'Congratulations! You are now Premium 🚀',
     'play_play_unavailable': 'Google Play service is not available right now.',
     'live_env': 'Live environment',

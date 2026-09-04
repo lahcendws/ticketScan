@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/subscription_service.dart';
@@ -196,8 +197,11 @@ class _PaymentPageState extends State<PaymentPage> {
               ),
               const Spacer(),
               Text(
-                loc?.get('payment_secure_note') ??
-                    'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.',
+                Platform.isAndroid
+                    ? loc?.get('payment_secure_note') ??
+                        'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.'
+                    : loc?.get('payment_secure_note_ios') ??
+                        'Le paiement sera traité de manière sécurisée par l\'App Store. Vous pouvez annuler à tout moment dans vos réglages.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
               ),
@@ -226,8 +230,9 @@ class _PaymentPageState extends State<PaymentPage> {
                           ),
                         )
                       : Text(
-                          loc?.get('pay_google_play') ??
-                              'Payer via Google Play',
+                          Platform.isAndroid
+                              ? (loc?.get('pay_google_play') ?? 'Payer via Google Play')
+                              : (loc?.get('pay_app_store') ?? 'Payer via l\'App Store'),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
