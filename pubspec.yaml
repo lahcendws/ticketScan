@@ -46,11 +46,11 @@ dev_dependencies:
 # CONFIGURATION POUR ICÔNES ADAPTATIVES (CORRIGÉE)
 flutter_launcher_icons:
   android: "launcher_icon"
-  ios: false
+  ios: true
   image_path: "assets/icons/app_icon.png"
-  # Mode adaptatif Android 8.0+
+  image_path_ios: "assets/icons/app_icon_ios.png"   # <-- la version full-bleed sans alpha
+  remove_alpha_ios: true                             # sécurité supplémentaire si jamais une trace d'alpha reste
   adaptive_icon_background: "#FFFFFF"
-  # Utilisation de la nouvelle image avec marges de sécurité
   adaptive_icon_foreground: "assets/icons/app_icon.png"
   min_sdk_android: 21
 
