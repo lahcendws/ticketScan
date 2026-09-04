@@ -161,7 +161,7 @@ class _PremiumPageState extends State<PremiumPage> {
                         loc?.get('premium_yearly_detail') ??
                         'Abonnement annuel',
                     price: '29,99 €',
-                    monthlyPrice: '2,50 € / Mois',
+                    monthlyPrice: '2,50 € ${loc?.get('per_month') ?? '/ Mois'}',
                     isBestValue: true,
                     loc: loc,
                   ),
@@ -172,7 +172,7 @@ class _PremiumPageState extends State<PremiumPage> {
                         loc?.get('premium_monthly_detail') ??
                         'Abonnement mensuel',
                     price: '2,99 €',
-                    monthlyPrice: '2,99 € / Mois',
+                    monthlyPrice: '2,99 € ${loc?.get('per_month') ?? '/ Mois'}',
                     isBestValue: false,
                     loc: loc,
                   ),
@@ -194,7 +194,6 @@ class _PremiumPageState extends State<PremiumPage> {
               ],
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
                   width: double.infinity,
@@ -231,39 +230,40 @@ class _PremiumPageState extends State<PremiumPage> {
                 ),
                 const SizedBox(height: 20),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (c) => const PrivacyPolicyPage(),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (c) => const PrivacyPolicyPage(),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        loc?.get('privacy_policy') ??
-                            'Politique de confidentialité',
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 12,
+                        child: Text(
+                          loc?.get('privacy_policy') ??
+                              'Politique de confidentialité',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        '|',
-                        style: TextStyle(color: Colors.grey.shade300),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Text(
-                        loc?.get('terms_of_service') ??
-                            'Conditions d\'utilisation',
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 12,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {},
+                        child: Text(
+                          loc?.get('terms_of_service') ??
+                              'Conditions d\'utilisation',
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),

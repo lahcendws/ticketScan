@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>TicketScan utilise la caméra pour scanner et analyser vos tickets.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>TicketScan utilise vos photos pour importer et analyser vos tickets.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -66,13 +70,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>TicketScan utilise la caméra pour scanner et analyser vos tickets.</string>
-
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>TicketScan utilise vos photos pour importer et analyser vos tickets.</string>
-
-</dict>
-</plist>
 </dict>
 </plist>
