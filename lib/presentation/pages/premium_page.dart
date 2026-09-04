@@ -161,7 +161,7 @@ class _PremiumPageState extends State<PremiumPage> {
                         loc?.get('premium_yearly_detail') ??
                         'Abonnement annuel',
                     price: '29,99 €',
-                    monthlyPrice: '2,50 € / Mois',
+                    monthlyPrice: '2,50 € ${loc?.get('per_month') ?? '/ Mois'}',
                     isBestValue: true,
                     loc: loc,
                   ),
@@ -172,7 +172,7 @@ class _PremiumPageState extends State<PremiumPage> {
                         loc?.get('premium_monthly_detail') ??
                         'Abonnement mensuel',
                     price: '2,99 €',
-                    monthlyPrice: '2,99 € / Mois',
+                    monthlyPrice: '2,99 € ${loc?.get('per_month') ?? '/ Mois'}',
                     isBestValue: false,
                     loc: loc,
                   ),
