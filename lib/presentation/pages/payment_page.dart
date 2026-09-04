@@ -199,9 +199,9 @@ class _PaymentPageState extends State<PaymentPage> {
               Text(
                 Platform.isAndroid
                     ? loc?.get('payment_secure_note') ??
-                        'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.'
+                          'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.'
                     : loc?.get('payment_secure_note_ios') ??
-                        'Le paiement sera traité de manière sécurisée par l\'App Store. Vous pouvez annuler à tout moment dans vos réglages.',
+                          'Le paiement sera traité de manière sécurisée par l\'App Store. Vous pouvez annuler à tout moment dans vos réglages.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
               ),
@@ -231,8 +231,10 @@ class _PaymentPageState extends State<PaymentPage> {
                         )
                       : Text(
                           Platform.isAndroid
-                              ? (loc?.get('pay_google_play') ?? 'Payer via Google Play')
-                              : (loc?.get('pay_app_store') ?? 'Payer via l\'App Store'),
+                              ? (loc?.get('pay_google_play') ??
+                                    'Payer via Google Play')
+                              : (loc?.get('pay_app_store') ??
+                                    'Payer via l\'App Store'),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
