@@ -169,8 +169,9 @@ class _ScanPageState extends State<ScanPage> {
             child: Column(
               children: [
                 _buildTopBar(),
-                const Spacer(),
+                const Spacer(flex: 2),
                 _buildImagePreviewList(),
+                const Spacer(),
                 _buildBottomControls(canScan),
               ],
             ),
@@ -188,26 +189,28 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.all(8),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white, size: 30),
+            icon: const Icon(Icons.close, color: Colors.white, size: 28),
             onPressed: () => Navigator.pop(context),
           ),
-          const Spacer(),
+          const Expanded(child: SizedBox.shrink()),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: Colors.black45,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              '${_capturedImages.length} photo(s)',
+              '${_capturedImages.length}',
               style: const TextStyle(
                 color: Colors.white,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 1.0,
               ),
             ),
           ),
@@ -219,35 +222,45 @@ class _ScanPageState extends State<ScanPage> {
   Widget _buildImagePreviewList() {
     if (_capturedImages.isEmpty) return const SizedBox();
     return Container(
-      height: 80,
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: _capturedImages.length,
         itemBuilder: (context, i) => Container(
-          width: 60,
-          margin: const EdgeInsets.only(right: 8),
+          width: 80,
+          margin: const EdgeInsets.only(right: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white, width: 2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
             image: DecorationImage(
               image: FileImage(File(_capturedImages[i])),
               fit: BoxFit.cover,
             ),
           ),
-          child: Align(
-            alignment: Alignment.topRight,
-            child: GestureDetector(
-              onTap: () => setState(() => _capturedImages.removeAt(i)),
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
+          child: Stack(
+            children: [
+              Positioned(
+                top: 4,
+                right: 4,
+                child: GestureDetector(
+                  onTap: () => setState(() => _capturedImages.removeAt(i)),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-                child: const Icon(Icons.close, size: 16, color: Colors.white),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -255,49 +268,60 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Widget _buildBottomControls(bool canScan) {
+    Widget analyzeButton = _capturedImages.isNotEmpty
+        ? ElevatedButton(
+            onPressed: _isProcessing ? null : _analyzeTicket,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isProcessing
+                  ? Colors.grey
+                  : (canScan ? Colors.green : Colors.orange),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: _isProcessing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Icon(canScan ? Icons.check : Icons.lock, size: 24),
+          )
+        : const SizedBox();
+
     return Container(
-      padding: const EdgeInsets.only(bottom: 30),
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          const SizedBox(width: 60),
-          GestureDetector(
-            onTap: _takePhoto,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 4),
-              ),
+          SizedBox(
+            width: 70,
+            child: GestureDetector(
+              onTap: _takePhoto,
               child: Container(
-                margin: const EdgeInsets.all(5),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                ),
+                child: Container(
+                  margin: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ),
           ),
-          SizedBox(
-            width: 60,
-            child: _capturedImages.isNotEmpty
-                ? FloatingActionButton(
-                    heroTag: 'btn_check',
-                    onPressed: _isProcessing ? null : _analyzeTicket,
-                    backgroundColor: _isProcessing
-                        ? Colors.grey
-                        : (canScan ? Colors.green : Colors.orange),
-                    mini: true,
-                    child: Icon(
-                      _isProcessing
-                          ? Icons.hourglass_empty
-                          : (canScan ? Icons.check : Icons.lock),
-                      size: 30,
-                    ),
-                  )
-                : const SizedBox(),
-          ),
+          SizedBox(width: 70, child: analyzeButton),
         ],
       ),
     );
