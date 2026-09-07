@@ -255,7 +255,10 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                     ),
                   )
                 : IconButton(
-                    icon: const Icon(Icons.picture_as_pdf, color: Colors.white70),
+                    icon: const Icon(
+                      Icons.picture_as_pdf,
+                      color: Colors.white70,
+                    ),
                     onPressed: _handlePDFExport,
                     tooltip: 'Aperçu PDF',
                   ),
@@ -395,7 +398,10 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
             ),
             filled: true,
             fillColor: Colors.grey.shade800,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
           ),
         ),
       ],
@@ -517,8 +523,10 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
             const SizedBox(height: 8),
             _buildInfoRow(
               localizations?.get('warranty_end_date') ?? 'Warranty End',
-              DateFormat('dd/MM/yyyy', locale)
-                  .format(widget.ticket.warrantyEndDate),
+              DateFormat(
+                'dd/MM/yyyy',
+                locale,
+              ).format(widget.ticket.warrantyEndDate),
               primary: primary,
             ),
           ],
@@ -527,8 +535,12 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value,
-      {bool isBold = false, required Color primary}) {
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    bool isBold = false,
+    required Color primary,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -601,23 +613,32 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                   decoration: InputDecoration(
                                     hintText:
                                         localizations?.get('product_name') ??
-                                            'Product Name',
+                                        'Product Name',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: Colors.grey.shade600),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade600,
+                                      ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: Colors.grey.shade600),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade600,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: primary, width: 2),
+                                      borderSide: BorderSide(
+                                        color: primary,
+                                        width: 2,
+                                      ),
                                     ),
                                     filled: true,
                                     fillColor: Colors.grey.shade800,
                                     contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 8),
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -636,20 +657,29 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                         '${localizations?.get('price') ?? 'Price'} (${widget.ticket.currency})',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: Colors.grey.shade600),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade600,
+                                      ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: Colors.grey.shade600),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade600,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(color: primary, width: 2),
+                                      borderSide: BorderSide(
+                                        color: primary,
+                                        width: 2,
+                                      ),
                                     ),
                                     filled: true,
                                     fillColor: Colors.grey.shade800,
                                     contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 8),
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
                                   ),
                                 ),
                               ),

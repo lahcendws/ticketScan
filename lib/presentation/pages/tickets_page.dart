@@ -84,8 +84,10 @@ class _TicketsPageState extends State<TicketsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(loc?.get('cancel') ?? 'OK',
-                style: const TextStyle(color: Colors.white70)),
+            child: Text(
+              loc?.get('cancel') ?? 'OK',
+              style: const TextStyle(color: Colors.white70),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -99,8 +101,10 @@ class _TicketsPageState extends State<TicketsPage> {
               backgroundColor: Theme.of(context).primaryColor,
               foregroundColor: Colors.white,
             ),
-            child: Text(loc?.get('upgrade_premium') ?? 'Upgrade',
-                style: const TextStyle(color: Colors.white)),
+            child: Text(
+              loc?.get('upgrade_premium') ?? 'Upgrade',
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -144,7 +148,10 @@ class _TicketsPageState extends State<TicketsPage> {
               decoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.orange.withOpacity(0.3), width: 1),
+                border: Border.all(
+                  color: Colors.orange.withOpacity(0.3),
+                  width: 1,
+                ),
               ),
               child: Row(
                 children: [
@@ -188,7 +195,9 @@ class _TicketsPageState extends State<TicketsPage> {
 
   Widget _buildContent(TicketProvider provider, AppLocalizations? loc) {
     if (provider.isLoading && provider.tickets.isEmpty)
-      return const Center(child: CircularProgressIndicator(color: Colors.white70));
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white70),
+      );
     if (provider.tickets.isEmpty) return _buildEmptyState(loc);
 
     return Column(
@@ -229,10 +238,7 @@ class _TicketsPageState extends State<TicketsPage> {
           const SizedBox(height: 16),
           Text(
             loc?.get('no_tickets') ?? 'No tickets',
-            style: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 16,
-            ),
+            style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
           ),
         ],
       ),
@@ -289,10 +295,7 @@ class _TicketsPageState extends State<TicketsPage> {
         const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.grey.shade400,
-          ),
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
         ),
       ],
     );
