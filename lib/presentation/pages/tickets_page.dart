@@ -71,12 +71,21 @@ class _TicketsPageState extends State<TicketsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(loc?.get('upgrade_premium') ?? 'Premium'),
-        content: Text(loc?.get('limit_reached_msg') ?? 'Limite atteinte'),
+        backgroundColor: Colors.grey.shade900,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          loc?.get('upgrade_premium') ?? 'Premium',
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          loc?.get('limit_reached_msg') ?? 'Limite atteinte',
+          style: const TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(loc?.get('cancel') ?? 'OK'),
+            child: Text(loc?.get('cancel') ?? 'OK',
+                style: const TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -86,7 +95,12 @@ class _TicketsPageState extends State<TicketsPage> {
                 MaterialPageRoute(builder: (context) => const PremiumPage()),
               );
             },
-            child: Text(loc?.get('upgrade_premium') ?? 'Upgrade'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(loc?.get('upgrade_premium') ?? 'Upgrade',
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -102,14 +116,21 @@ class _TicketsPageState extends State<TicketsPage> {
     final canScan = sub.canScan(provider.tickets);
 
     return Scaffold(
+      backgroundColor: Colors.grey.shade900,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(
           loc?.get('my_tickets') ?? 'Tickets',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 0.5,
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.download),
+            icon: const Icon(Icons.download, color: Colors.white70),
             onPressed: () => _exportToCSV(provider.tickets),
           ),
         ],
@@ -117,48 +138,45 @@ class _TicketsPageState extends State<TicketsPage> {
       body: Column(
         children: [
           if (!sub.isPremium && !canScan)
-            InkWell(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PremiumPage()),
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.orange.withOpacity(0.3), width: 1),
               ),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                color: Colors.orange.withOpacity(0.15),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.warning_amber_rounded,
-                      color: Colors.orange,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        loc?.get('limit_reached_msg') ??
-                            'Limite de 3 tickets atteinte.',
-                        style: const TextStyle(
-                          color: Colors.orange,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      loc?.get('limit_reached_msg') ??
+                          'Limite de 3 tickets atteinte.',
+                      style: const TextStyle(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
                       ),
                     ),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: Colors.orange,
-                      size: 20,
-                    ),
-                  ],
-                ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
+                ],
               ),
             ),
           Expanded(
             child: RefreshIndicator(
+              color: Theme.of(context).primaryColor,
+              backgroundColor: Colors.grey.shade800,
               onRefresh: () => provider.loadTickets(),
               child: _buildContent(provider, loc),
             ),
@@ -170,7 +188,7 @@ class _TicketsPageState extends State<TicketsPage> {
 
   Widget _buildContent(TicketProvider provider, AppLocalizations? loc) {
     if (provider.isLoading && provider.tickets.isEmpty)
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: Colors.white70));
     if (provider.tickets.isEmpty) return _buildEmptyState(loc);
 
     return Column(
@@ -199,7 +217,26 @@ class _TicketsPageState extends State<TicketsPage> {
   }
 
   Widget _buildEmptyState(AppLocalizations? loc) {
-    return Center(child: Text(loc?.get('no_tickets') ?? 'No tickets'));
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.confirmation_number_outlined,
+            size: 48,
+            color: Colors.grey[600],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            loc?.get('no_tickets') ?? 'No tickets',
+            style: TextStyle(
+              color: Colors.grey.shade400,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildStatsSection(List<TicketModel> tickets, AppLocalizations? loc) {
@@ -216,13 +253,13 @@ class _TicketsPageState extends State<TicketsPage> {
           _buildStatItem(
             loc?.get('total') ?? 'Total',
             '${tickets.length}',
-            Icons.receipt,
-            Colors.blue,
+            Icons.receipt_outlined,
+            Theme.of(context).primaryColor,
           ),
           _buildStatItem(
             loc?.get('warranty') ?? 'Warranty',
             '${tickets.where((t) => t.isWarrantyExpiringSoon()).length}',
-            Icons.warning,
+            Icons.warning_amber_outlined,
             Colors.orange,
           ),
         ],
@@ -237,13 +274,26 @@ class _TicketsPageState extends State<TicketsPage> {
     Color color,
   ) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 20),
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: color,
+            fontSize: 18,
+          ),
         ),
-        Text(label, style: const TextStyle(fontSize: 10)),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.grey.shade400,
+          ),
+        ),
       ],
     );
   }
