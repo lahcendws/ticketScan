@@ -19,6 +19,10 @@ class TicketProvider extends ChangeNotifier {
       final ticketsData = await SupabaseService.getAllTickets();
       _tickets = ticketsData.map((data) => TicketModel.fromMap(data)).toList();
       notifyListeners();
+      // Reprogramme les rappels de garantie : indispensable pour les tickets
+      // existants après un redémarrage de l'application (les notifications
+      // n'étaient planifiées qu'à l'ajout).
+      await _rescheduleAllWarrantyReminders();
     } catch (e) {
       _setError('Erreur lors du chargement: $e');
     } finally {
@@ -122,6 +126,15 @@ class TicketProvider extends ChangeNotifier {
     if (ticketId == null) return;
     await NotificationService.cancelWarrantyNotification(ticketId);
     await _scheduleWarrantyReminder(ticket);
+  }
+
+  Future<void> _rescheduleAllWarrantyReminders() async {
+    for (final ticket in _tickets) {
+      // Ne reprogramme que les garanties non expirées.
+      if (ticket.warrantyEndDate.isAfter(DateTime.now())) {
+        await _scheduleWarrantyReminder(ticket);
+      }
+    }
   }
 
   void _clearError() {

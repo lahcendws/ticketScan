@@ -147,6 +147,7 @@ class AppLocalizations {
     'scan_soon': 'Scanner bientôt',
     'scan_ticket': 'Scanner un ticket',
     'delete_ticket_warning': 'Ce ticket sera supprimé définitivement.',
+    'app_version': 'Version',
   };
 
   static const Map<String, String> _en = {
@@ -281,6 +282,7 @@ class AppLocalizations {
     'scan_soon': 'Scan coming soon',
     'scan_ticket': 'Scan a receipt',
     'delete_ticket_warning': 'This ticket will be permanently deleted.',
+    'app_version': 'Version',
   };
 
   String get(String key) {

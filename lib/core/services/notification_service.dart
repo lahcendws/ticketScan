@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -69,14 +70,13 @@ class NotificationService {
     required String storeName,
     required DateTime warrantyEndDate,
   }) async {
-    // Programmer le rappel 30 jours avant la fin
-    final notificationDate = warrantyEndDate.subtract(const Duration(days: 30));
+    // Garantie déjà expirée : aucun rappel nécessaire.
     final now = DateTime.now();
-
-    if (notificationDate.isBefore(now)) return;
+    if (warrantyEndDate.isBefore(now)) return;
 
     // id limité à int32 (exigence Android) pour éviter les débordements
     final safeId = id & 0x7fffffff;
+    final expiryText = DateFormat('dd/MM/yyyy').format(warrantyEndDate);
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
@@ -91,17 +91,31 @@ class NotificationService {
       android: androidPlatformChannelSpecifics,
     );
 
-    await _notifications.zonedSchedule(
-      safeId,
-      'Garantie bientôt expirée',
-      'La garantie pour "$productName" ($storeName) expire dans 30 jours',
-      tz.TZDateTime.from(notificationDate, tz.local),
-      platformChannelSpecifics,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode
-          .inexactAllowWhileIdle, // FIX: Utilise des alarmes inexactes pour éviter le plantage
-    );
+    final title = 'Garantie bientôt expirée';
+    final body =
+        'La garantie pour "$productName" ($storeName) expire le $expiryText';
+
+    // Rappel 30 jours avant la fin de garantie.
+    final notificationDate = warrantyEndDate.subtract(const Duration(days: 30));
+
+    if (notificationDate.isAfter(now)) {
+      // La date du rappel est dans le futur : on programme hors connexion.
+      await _notifications.zonedSchedule(
+        safeId,
+        title,
+        body,
+        tz.TZDateTime.from(notificationDate, tz.local),
+        platformChannelSpecifics,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode
+            .inexactAllowWhileIdle, // FIX: Utilise des alarmes inexactes pour éviter le plantage
+      );
+    } else {
+      // La garantie est déjà à moins de 30 jours : on notifie immédiatement.
+      // (zonedSchedule refuserait une date passée, on passe donc par show.)
+      await _notifications.show(safeId, title, body, platformChannelSpecifics);
+    }
   }
 
   static Future<void> cancelWarrantyNotification(String ticketId) async {
