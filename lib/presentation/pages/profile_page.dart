@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/theme_service.dart';
 import '../../core/services/language_service.dart';
@@ -22,12 +23,27 @@ class _ProfilePageState extends State<ProfilePage> {
   User? _user;
   ThemeMode _currentThemeMode = ThemeMode.system;
   bool _isDeleting = false;
+  String _appVersion = '';
 
   @override
   void initState() {
     super.initState();
     _user = SupabaseService.currentUser;
     _currentThemeMode = ThemeService.themeMode;
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _appVersion = '${info.version}+${info.buildNumber}';
+        });
+      }
+    } catch (e) {
+      debugPrint('Erreur récupération version: $e');
+    }
   }
 
   Future<void> _signOut() async {
@@ -274,6 +290,14 @@ class _ProfilePageState extends State<ProfilePage> {
         Text(
           loc?.get('about') ?? 'À propos',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        ListTile(
+          leading: const Icon(Icons.info_outline),
+          title: Text(loc?.get('app_version') ?? 'Version'),
+          trailing: Text(
+            _appVersion.isEmpty ? '—' : _appVersion,
+            style: TextStyle(color: Colors.grey[600]),
+          ),
         ),
         ListTile(
           leading: const Icon(Icons.privacy_tip),
