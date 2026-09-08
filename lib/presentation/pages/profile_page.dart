@@ -64,7 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
     // NOUVELLE ADRESSE MAIL APPLIQUÉE
     final Uri emailLaunchUri = Uri.parse(
-      "mailto:ticketscan1.help@outlook.froutlook.fr?subject=$subject&body=$body",
+      "mailto:ticketscan1.help@outlook.fr?subject=$subject&body=$body",
     );
 
     try {
