@@ -124,7 +124,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Veuillez envoyer un mail à ticketscan1.help@outlook.froutlook.fr',
+              'Veuillez envoyer un mail à ticketscan1.help@outlook.fr',
             ),
           ),
         );
