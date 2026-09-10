@@ -61,7 +61,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
       "Bonjour, je n'arrive pas à retrouver mon identifiant TicketScan. Voici mes informations (Nom, justificatif de paiement si Premium, etc.) : ",
     );
     final Uri emailLaunchUri = Uri.parse(
-      "mailto:ticketscan1.help@outlook.froutlook.fr?subject=$subject&body=$body",
+      "mailto:ticketscan1.help@outlook.fr?subject=$subject&body=$body",
     );
 
     try {
@@ -75,7 +75,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Veuillez envoyer un mail à ticketscan1.help@outlook.froutlook.fr',
+              'Veuillez envoyer un mail à ticketscan1.help@outlook.fr',
             ),
           ),
         );
