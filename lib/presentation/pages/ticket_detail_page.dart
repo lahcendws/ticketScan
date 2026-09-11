@@ -7,6 +7,7 @@ import '../../core/services/app_localizations.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/pdf_service.dart';
 import '../../core/services/subscription_service.dart';
+import '../../core/services/ticket_share_service.dart';
 import 'premium_page.dart';
 
 class TicketDetailPage extends StatefulWidget {
@@ -82,7 +83,9 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       listen: false,
     );
     if (!subscriptionService.isPremium) {
-      _showUpgradeDialog();
+      _showUpgradeDialog(
+        "L'export PDF professionnel est réservé aux membres Premium.",
+      );
       return;
     }
     setState(() => _isGeneratingPDF = true);
@@ -98,7 +101,33 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     }
   }
 
-  void _showUpgradeDialog() {
+  Future<void> _handleShare() async {
+    final subscriptionService = Provider.of<SubscriptionService>(
+      context,
+      listen: false,
+    );
+    if (!subscriptionService.isPremium) {
+      _showUpgradeDialog(
+        'Le partage des tickets est réservé aux membres Premium.',
+      );
+      return;
+    }
+
+    final localizations = AppLocalizations.of(context);
+    try {
+      await TicketShareService.shareTicket(
+        widget.ticket,
+        locale: localizations?.locale.toString() ?? 'fr_FR',
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur de partage : $error')));
+    }
+  }
+
+  void _showUpgradeDialog(String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -108,10 +137,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           'Fonction Premium',
           style: TextStyle(color: Colors.white),
         ),
-        content: const Text(
-          "L'export PDF professionnel est réservé aux membres Premium.",
-          style: TextStyle(color: Colors.white70),
-        ),
+        content: Text(message, style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -263,6 +289,11 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                     tooltip: 'Aperçu PDF',
                   ),
             IconButton(
+              icon: const Icon(Icons.share, color: Colors.white70),
+              onPressed: _handleShare,
+              tooltip: localizations?.get('share') ?? 'Partager',
+            ),
+            IconButton(
               icon: const Icon(Icons.edit, color: Colors.white70),
               onPressed: () => setState(() => _isEditing = true),
             ),
@@ -282,6 +313,11 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                     icon: const Icon(Icons.check, color: Colors.white),
                     onPressed: _saveChanges,
                   ),
+            IconButton(
+              icon: const Icon(Icons.share, color: Colors.white70),
+              onPressed: _handleShare,
+              tooltip: localizations?.get('share') ?? 'Partager',
+            ),
             IconButton(
               icon: const Icon(Icons.close, color: Colors.white70),
               onPressed: () {

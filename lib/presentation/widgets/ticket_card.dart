@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../data/models/ticket_model.dart';
 import '../../core/services/app_localizations.dart';
 import '../../core/services/supabase_service.dart';
+import '../../core/services/subscription_service.dart';
+import '../../core/services/ticket_share_service.dart';
 import '../pages/ticket_detail_page.dart';
+import '../pages/premium_page.dart';
 
 class TicketCard extends StatelessWidget {
   final TicketModel ticket;
@@ -245,12 +249,51 @@ class TicketCard extends StatelessWidget {
   }
 
   void _shareTicket(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          AppLocalizations.of(context)?.get('filters_soon') ??
-              'Bientôt disponible',
+    final subscriptionService = Provider.of<SubscriptionService>(
+      context,
+      listen: false,
+    );
+    if (!subscriptionService.isPremium) {
+      _showPremiumDialog(context);
+      return;
+    }
+
+    final localizations = AppLocalizations.of(context);
+    TicketShareService.shareTicket(
+      ticket,
+      locale: localizations?.locale.toString() ?? 'fr_FR',
+    ).catchError((error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur de partage : $error')));
+    });
+  }
+
+  void _showPremiumDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Fonction Premium'),
+        content: const Text(
+          'Le partage des tickets est réservé aux membres Premium.',
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Plus tard'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PremiumPage()),
+              );
+            },
+            child: const Text('Passer Premium'),
+          ),
+        ],
       ),
     );
   }
