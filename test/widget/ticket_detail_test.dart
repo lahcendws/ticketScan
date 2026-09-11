@@ -53,4 +53,47 @@ void main() {
     // Vérifier qu'il n'y a PAS d'accolades dans l'affichage du produit
     expect(find.textContaining('{'), findsNothing);
   });
+
+  testWidgets('free users cannot share a ticket from detail page', (
+    WidgetTester tester,
+  ) async {
+    final now = DateTime.now();
+    final testTicket = TicketModel(
+      id: '123',
+      storeName: 'BOULANGER',
+      date: now,
+      totalAmount: 150.0,
+      products: [],
+      imageUrls: [],
+      warrantyEndDate: now.add(const Duration(days: 365)),
+      createdAt: now,
+    );
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => LanguageService()),
+          ChangeNotifierProvider(create: (_) => SubscriptionService.internal()),
+          ChangeNotifierProvider(create: (_) => TicketProvider()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('fr', 'FR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
+          home: TicketDetailPage(ticket: testTicket),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.share));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Le partage des tickets est réservé aux membres Premium.'),
+      findsOneWidget,
+    );
+  });
 }

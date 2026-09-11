@@ -5,6 +5,7 @@ import 'package:ticketscan_new/data/models/ticket_model.dart';
 import 'package:ticketscan_new/core/services/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:ticketscan_new/core/services/language_service.dart';
+import 'package:ticketscan_new/core/services/subscription_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
@@ -23,7 +24,10 @@ void main() {
 
     await tester.pumpWidget(
       MultiProvider(
-        providers: [ChangeNotifierProvider(create: (_) => LanguageService())],
+        providers: [
+          ChangeNotifierProvider(create: (_) => LanguageService()),
+          ChangeNotifierProvider(create: (_) => SubscriptionService.internal()),
+        ],
         child: MaterialApp(
           locale: const Locale('fr', 'FR'),
           supportedLocales: const [Locale('fr', 'FR')],
@@ -45,5 +49,45 @@ void main() {
 
     // Vérifier que le montant est présent (le formatage peut varier selon la locale, on cherche la partie fixe)
     expect(find.textContaining('45.50'), findsOneWidget);
+  });
+
+  testWidgets('free users cannot share a ticket', (WidgetTester tester) async {
+    final testTicket = TicketModel(
+      storeName: 'CARREFOUR',
+      date: DateTime(2024, 1, 1),
+      totalAmount: 45.50,
+      products: [],
+      imageUrls: [],
+      warrantyEndDate: DateTime(2026, 1, 1),
+      createdAt: DateTime.now(),
+    );
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => LanguageService()),
+          ChangeNotifierProvider(create: (_) => SubscriptionService.internal()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('fr', 'FR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
+          home: Scaffold(body: TicketCard(ticket: testTicket)),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.share));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Le partage des tickets est réservé aux membres Premium.'),
+      findsOneWidget,
+    );
   });
 }
