@@ -397,8 +397,10 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                           onPressed: _toggleAuthMode,
                           child: Text(
                             _isLogin
-                                ? 'Pas encore de compte ? S\'inscrire'
-                                : 'Déjà un compte ? Se connecter',
+                              ? (loc?.get('no_account_prompt') ??
+                                'Pas encore de compte ? S\'inscrire')
+                              : (loc?.get('already_account_prompt') ??
+                                'Déjà un compte ? Se connecter'),
                           ),
                         ),
                       ),
