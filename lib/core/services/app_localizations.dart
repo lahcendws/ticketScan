@@ -150,6 +150,23 @@ class AppLocalizations {
     'scan_ticket': 'Scanner un ticket',
     'delete_ticket_warning': 'Ce ticket sera supprimé définitivement.',
     'app_version': 'Version',
+    'welcome_title': 'Bienvenue !',
+    'welcome_subtitle': 'Gardez vos tickets et garanties\nau même endroit.',
+    'scan_ticket_action': 'Scanner un ticket',
+    'choose_image_action': 'Choisir une image',
+    'security_title': 'Vos tickets en toute sécurité',
+    'security_description':
+        'Prenez en photo vos reçus, notre IA extrait les informations et vous aide à gérer vos garanties.',
+    'see_all': 'Voir tout',
+    'tickets_free': 'Tickets\ngratuit',
+    'products_under_warranty': 'Produits\nsous garantie',
+    'alerts_upcoming': 'Alerte(s)\nà venir',
+    'premium_features': 'Plus de\nfonctionnalités',
+    'premium_description':
+        'Tickets illimités, export PDF/CSV, extension de garantie et alertes.',
+    'menu': 'Menu',
+    'alerts': 'Alertes',
+    'account': 'Compte',
   };
 
   static const Map<String, String> _en = {
@@ -287,6 +304,23 @@ class AppLocalizations {
     'scan_ticket': 'Scan a receipt',
     'delete_ticket_warning': 'This ticket will be permanently deleted.',
     'app_version': 'Version',
+    'welcome_title': 'Welcome!',
+    'welcome_subtitle': 'Keep your tickets and warranties\nin one place.',
+    'scan_ticket_action': 'Scan a ticket',
+    'choose_image_action': 'Choose an image',
+    'security_title': 'Your tickets, safely stored',
+    'security_description':
+        'Take photos of your receipts, our AI extracts the information and helps you manage your warranties.',
+    'see_all': 'See all',
+    'tickets_free': 'Tickets\n(free)',
+    'products_under_warranty': 'Products\nunder warranty',
+    'alerts_upcoming': 'Alerts\nupcoming',
+    'premium_features': 'More\nfeatures',
+    'premium_description':
+        'Unlimited tickets, PDF/CSV export, warranty extensions and alerts.',
+    'menu': 'Menu',
+    'alerts': 'Alerts',
+    'account': 'Account',
   };
 
   String get(String key) {
