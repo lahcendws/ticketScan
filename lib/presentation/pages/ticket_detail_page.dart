@@ -168,6 +168,12 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   Future<void> _saveChanges() async {
     final ticketId = widget.ticket.id;
     if (ticketId == null) return;
+
+    if (!_productWarrantyStates.any((hasWarranty) => hasWarranty)) {
+      await _showNoWarrantyEditWarning();
+      return;
+    }
+
     setState(() => _isSaving = true);
     try {
       final dateParts = _dateController.text.split('/');
@@ -189,12 +195,6 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
           'price': _productPriceControllers[i].text,
           'hasWarranty': _productWarrantyStates[i],
         });
-      }
-
-      if (!newProducts.any((product) => product['hasWarranty'] == true)) {
-        setState(() => _isSaving = false);
-        await _showNoWarrantyEditWarning();
-        return;
       }
 
       final updatedData = {
@@ -242,6 +242,28 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
               'Ce ticket ne peut pas être modifié sans produit sous garantie. La modification ne sera pas enregistrée.',
         ),
         actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await Provider.of<TicketProvider>(
+                context,
+                listen: false,
+              ).deleteTicket(widget.ticket.id!);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    loc?.get('ticket_deleted') ?? 'Ticket supprimé',
+                  ),
+                ),
+              );
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              loc?.get('delete_invalid_ticket') ?? 'Supprimer le ticket',
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(loc?.get('edit_warranty') ?? 'Modifier la garantie'),
@@ -341,6 +363,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                 : IconButton(
                     icon: const Icon(Icons.check, color: Colors.white),
                     onPressed: _saveChanges,
+                    tooltip: 'Enregistrer les modifications',
                   ),
             IconButton(
               icon: const Icon(Icons.share, color: Colors.white70),

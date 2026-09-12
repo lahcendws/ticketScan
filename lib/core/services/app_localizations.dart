@@ -128,6 +128,8 @@ class AppLocalizations {
         'Ce ticket ne présente aucun produit sous garantie. Il ne sera pas enregistré : sans produit garanti, il est inutile pour le suivi des garanties. Activez la garantie sur au moins un produit pour le conserver, ou abandonnez ce scan.',
     'no_warranty_edit_msg':
         'Ce ticket ne peut pas être modifié sans produit sous garantie. La modification ne sera pas enregistrée. Activez la garantie sur au moins un produit pour conserver le ticket.',
+    'delete_invalid_ticket': 'Supprimer le ticket',
+    'ticket_deleted': 'Ticket supprimé',
     'abandon_scan': 'Abandonner le scan',
     'edit_warranty': 'Modifier la garantie',
     'verification_title': 'Vérification',
@@ -293,6 +295,8 @@ class AppLocalizations {
         'This receipt has no product under warranty. It will not be saved: without a warranty product, it is useless for warranty tracking. Enable the warranty on at least one product to keep it, or abandon this scan.',
     'no_warranty_edit_msg':
         'This ticket cannot be updated without a product under warranty. The changes will not be saved. Enable the warranty on at least one product to keep the ticket.',
+    'delete_invalid_ticket': 'Delete ticket',
+    'ticket_deleted': 'Ticket deleted',
     'abandon_scan': 'Abandon scan',
     'edit_warranty': 'Edit warranty',
     'verification_title': 'Verification',
