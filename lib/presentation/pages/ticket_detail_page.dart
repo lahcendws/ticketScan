@@ -191,6 +191,12 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         });
       }
 
+      if (!newProducts.any((product) => product['hasWarranty'] == true)) {
+        setState(() => _isSaving = false);
+        await _showNoWarrantyEditWarning();
+        return;
+      }
+
       final updatedData = {
         'store_name': _storeController.text,
         'total_amount': double.parse(
@@ -220,6 +226,29 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         );
       }
     }
+  }
+
+  Future<void> _showNoWarrantyEditWarning() async {
+    final loc = AppLocalizations.of(context);
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          loc?.get('no_warranty_title') ?? 'Aucun produit sous garantie',
+        ),
+        content: Text(
+          loc?.get('no_warranty_edit_msg') ??
+              'Ce ticket ne peut pas être modifié sans produit sous garantie. La modification ne sera pas enregistrée.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(loc?.get('edit_warranty') ?? 'Modifier la garantie'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showFullScreenImage(String path) {
