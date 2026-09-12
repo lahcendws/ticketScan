@@ -14,7 +14,9 @@ import '../widgets/ticket_analysis_dialog.dart';
 import 'premium_page.dart';
 
 class ScanPage extends StatefulWidget {
-  const ScanPage({super.key});
+  final String? initialImagePath;
+
+  const ScanPage({super.key, this.initialImagePath});
 
   @override
   State<ScanPage> createState() => _ScanPageState();
@@ -29,6 +31,9 @@ class _ScanPageState extends State<ScanPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialImagePath != null) {
+      _capturedImages.add(widget.initialImagePath!);
+    }
     _initializeCamera();
     Timer(const Duration(seconds: 5), () {
       if (mounted) setState(() => _showGuide = false);
@@ -43,6 +48,13 @@ class _ScanPageState extends State<ScanPage> {
   Future<void> _takePhoto() async {
     final path = await CameraService.takePicture();
     if (path != null) {
+      setState(() => _capturedImages.add(path));
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final path = await CameraService.pickImageFromGallery();
+    if (path != null && mounted) {
       setState(() => _capturedImages.add(path));
     }
   }
@@ -156,15 +168,18 @@ class _ScanPageState extends State<ScanPage> {
     final provider = Provider.of<TicketProvider>(context);
     final canScan = sub.isPremium || sub.canScan(provider.tickets);
 
-    if (!_isInitialized)
+    if (!_isInitialized && _capturedImages.isEmpty)
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: CameraPreview(CameraService.cameraController!),
-          ),
+          if (_isInitialized)
+            Positioned.fill(
+              child: CameraPreview(CameraService.cameraController!),
+            )
+          else
+            const Positioned.fill(child: ColoredBox(color: Colors.black)),
           SafeArea(
             child: Column(
               children: [
@@ -300,6 +315,17 @@ class _ScanPageState extends State<ScanPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          SizedBox(
+            width: 70,
+            child: GestureDetector(
+              onTap: _pickImage,
+              child: const Icon(
+                Icons.photo_library_outlined,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+          ),
           SizedBox(
             width: 70,
             child: GestureDetector(

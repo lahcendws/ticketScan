@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/bottom_navigation.dart';
 import 'tickets_page.dart';
-import 'search_page.dart';
+import 'ticket_list_page.dart';
 import 'profile_page.dart';
 import 'auth_page.dart';
-import 'scan_page.dart';
+import 'alerts_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,7 +19,8 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     const TicketsPage(),
-    const SearchPage(),
+    const TicketListPage(),
+    const AlertsPage(),
     const ProfilePage(),
   ];
 
@@ -38,27 +39,53 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onTabTapped(int index) {
-    if (index == 2) {
-      // Ouvre le scan en plein écran au lieu de changer d'onglet
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (context) => const ScanPage()));
-    } else {
-      setState(() {
-        // Ajustement de l'index car on a retiré la page de scan de la liste _pages
-        _currentIndex = index > 2 ? index - 1 : index;
-      });
-    }
+    setState(() => _currentIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: CustomBottomNavigation(
-        // On recalcule l'index pour la barre de navigation
-        currentIndex: _currentIndex >= 2 ? _currentIndex + 1 : _currentIndex,
-        onTap: _onTabTapped,
+    final baseTheme = Theme.of(context);
+    final isDark = baseTheme.brightness == Brightness.dark;
+    final visualTheme = baseTheme.copyWith(
+      primaryColor: const Color(0xFF147DFF),
+      scaffoldBackgroundColor: isDark
+          ? const Color(0xFF1A1A2E)
+          : const Color(0xFFF8FBFF),
+      cardColor: isDark ? const Color(0xFF0F3460) : Colors.white,
+      colorScheme: baseTheme.colorScheme.copyWith(
+        primary: const Color(0xFF147DFF),
+        secondary: const Color(0xFF6A35F2),
+        surface: isDark ? const Color(0xFF16213E) : Colors.white,
+        onSurface: isDark ? const Color(0xFFECF0F1) : const Color(0xFF102A56),
+      ),
+      appBarTheme: baseTheme.appBarTheme.copyWith(
+        backgroundColor: isDark ? const Color(0xFF16213E) : Colors.white,
+        foregroundColor: isDark
+            ? const Color(0xFFECF0F1)
+            : const Color(0xFF102A56),
+        elevation: 0,
+        centerTitle: false,
+      ),
+      textTheme: baseTheme.textTheme.apply(
+        bodyColor: isDark ? const Color(0xFFECF0F1) : const Color(0xFF102A56),
+        displayColor: isDark
+            ? const Color(0xFFECF0F1)
+            : const Color(0xFF102A56),
+      ),
+    );
+
+    return Theme(
+      data: visualTheme,
+      child: Scaffold(
+        backgroundColor: isDark
+            ? const Color(0xFF1A1A2E)
+            : const Color(0xFFF8FBFF),
+        body: IndexedStack(index: _currentIndex, children: _pages),
+        bottomNavigationBar: CustomBottomNavigation(
+          // On recalcule l'index pour la barre de navigation
+          currentIndex: _currentIndex,
+          onTap: _onTabTapped,
+        ),
       ),
     );
   }

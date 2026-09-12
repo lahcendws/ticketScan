@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/services/app_localizations.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -12,22 +13,23 @@ class CustomBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 8, left: 12, right: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? const Color(0xFF16213E) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 12,
-            offset: const Offset(0, -4),
+            color: const Color(0x1A345B91),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -38,12 +40,17 @@ class CustomBottomNavigation extends StatelessWidget {
                 context: context,
               ),
               _buildNavItem(
-                icon: Icons.search_outlined,
-                selectedIcon: Icons.search,
+                icon: Icons.confirmation_number_outlined,
+                selectedIcon: Icons.confirmation_number,
                 index: 1,
                 context: context,
               ),
-              _buildCenterButton(context),
+              _buildNavItem(
+                icon: Icons.notifications_none,
+                selectedIcon: Icons.notifications,
+                index: 2,
+                context: context,
+              ),
               _buildNavItem(
                 icon: Icons.person_outline,
                 selectedIcon: Icons.person,
@@ -51,37 +58,6 @@ class CustomBottomNavigation extends StatelessWidget {
                 context: context,
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCenterButton(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onTap(2),
-        borderRadius: BorderRadius.circular(20),
-        splashColor: Colors.white.withOpacity(0.2),
-        child: Ink(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).primaryColor.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.add_a_photo_outlined,
-            color: Colors.white,
-            size: 26,
           ),
         ),
       ),
@@ -109,9 +85,45 @@ class CustomBottomNavigation extends StatelessWidget {
         highlightColor: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-          child: Icon(isSelected ? selectedIcon : icon, color: color, size: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                index == 0
+                    ? (isSelected ? Icons.home : Icons.home_outlined)
+                    : (isSelected ? selectedIcon : icon),
+                color: color,
+                size: 24,
+              ),
+              const SizedBox(height: 3),
+              Text(
+                _labelFor(index, context),
+                style: TextStyle(
+                  color: color,
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  String _labelFor(int index, BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    switch (index) {
+      case 0:
+        return loc?.get('home') ?? 'Accueil';
+      case 1:
+        return loc?.get('my_tickets') ?? 'Mes tickets';
+      case 2:
+        return loc?.get('alerts') ?? 'Alertes';
+      case 3:
+        return loc?.get('account') ?? 'Compte';
+      default:
+        return '';
+    }
   }
 }

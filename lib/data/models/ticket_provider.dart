@@ -31,6 +31,9 @@ class TicketProvider extends ChangeNotifier {
   }
 
   Future<void> addTicket(TicketModel ticket) async {
+    if (!ticket.hasWarrantyProduct) {
+      throw StateError('Cannot save a ticket without a warranty product');
+    }
     _setLoading(true);
     _clearError();
     try {
@@ -51,6 +54,13 @@ class TicketProvider extends ChangeNotifier {
 
   // MÉTHODE RESTAURÉE
   Future<void> updateTicket(String ticketId, Map<String, dynamic> data) async {
+    final rawProducts = data['products'];
+    if (rawProducts is List &&
+        !rawProducts.any(
+          (product) => product is Map && product['hasWarranty'] == true,
+        )) {
+      throw StateError('Cannot update a ticket without a warranty product');
+    }
     _setLoading(true);
     _clearError();
     try {

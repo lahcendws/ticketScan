@@ -1,18 +1,15 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:csv/csv.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
-import '../widgets/ticket_card.dart';
 import '../../data/models/ticket_model.dart';
 import '../../data/models/ticket_provider.dart';
-import '../../core/services/supabase_service.dart';
 import '../../core/services/app_localizations.dart';
+import '../../core/services/camera_service.dart';
 import '../../core/services/subscription_service.dart';
 import 'scan_page.dart';
-import 'ticket_detail_page.dart';
+import 'ticket_list_page.dart';
 import 'premium_page.dart';
+import 'alerts_page.dart';
+import 'profile_page.dart';
 
 class TicketsPage extends StatefulWidget {
   const TicketsPage({super.key});
@@ -22,6 +19,11 @@ class TicketsPage extends StatefulWidget {
 }
 
 class _TicketsPageState extends State<TicketsPage> {
+  static const _primary = Color(0xFF147DFF);
+  static const _navy = Color(0xFF102A56);
+  static const _muted = Color(0xFF5A7194);
+  static const _pageBackground = Color(0xFFF8FBFF);
+
   @override
   void initState() {
     super.initState();
@@ -30,114 +32,108 @@ class _TicketsPageState extends State<TicketsPage> {
     });
   }
 
-  Future<void> _exportToCSV(List<TicketModel> tickets) async {
-    final loc = AppLocalizations.of(context);
-    final sub = Provider.of<SubscriptionService>(context, listen: false);
-    if (!sub.isPremium) {
-      _showUpgradeDialog(loc);
-      return;
-    }
-    if (tickets.isEmpty) return;
-
-    try {
-      List<List<dynamic>> rows = [];
-      rows.add([
-        loc?.get('store_name'),
-        loc?.get('date'),
-        "Total (€)",
-        loc?.get('warranty_end_date'),
-      ]);
-      for (var t in tickets) {
-        rows.add([
-          t.storeName,
-          "${t.date.day}/${t.date.month}/${t.date.year}",
-          t.totalAmount.toStringAsFixed(2),
-          "${t.warrantyEndDate.day}/${t.warrantyEndDate.month}/${t.warrantyEndDate.year}",
-        ]);
-      }
-      String csvData = const ListToCsvConverter().convert(rows);
-      final directory = await getTemporaryDirectory();
-      final path =
-          "${directory.path}/export_${DateTime.now().millisecondsSinceEpoch}.csv";
-      final file = File(path);
-      await file.writeAsString(csvData);
-      await Share.shareXFiles([XFile(path)]);
-    } catch (e) {
-      debugPrint('Export error: $e');
-    }
-  }
-
-  void _showUpgradeDialog(AppLocalizations? loc) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          loc?.get('upgrade_premium') ?? 'Premium',
-          style: const TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          loc?.get('limit_reached_msg') ?? 'Limite atteinte',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              loc?.get('cancel') ?? 'OK',
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PremiumPage()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-            ),
-            child: Text(
-              loc?.get('upgrade_premium') ?? 'Upgrade',
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
     final sub = Provider.of<SubscriptionService>(context);
     final provider = Provider.of<TicketProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? const Color(0xFF16213E) : Colors.white;
+    final primaryText = isDark ? const Color(0xFFECF0F1) : _navy;
 
     final canScan = sub.canScan(provider.tickets);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade900,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          loc?.get('my_tickets') ?? 'Tickets',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            letterSpacing: 0.5,
+      backgroundColor: isDark ? const Color(0xFF1A1A2E) : _pageBackground,
+      drawer: Drawer(
+        backgroundColor: surface,
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(24, 8, 24, 24),
+                child: Text(
+                  loc?.get('app_name') ?? 'TicketScan',
+                  style: TextStyle(
+                    color: primaryText,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.home_outlined, color: _primary),
+                title: Text(loc?.get('home') ?? 'Accueil'),
+                onTap: () => Navigator.pop(context),
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.confirmation_number_outlined,
+                  color: _primary,
+                ),
+                title: Text(loc?.get('my_tickets') ?? 'Mes tickets'),
+                onTap: () => _openDrawerPage(const TicketListPage()),
+              ),
+              ListTile(
+                leading: const Icon(Icons.notifications_none, color: _primary),
+                title: Text(loc?.get('alerts') ?? 'Alertes'),
+                onTap: () => _openDrawerPage(const AlertsPage()),
+              ),
+              ListTile(
+                leading: const Icon(Icons.person_outline, color: _primary),
+                title: Text(loc?.get('account') ?? 'Compte'),
+                onTap: () => _openDrawerPage(const ProfilePage()),
+              ),
+            ],
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.download, color: Colors.white70),
-            onPressed: () => _exportToCSV(provider.tickets),
+      ),
+      appBar: AppBar(
+        backgroundColor: surface,
+        elevation: 0,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: primaryText),
+            tooltip: loc?.get('menu') ?? 'Menu',
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
-        ],
+        ),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE7F1FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.receipt_long_outlined,
+                color: _primary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 10),
+            RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  color: primaryText,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
+                children: [
+                  TextSpan(text: 'Ticket'),
+                  TextSpan(
+                    text: 'Scan',
+                    style: TextStyle(color: _primary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       body: Column(
         children: [
@@ -193,52 +189,265 @@ class _TicketsPageState extends State<TicketsPage> {
     );
   }
 
+  void _openDrawerPage(Widget page) {
+    Navigator.pop(context);
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+  }
+
   Widget _buildContent(TicketProvider provider, AppLocalizations? loc) {
     if (provider.isLoading && provider.tickets.isEmpty)
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white70),
-      );
-    if (provider.tickets.isEmpty) return _buildEmptyState(loc);
+      return const Center(child: CircularProgressIndicator(color: _primary));
 
-    return Column(
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 24),
       children: [
+        _buildWelcomeHeader(loc),
+        _buildScanActions(),
+        _buildSecurityCard(),
         _buildStatsSection(provider.tickets, loc),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: provider.tickets.length,
-            itemBuilder: (context, index) {
-              final ticket = provider.tickets[index];
-              return TicketCard(
-                ticket: ticket,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => TicketDetailPage(ticket: ticket),
-                  ),
-                ),
-                onDelete: () => provider.deleteTicket(ticket.id!),
-              );
-            },
-          ),
-        ),
+        if (!context.read<SubscriptionService>().isPremium)
+          _buildPremiumCard(loc),
+        if (provider.tickets.isEmpty) _buildEmptyState(loc),
       ],
     );
   }
 
+  Widget _buildWelcomeHeader(AppLocalizations? loc) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headingColor = isDark ? const Color(0xFFECF0F1) : _navy;
+    final bodyColor = isDark ? const Color(0xFFBDC3C7) : _muted;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 22, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc?.get('welcome_title') ?? 'Bienvenue !',
+            style: TextStyle(
+              color: headingColor,
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: 6),
+          Text(
+            loc?.get('welcome_subtitle') ??
+                'Gardez vos tickets et garanties\nau même endroit.',
+            style: TextStyle(
+              color: bodyColor,
+              fontSize: 17,
+              height: 1.35,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScanActions() {
+    final loc = AppLocalizations.of(context);
+
+    Future<void> pickImage() async {
+      final imagePath = await CameraService.pickImageFromGallery();
+      if (!mounted || imagePath == null) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ScanPage(initialImagePath: imagePath),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ScanPage())),
+              icon: const Icon(Icons.camera_alt_outlined),
+              label: Text(
+                loc?.get('scan_ticket_action') ?? 'Scanner un ticket',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: OutlinedButton.icon(
+              onPressed: pickImage,
+              icon: const Icon(Icons.image_outlined),
+              label: Text(
+                loc?.get('choose_image_action') ?? 'Choisir une image',
+              ),
+              style: OutlinedButton.styleFrom(
+                backgroundColor: const Color(0xFFEAF3FF),
+                foregroundColor: _primary,
+                side: BorderSide.none,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSecurityCard() {
+    final loc = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headingColor = isDark ? const Color(0xFFECF0F1) : _navy;
+    final bodyColor = isDark ? const Color(0xFFBDC3C7) : _muted;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF16213E) : const Color(0xFFEAF3FF),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: const BoxDecoration(
+              color: Color(0xFFD1E5FF),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.receipt_long_outlined,
+              color: _primary,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  loc?.get('security_title') ?? 'Vos tickets en toute sécurité',
+                  style: TextStyle(
+                    color: headingColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  loc?.get('security_description') ??
+                      'Prenez en photo vos reçus, notre IA extrait les informations et vous aide à gérer vos garanties.',
+                  style: TextStyle(color: bodyColor, height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumCard(AppLocalizations? loc) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headingColor = isDark ? const Color(0xFFECF0F1) : _navy;
+    final bodyColor = isDark ? const Color(0xFFBDC3C7) : _muted;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A2350) : const Color(0xFFF0ECFF),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const PremiumPage())),
+        child: Row(
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE0D5FF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.workspace_premium,
+                color: Color(0xFF6A35F2),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    loc?.get('upgrade_premium') ?? 'Passer à Premium',
+                    style: TextStyle(
+                      color: headingColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    loc?.get('premium_description') ??
+                        'Tickets illimités, export PDF/CSV, extension de garantie et alertes.',
+                    style: TextStyle(color: bodyColor, height: 1.3),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Color(0xFF6A35F2)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState(AppLocalizations? loc) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
+      heightFactor: 1.4,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.confirmation_number_outlined,
             size: 48,
-            color: Colors.grey[600],
+            color: const Color(0xFF9DB4D1),
           ),
           const SizedBox(height: 16),
           Text(
             loc?.get('no_tickets') ?? 'No tickets',
-            style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
+            style: TextStyle(
+              color: isDark ? const Color(0xFFBDC3C7) : _muted,
+              fontSize: 16,
+            ),
           ),
         ],
       ),
@@ -246,27 +455,108 @@ class _TicketsPageState extends State<TicketsPage> {
   }
 
   Widget _buildStatsSection(List<TicketModel> tickets, AppLocalizations? loc) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headingColor = isDark ? const Color(0xFFECF0F1) : _navy;
+    final subscription = context.read<SubscriptionService>();
+    final remainingTickets = (subscription.freeLimit - tickets.length).clamp(
+      0,
+      subscription.freeLimit,
+    );
+    final ticketsValue = subscription.isPremium
+        ? loc?.get('unlimited') ?? 'Illimité'
+        : '$remainingTickets';
+    final ticketsSubtitle = subscription.isPremium
+        ? loc?.get('premium_access') ?? 'Accès Premium'
+        : loc?.get('tickets_remaining') ?? 'tickets restants';
+    final expiringCount = tickets
+        .where((ticket) => ticket.isWarrantyExpiringSoon())
+        .length;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStatItem(
-            loc?.get('total') ?? 'Total',
-            '${tickets.length}',
-            Icons.receipt_outlined,
-            Theme.of(context).primaryColor,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                loc?.get('my_tickets') ?? 'Mes tickets',
+                style: TextStyle(
+                  color: headingColor,
+                  fontSize: 21,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const TicketListPage()),
+                ),
+                icon: const Icon(Icons.chevron_right, size: 18),
+                label: Text(loc?.get('see_all') ?? 'Voir tout'),
+                style: TextButton.styleFrom(
+                  foregroundColor: _primary,
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
-          _buildStatItem(
-            loc?.get('warranty') ?? 'Warranty',
-            '${tickets.where((t) => t.isWarrantyExpiringSoon()).length}',
-            Icons.warning_amber_outlined,
-            Colors.orange,
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  loc?.get('tickets_label') ?? 'Tickets',
+                  ticketsValue,
+                  ticketsSubtitle,
+                  Icons.confirmation_number_outlined,
+                  _primary,
+                  const Color(0xFFEAF3FF),
+                  false,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildStatItem(
+                  loc?.get('products_under_warranty') ??
+                      'Produits\nsous garantie',
+                  '${tickets.where((ticket) => ticket.products.any((product) => product['hasWarranty'] == true)).length}',
+                  loc?.get('under_warranty') ?? 'sous garantie',
+                  Icons.shield_outlined,
+                  const Color(0xFF00B87A),
+                  const Color(0xFFE8FBF3),
+                  false,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildStatItem(
+                  loc?.get('alerts_upcoming') ?? 'Alerte(s)\nà venir',
+                  '$expiringCount',
+                  loc?.get('upcoming') ?? 'à venir',
+                  Icons.notifications_none,
+                  const Color(0xFFFFA400),
+                  const Color(0xFFFFF7DF),
+                  false,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildStatItem(
+                  loc?.get('premium_plan') ?? 'Premium',
+                  subscription.isPremium
+                      ? loc?.get('premium_active') ?? 'Actif'
+                      : loc?.get('upgrade_short') ?? 'Passez à',
+                  subscription.isPremium
+                      ? loc?.get('full_access') ?? 'Accès complet'
+                      : loc?.get('premium_features') ??
+                            'Plus de\nfonctionnalités',
+                  Icons.workspace_premium_outlined,
+                  const Color(0xFF6A35F2),
+                  const Color(0xFFF0ECFF),
+                  true,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -274,30 +564,52 @@ class _TicketsPageState extends State<TicketsPage> {
   }
 
   Widget _buildStatItem(
-    String label,
+    String title,
     String value,
+    String subtitle,
     IconData icon,
     Color color,
+    Color background,
+    bool accentValue,
   ) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: color,
-            fontSize: 18,
+    return Container(
+      constraints: const BoxConstraints(minHeight: 142),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 27),
+          const SizedBox(height: 9),
+          SizedBox(
+            height: 26,
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                maxLines: 1,
+                softWrap: false,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: accentValue ? color : _navy,
+                  fontSize: accentValue ? 16 : 22,
+                ),
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
-        ),
-      ],
+          const SizedBox(height: 3),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: _muted, fontSize: 11, height: 1.2),
+          ),
+        ],
+      ),
     );
   }
 }

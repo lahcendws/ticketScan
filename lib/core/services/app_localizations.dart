@@ -126,6 +126,10 @@ class AppLocalizations {
         'Aucun produit garanti — le ticket ne sera pas enregistré',
     'no_warranty_msg':
         'Ce ticket ne présente aucun produit sous garantie. Il ne sera pas enregistré : sans produit garanti, il est inutile pour le suivi des garanties. Activez la garantie sur au moins un produit pour le conserver, ou abandonnez ce scan.',
+    'no_warranty_edit_msg':
+        'Ce ticket ne peut pas être modifié sans produit sous garantie. La modification ne sera pas enregistrée. Activez la garantie sur au moins un produit pour conserver le ticket.',
+    'delete_invalid_ticket': 'Supprimer le ticket',
+    'ticket_deleted': 'Ticket supprimé',
     'abandon_scan': 'Abandonner le scan',
     'edit_warranty': 'Modifier la garantie',
     'verification_title': 'Vérification',
@@ -150,6 +154,32 @@ class AppLocalizations {
     'scan_ticket': 'Scanner un ticket',
     'delete_ticket_warning': 'Ce ticket sera supprimé définitivement.',
     'app_version': 'Version',
+    'welcome_title': 'Bienvenue !',
+    'welcome_subtitle': 'Gardez vos tickets et garanties\nau même endroit.',
+    'scan_ticket_action': 'Scanner un ticket',
+    'choose_image_action': 'Choisir une image',
+    'security_title': 'Vos tickets en toute sécurité',
+    'security_description':
+        'Prenez en photo vos reçus, notre IA extrait les informations et vous aide à gérer vos garanties.',
+    'see_all': 'Voir tout',
+    'tickets_label': 'Tickets',
+    'tickets_remaining': 'tickets restants',
+    'unlimited': 'Illimité',
+    'premium_access': 'Accès Premium',
+    'premium_active': 'Actif',
+    'full_access': 'Accès complet',
+    'upgrade_short': 'Passez à',
+    'tickets_free': 'Tickets\ngratuit',
+    'products_under_warranty': 'Produits\nsous garantie',
+    'under_warranty': 'sous garantie',
+    'alerts_upcoming': 'Alerte(s)\nà venir',
+    'upcoming': 'à venir',
+    'premium_features': 'Plus de\nfonctionnalités',
+    'premium_description':
+        'Tickets illimités, export PDF/CSV, extension de garantie et alertes.',
+    'menu': 'Menu',
+    'alerts': 'Alertes',
+    'account': 'Compte',
   };
 
   static const Map<String, String> _en = {
@@ -263,6 +293,10 @@ class AppLocalizations {
         'No product under warranty — the ticket will not be saved',
     'no_warranty_msg':
         'This receipt has no product under warranty. It will not be saved: without a warranty product, it is useless for warranty tracking. Enable the warranty on at least one product to keep it, or abandon this scan.',
+    'no_warranty_edit_msg':
+        'This ticket cannot be updated without a product under warranty. The changes will not be saved. Enable the warranty on at least one product to keep the ticket.',
+    'delete_invalid_ticket': 'Delete ticket',
+    'ticket_deleted': 'Ticket deleted',
     'abandon_scan': 'Abandon scan',
     'edit_warranty': 'Edit warranty',
     'verification_title': 'Verification',
@@ -287,6 +321,32 @@ class AppLocalizations {
     'scan_ticket': 'Scan a receipt',
     'delete_ticket_warning': 'This ticket will be permanently deleted.',
     'app_version': 'Version',
+    'welcome_title': 'Welcome!',
+    'welcome_subtitle': 'Keep your tickets and warranties\nin one place.',
+    'scan_ticket_action': 'Scan a ticket',
+    'choose_image_action': 'Choose an image',
+    'security_title': 'Your tickets, safely stored',
+    'security_description':
+        'Take photos of your receipts, our AI extracts the information and helps you manage your warranties.',
+    'see_all': 'See all',
+    'tickets_label': 'Tickets',
+    'tickets_remaining': 'tickets remaining',
+    'unlimited': 'Unlimited',
+    'premium_access': 'Premium access',
+    'premium_active': 'Active',
+    'full_access': 'Full access',
+    'upgrade_short': 'Upgrade to',
+    'tickets_free': 'Tickets\n(free)',
+    'products_under_warranty': 'Products\nunder warranty',
+    'under_warranty': 'under warranty',
+    'alerts_upcoming': 'Alerts\nupcoming',
+    'upcoming': 'upcoming',
+    'premium_features': 'More\nfeatures',
+    'premium_description':
+        'Unlimited tickets, PDF/CSV export, warranty extensions and alerts.',
+    'menu': 'Menu',
+    'alerts': 'Alerts',
+    'account': 'Account',
   };
 
   String get(String key) {

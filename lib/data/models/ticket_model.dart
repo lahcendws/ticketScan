@@ -140,4 +140,7 @@ class TicketModel {
   }
 
   bool isWarrantyExpired() => DateTime.now().isAfter(warrantyEndDate);
+
+  bool get hasWarrantyProduct =>
+      products.any((product) => product['hasWarranty'] == true);
 }
