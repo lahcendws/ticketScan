@@ -266,7 +266,9 @@ class _TicketsPageState extends State<TicketsPage> {
             width: double.infinity,
             height: 54,
             child: ElevatedButton.icon(
-              onPressed: pickImage,
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ScanPage())),
               icon: const Icon(Icons.camera_alt_outlined),
               label: Text(
                 loc?.get('scan_ticket_action') ?? 'Scanner un ticket',
@@ -290,9 +292,7 @@ class _TicketsPageState extends State<TicketsPage> {
             width: double.infinity,
             height: 54,
             child: OutlinedButton.icon(
-              onPressed: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const ScanPage())),
+              onPressed: pickImage,
               icon: const Icon(Icons.image_outlined),
               label: Text(
                 loc?.get('choose_image_action') ?? 'Choisir une image',
@@ -457,6 +457,17 @@ class _TicketsPageState extends State<TicketsPage> {
   Widget _buildStatsSection(List<TicketModel> tickets, AppLocalizations? loc) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final headingColor = isDark ? const Color(0xFFECF0F1) : _navy;
+    final subscription = context.read<SubscriptionService>();
+    final remainingTickets = (subscription.freeLimit - tickets.length).clamp(
+      0,
+      subscription.freeLimit,
+    );
+    final ticketsValue = subscription.isPremium
+        ? loc?.get('unlimited') ?? 'Illimité'
+        : '$remainingTickets';
+    final ticketsSubtitle = subscription.isPremium
+        ? loc?.get('premium_access') ?? 'Accès Premium'
+        : loc?.get('tickets_remaining') ?? 'tickets restants';
     final expiringCount = tickets
         .where((ticket) => ticket.isWarrantyExpiringSoon())
         .length;
@@ -494,12 +505,13 @@ class _TicketsPageState extends State<TicketsPage> {
             children: [
               Expanded(
                 child: _buildStatItem(
-                  loc?.get('tickets_free') ?? 'Tickets\ngratuit',
-                  '${tickets.length}',
-                  'gratuit',
+                  loc?.get('tickets_label') ?? 'Tickets',
+                  ticketsValue,
+                  ticketsSubtitle,
                   Icons.confirmation_number_outlined,
                   _primary,
                   const Color(0xFFEAF3FF),
+                  false,
                 ),
               ),
               const SizedBox(width: 10),
@@ -512,6 +524,7 @@ class _TicketsPageState extends State<TicketsPage> {
                   Icons.shield_outlined,
                   const Color(0xFF00B87A),
                   const Color(0xFFE8FBF3),
+                  false,
                 ),
               ),
               const SizedBox(width: 10),
@@ -523,17 +536,24 @@ class _TicketsPageState extends State<TicketsPage> {
                   Icons.notifications_none,
                   const Color(0xFFFFA400),
                   const Color(0xFFFFF7DF),
+                  false,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _buildStatItem(
-                  'Premium',
-                  'Plus de',
-                  loc?.get('premium_features') ?? 'Plus de\nfonctionnalités',
+                  loc?.get('premium_plan') ?? 'Premium',
+                  subscription.isPremium
+                      ? loc?.get('premium_active') ?? 'Actif'
+                      : loc?.get('upgrade_short') ?? 'Passez à',
+                  subscription.isPremium
+                      ? loc?.get('full_access') ?? 'Accès complet'
+                      : loc?.get('premium_features') ??
+                            'Plus de\nfonctionnalités',
                   Icons.workspace_premium_outlined,
                   const Color(0xFF6A35F2),
                   const Color(0xFFF0ECFF),
+                  true,
                 ),
               ),
             ],
@@ -550,6 +570,7 @@ class _TicketsPageState extends State<TicketsPage> {
     IconData icon,
     Color color,
     Color background,
+    bool accentValue,
   ) {
     return Container(
       constraints: const BoxConstraints(minHeight: 142),
@@ -564,12 +585,12 @@ class _TicketsPageState extends State<TicketsPage> {
           Icon(icon, color: color, size: 27),
           const SizedBox(height: 9),
           Text(
-            title == 'Premium' ? value : value,
+            value,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.w800,
-              color: title == 'Premium' ? color : _navy,
-              fontSize: title == 'Premium' ? 15 : 22,
+              color: accentValue ? color : _navy,
+              fontSize: accentValue ? 15 : 22,
             ),
           ),
           const SizedBox(height: 3),
