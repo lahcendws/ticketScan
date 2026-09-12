@@ -520,7 +520,7 @@ class _TicketsPageState extends State<TicketsPage> {
                   loc?.get('products_under_warranty') ??
                       'Produits\nsous garantie',
                   '${tickets.where((ticket) => ticket.products.any((product) => product['hasWarranty'] == true)).length}',
-                  'sous garantie',
+                  loc?.get('under_warranty') ?? 'sous garantie',
                   Icons.shield_outlined,
                   const Color(0xFF00B87A),
                   const Color(0xFFE8FBF3),
@@ -532,7 +532,7 @@ class _TicketsPageState extends State<TicketsPage> {
                 child: _buildStatItem(
                   loc?.get('alerts_upcoming') ?? 'Alerte(s)\nà venir',
                   '$expiringCount',
-                  'à venir',
+                  loc?.get('upcoming') ?? 'à venir',
                   Icons.notifications_none,
                   const Color(0xFFFFA400),
                   const Color(0xFFFFF7DF),

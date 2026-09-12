@@ -167,7 +167,9 @@ class AppLocalizations {
     'upgrade_short': 'Passez à',
     'tickets_free': 'Tickets\ngratuit',
     'products_under_warranty': 'Produits\nsous garantie',
+    'under_warranty': 'sous garantie',
     'alerts_upcoming': 'Alerte(s)\nà venir',
+    'upcoming': 'à venir',
     'premium_features': 'Plus de\nfonctionnalités',
     'premium_description':
         'Tickets illimités, export PDF/CSV, extension de garantie et alertes.',
@@ -328,7 +330,9 @@ class AppLocalizations {
     'upgrade_short': 'Upgrade to',
     'tickets_free': 'Tickets\n(free)',
     'products_under_warranty': 'Products\nunder warranty',
+    'under_warranty': 'under warranty',
     'alerts_upcoming': 'Alerts\nupcoming',
+    'upcoming': 'upcoming',
     'premium_features': 'More\nfeatures',
     'premium_description':
         'Unlimited tickets, PDF/CSV export, warranty extensions and alerts.',

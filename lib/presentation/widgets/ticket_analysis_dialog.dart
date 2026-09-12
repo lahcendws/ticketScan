@@ -141,7 +141,8 @@ class _TicketAnalysisDialogState extends State<TicketAnalysisDialog> {
     }
   }
 
-  bool get _hasWarrantyProduct => _productWarrantyStates.any((w) => w);
+  bool get _hasWarrantyProduct =>
+      _productWarrantyStates.any((hasWarranty) => hasWarranty);
 
   Future<void> _warnNoWarranty() async {
     final loc = AppLocalizations.of(context);

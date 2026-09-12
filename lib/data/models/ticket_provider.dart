@@ -31,6 +31,9 @@ class TicketProvider extends ChangeNotifier {
   }
 
   Future<void> addTicket(TicketModel ticket) async {
+    if (!ticket.hasWarrantyProduct) {
+      throw StateError('Cannot save a ticket without a warranty product');
+    }
     _setLoading(true);
     _clearError();
     try {

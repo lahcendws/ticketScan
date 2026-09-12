@@ -40,5 +40,37 @@ void main() {
       expect(ticket.products[0]['name'], 'Objet 1');
       expect(ticket.products[1]['name'], 'Objet 2');
     });
+
+    test('hasWarrantyProduct is true when at least one product is covered', () {
+      final ticket = TicketModel(
+        storeName: 'Test',
+        date: DateTime.now(),
+        totalAmount: 10,
+        products: [
+          {'name': 'Objet', 'price': '10.00', 'hasWarranty': true},
+        ],
+        imageUrls: [],
+        warrantyEndDate: DateTime.now().add(const Duration(days: 365)),
+        createdAt: DateTime.now(),
+      );
+
+      expect(ticket.hasWarrantyProduct, isTrue);
+    });
+
+    test('hasWarrantyProduct is false when no product is covered', () {
+      final ticket = TicketModel(
+        storeName: 'Test',
+        date: DateTime.now(),
+        totalAmount: 10,
+        products: [
+          {'name': 'Objet', 'price': '10.00', 'hasWarranty': false},
+        ],
+        imageUrls: [],
+        warrantyEndDate: DateTime.now().add(const Duration(days: 365)),
+        createdAt: DateTime.now(),
+      );
+
+      expect(ticket.hasWarrantyProduct, isFalse);
+    });
   });
 }
