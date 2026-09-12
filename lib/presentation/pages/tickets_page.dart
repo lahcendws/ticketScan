@@ -584,13 +584,22 @@ class _TicketsPageState extends State<TicketsPage> {
         children: [
           Icon(icon, color: color, size: 27),
           const SizedBox(height: 9),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: accentValue ? color : _navy,
-              fontSize: accentValue ? 15 : 22,
+          SizedBox(
+            height: 26,
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                maxLines: 1,
+                softWrap: false,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: accentValue ? color : _navy,
+                  fontSize: accentValue ? 16 : 22,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 3),
