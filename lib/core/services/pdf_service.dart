@@ -1,13 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:path_provider/path_provider.dart';
 import '../../data/models/ticket_model.dart';
 import 'package:intl/intl.dart';
 import 'supabase_service.dart';
 import 'package:http/http.dart' as http;
+import 'app_localizations.dart';
 
 class PDFService {
   static Future<void> generateAndPreviewTicketPDF(
@@ -15,6 +14,9 @@ class PDFService {
     TicketModel ticket,
   ) async {
     final pdf = pw.Document();
+    final localizations = AppLocalizations.of(context);
+    String tr(String key, String fallback) =>
+        localizations?.get(key) ?? fallback;
 
     // Charger une police qui supporte le symbole €
     final font = await PdfGoogleFonts.robotoRegular();
@@ -48,7 +50,7 @@ class PDFService {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      'ATTESTATION DE GARANTIE',
+                      tr('pdf_warranty_certificate', 'ATTESTATION DE GARANTIE'),
                       style: pw.TextStyle(
                         fontSize: 24,
                         fontWeight: pw.FontWeight.bold,
@@ -69,23 +71,25 @@ class PDFService {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'Magasin: ${ticket.storeName}',
+                        '${tr('pdf_store', 'Magasin')}: ${ticket.storeName}',
                         style: pw.TextStyle(
                           fontSize: 16,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
                       pw.Text(
-                        'Date d\'achat: ${DateFormat('dd/MM/yyyy').format(ticket.date)}',
+                        '${tr('pdf_purchase_date', 'Date d\'achat')}: ${DateFormat('dd/MM/yyyy').format(ticket.date)}',
                       ),
-                      pw.Text('Catégorie: ${ticket.category ?? "Autre"}'),
+                      pw.Text(
+                        '${tr('pdf_category', 'Catégorie')}: ${ticket.category ?? "Autre"}',
+                      ),
                     ],
                   ),
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        'MONTANT TOTAL',
+                        tr('pdf_total_amount', 'MONTANT TOTAL'),
                         style: const pw.TextStyle(fontSize: 12),
                       ),
                       pw.Text(
@@ -107,7 +111,10 @@ class PDFService {
                 child: pw.Row(
                   children: [
                     pw.Text(
-                      'GARANTIE VALIDE JUSQU\'AU : ',
+                      tr(
+                        'pdf_warranty_valid_until',
+                        'GARANTIE VALIDE JUSQU\'AU : ',
+                      ),
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                     ),
                     pw.Text(
@@ -122,7 +129,7 @@ class PDFService {
               ),
               pw.SizedBox(height: 30),
               pw.Text(
-                'DÉTAIL DES ARTICLES',
+                tr('pdf_items_detail', 'DÉTAIL DES ARTICLES'),
                 style: pw.TextStyle(
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
@@ -139,7 +146,7 @@ class PDFService {
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
                         pw.Text(
-                          '${p['name']} ${p['hasWarranty'] == true ? "(Garanti)" : ""}',
+                          '${p['name']} ${p['hasWarranty'] == true ? "(${tr('pdf_warrantied', 'Garanti')})" : ""}',
                         ),
                         pw.Text('${p['price']} ${ticket.currency}'),
                       ],
@@ -150,7 +157,7 @@ class PDFService {
               if (ticketImage != null) ...[
                 pw.SizedBox(height: 30),
                 pw.Text(
-                  'PREUVE D\'ACHAT (PHOTO)',
+                  tr('pdf_purchase_proof', 'PREUVE D\'ACHAT (PHOTO)'),
                   style: pw.TextStyle(
                     fontSize: 12,
                     fontWeight: pw.FontWeight.bold,
@@ -169,7 +176,10 @@ class PDFService {
               pw.Divider(),
               pw.Center(
                 child: pw.Text(
-                  'Document généré par l\'application TicketScan - Gardez vos preuves d\'achat en sécurité.',
+                  tr(
+                    'pdf_footer',
+                    'Document généré par l\'application TicketScan - Gardez vos preuves d\'achat en sécurité.',
+                  ),
                   style: const pw.TextStyle(
                     fontSize: 10,
                     color: PdfColors.grey,
@@ -186,7 +196,7 @@ class PDFService {
       context,
       MaterialPageRoute(
         builder: (context) => Scaffold(
-          appBar: AppBar(title: const Text('Aperçu du PDF')),
+          appBar: AppBar(title: Text(tr('pdf_preview', 'Aperçu du PDF'))),
           body: PdfPreview(build: (format) => pdf.save(), canDebug: false),
         ),
       ),
