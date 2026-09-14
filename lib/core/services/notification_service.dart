@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
+import 'language_service.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -91,9 +92,13 @@ class NotificationService {
       android: androidPlatformChannelSpecifics,
     );
 
-    final title = 'Garantie bientôt expirée';
-    final body =
-        'La garantie pour "$productName" ($storeName) expire le $expiryText';
+    final isEnglish = LanguageService().currentLocale.languageCode == 'en';
+    final title = isEnglish
+        ? 'Warranty expiring soon'
+        : 'Garantie bientôt expirée';
+    final body = isEnglish
+        ? 'The warranty for "$productName" ($storeName) expires on $expiryText'
+        : 'La garantie pour "$productName" ($storeName) expire le $expiryText';
 
     // Rappel 30 jours avant la fin de garantie.
     final notificationDate = warrantyEndDate.subtract(const Duration(days: 30));
