@@ -19,38 +19,47 @@ class AlertsPage extends StatelessWidget {
         .tickets
         .where((ticket) => ticket.isWarrantyExpiringSoon())
         .toList();
-    final locale = AppLocalizations.of(context)?.locale.toString() ?? 'fr_FR';
+    final loc = AppLocalizations.of(context);
+    final locale = loc?.locale.toString() ?? 'fr_FR';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark
+        ? const Color(0xFF1A1A2E)
+        : const Color(0xFFF8FBFF);
+    final surface = isDark ? const Color(0xFF16213E) : Colors.white;
+    final heading = isDark ? const Color(0xFFECF0F1) : _navy;
+    final muted = isDark ? const Color(0xFFBDC3C7) : _muted;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FBFF),
+      backgroundColor: background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: _navy,
+        backgroundColor: surface,
+        foregroundColor: heading,
         elevation: 0,
-        title: const Text(
-          'Alertes',
-          style: TextStyle(fontWeight: FontWeight.w800),
+        title: Text(
+          loc?.get('alerts_title') ?? 'Alertes',
+          style: TextStyle(fontWeight: FontWeight.w800, color: heading),
         ),
       ),
       body: tickets.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.notifications_none, color: _primary, size: 52),
                   SizedBox(height: 14),
                   Text(
-                    'Aucune alerte à venir',
+                    loc?.get('no_alerts_title') ?? 'Aucune alerte à venir',
                     style: TextStyle(
-                      color: _navy,
+                      color: heading,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   SizedBox(height: 6),
                   Text(
-                    'Vos prochaines échéances apparaîtront ici.',
-                    style: TextStyle(color: _muted),
+                    loc?.get('no_alerts_description') ??
+                        'Vos prochaines échéances apparaîtront ici.',
+                    style: TextStyle(color: muted),
                   ),
                 ],
               ),
@@ -64,7 +73,9 @@ class AlertsPage extends StatelessWidget {
                 return Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7DF),
+                    color: isDark
+                        ? const Color(0xFF3A3020)
+                        : const Color(0xFFFFF7DF),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -81,16 +92,16 @@ class AlertsPage extends StatelessWidget {
                           children: [
                             Text(
                               ticket.storeName,
-                              style: const TextStyle(
-                                color: _navy,
+                              style: TextStyle(
+                                color: heading,
                                 fontWeight: FontWeight.w800,
                                 fontSize: 16,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Garantie jusqu\'au ${DateFormat('dd/MM/yyyy', locale).format(ticket.warrantyEndDate)}',
-                              style: const TextStyle(color: _muted),
+                              '${loc?.get('warranty_until') ?? 'Garantie jusqu\'au'} ${DateFormat('dd/MM/yyyy', locale).format(ticket.warrantyEndDate)}',
+                              style: TextStyle(color: muted),
                             ),
                           ],
                         ),

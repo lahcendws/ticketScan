@@ -179,6 +179,10 @@ class AppLocalizations {
         'Tickets illimités, export PDF/CSV, extension de garantie et alertes.',
     'menu': 'Menu',
     'alerts': 'Alertes',
+    'alerts_title': 'Alertes',
+    'no_alerts_title': 'Aucune alerte à venir',
+    'no_alerts_description': 'Vos prochaines échéances apparaîtront ici.',
+    'warranty_until': 'Garantie jusqu\'au',
     'account': 'Compte',
   };
 
@@ -346,6 +350,11 @@ class AppLocalizations {
         'Unlimited tickets, PDF/CSV export, warranty extensions and alerts.',
     'menu': 'Menu',
     'alerts': 'Alerts',
+    'alerts_title': 'Alerts',
+    'no_alerts_title': 'No upcoming alerts',
+    'no_alerts_description':
+        'Your upcoming warranty deadlines will appear here.',
+    'warranty_until': 'Warranty until',
     'account': 'Account',
   };
 
