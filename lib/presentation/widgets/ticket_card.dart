@@ -8,6 +8,7 @@ import '../../core/services/subscription_service.dart';
 import '../../core/services/ticket_share_service.dart';
 import '../pages/ticket_detail_page.dart';
 import '../pages/premium_page.dart';
+import '../../presentation/themes/app_theme.dart';
 
 class TicketCard extends StatelessWidget {
   final TicketModel ticket;
@@ -28,7 +29,6 @@ class TicketCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -43,7 +43,7 @@ class TicketCard extends StatelessWidget {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ClipRRect(
@@ -101,22 +101,22 @@ class TicketCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
+                            color: AppTheme.warningColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.warning_amber,
                                 size: 14,
-                                color: Colors.orange,
+                                color: AppTheme.warningColor,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 localizations?.get('warranty') ?? 'Garantie',
-                                style: const TextStyle(
-                                  color: Colors.orange,
+                                style: TextStyle(
+                                  color: AppTheme.warningColor,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -126,7 +126,7 @@ class TicketCard extends StatelessWidget {
                         ),
                       const SizedBox(width: 4),
                       PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+                        icon: Icon(Icons.more_vert, color: Theme.of(context).iconTheme.color),
                         onSelected: (value) {
                           switch (value) {
                             case 'delete':
@@ -145,7 +145,7 @@ class TicketCard extends StatelessWidget {
                             value: 'edit',
                             child: Row(
                               children: [
-                                const Icon(Icons.edit, size: 20),
+                                Icon(Icons.edit, size: 20, color: Theme.of(context).iconTheme.color),
                                 const SizedBox(width: 8),
                                 Text(localizations?.get('edit') ?? 'Modifier'),
                               ],
@@ -155,7 +155,7 @@ class TicketCard extends StatelessWidget {
                             value: 'share',
                             child: Row(
                               children: [
-                                const Icon(Icons.share, size: 20),
+                                Icon(Icons.share, size: 20, color: Theme.of(context).iconTheme.color),
                                 const SizedBox(width: 8),
                                 Text(localizations?.get('share') ?? 'Partager'),
                               ],
@@ -165,15 +165,15 @@ class TicketCard extends StatelessWidget {
                             value: 'delete',
                             child: Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.delete,
                                   size: 20,
-                                  color: Colors.red,
+                                  color: AppTheme.errorColor,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   localizations?.get('delete') ?? 'Supprimer',
-                                  style: const TextStyle(color: Colors.red),
+                                  style: TextStyle(color: AppTheme.errorColor),
                                 ),
                               ],
                             ),
@@ -199,8 +199,8 @@ class TicketCard extends StatelessWidget {
                   if (ticket.isWarrantyExpired())
                     Text(
                       localizations?.get('expired') ?? 'Expiré',
-                      style: const TextStyle(
-                        color: Colors.red,
+                      style: TextStyle(
+                        color: AppTheme.errorColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -237,8 +237,8 @@ class TicketCard extends StatelessWidget {
             },
             child: Text(
               loc?.get('delete') ?? 'Supprimer',
-              style: const TextStyle(
-                color: Colors.red,
+              style: TextStyle(
+                color: AppTheme.errorColor,
                 fontWeight: FontWeight.bold,
               ),
             ),

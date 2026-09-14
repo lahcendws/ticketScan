@@ -14,11 +14,7 @@ class TicketListPage extends StatefulWidget {
 }
 
 class _TicketListPageState extends State<TicketListPage> {
-  static const _primary = Color(0xFF147DFF);
-  static const _navy = Color(0xFF102A56);
-  static const _muted = Color(0xFF5A7194);
-  static const _background = Color(0xFFF8FBFF);
-
+  
   @override
   void initState() {
     super.initState();
@@ -33,18 +29,15 @@ class _TicketListPageState extends State<TicketListPage> {
     final provider = context.watch<TicketProvider>();
 
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: _navy,
         elevation: 0,
         title: Text(
           localizations?.get('my_tickets') ?? 'Mes tickets',
-          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       body: RefreshIndicator(
-        color: _primary,
+        color: Theme.of(context).primaryColor,
         onRefresh: provider.loadTickets,
         child: _buildBody(provider, localizations),
       ),
@@ -53,7 +46,7 @@ class _TicketListPageState extends State<TicketListPage> {
 
   Widget _buildBody(TicketProvider provider, AppLocalizations? localizations) {
     if (provider.isLoading && provider.tickets.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: _primary));
+      return Center(child: CircularProgressIndicator(color: Theme.of(context).primaryColor));
     }
 
     if (provider.tickets.isEmpty) {
@@ -61,16 +54,16 @@ class _TicketListPageState extends State<TicketListPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           const SizedBox(height: 180),
-          const Icon(
+          Icon(
             Icons.confirmation_number_outlined,
             size: 52,
-            color: Color(0xFF9DB4D1),
+            color: Theme.of(context).hintColor,
           ),
           const SizedBox(height: 16),
           Center(
             child: Text(
               localizations?.get('no_tickets') ?? 'Aucun ticket enregistré',
-              style: const TextStyle(color: _muted, fontSize: 16),
+              style: TextStyle(color: Theme.of(context).hintColor, fontSize: 16),
             ),
           ),
         ],
