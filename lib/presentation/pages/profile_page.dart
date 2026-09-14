@@ -274,8 +274,14 @@ class _ProfilePageState extends State<ProfilePage> {
           trailing: PopupMenuButton<ThemeMode>(
             onSelected: (m) => ThemeService.setThemeMode(m),
             itemBuilder: (c) => [
-              const PopupMenuItem(value: ThemeMode.light, child: Text('Clair')),
-              const PopupMenuItem(value: ThemeMode.dark, child: Text('Sombre')),
+              PopupMenuItem(
+                value: ThemeMode.light,
+                child: Text(loc?.get('theme_light') ?? 'Clair'),
+              ),
+              PopupMenuItem(
+                value: ThemeMode.dark,
+                child: Text(loc?.get('theme_dark') ?? 'Sombre'),
+              ),
             ],
           ),
         ),

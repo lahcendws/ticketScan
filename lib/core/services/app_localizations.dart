@@ -81,7 +81,9 @@ class AppLocalizations {
     'delete_account': 'Supprimer mon compte',
     'delete_account_warning':
         'Attention : cette action est irréversible. Toutes vos données seront supprimées.',
-    'dark_mode': 'Mode sombre',
+    'dark_mode': 'Thème',
+    'theme_light': 'Clair',
+    'theme_dark': 'Sombre',
     'language': 'Langue',
     'forgot_password': 'Mot de passe oublié ?',
     'forgot_email': 'Identifiant / Email oublié ?',
@@ -267,7 +269,9 @@ class AppLocalizations {
     'delete_account': 'Delete my account',
     'delete_account_warning':
         'Warning: this action is irreversible. All your data will be deleted.',
-    'dark_mode': 'Dark mode',
+    'dark_mode': 'Theme',
+    'theme_light': 'Light',
+    'theme_dark': 'Dark',
     'language': 'Language',
     'forgot_password': 'Forgot password?',
     'forgot_email': 'Forgot Email?',
