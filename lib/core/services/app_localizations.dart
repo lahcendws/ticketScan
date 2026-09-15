@@ -124,6 +124,7 @@ class AppLocalizations {
     'success_account_created_msg':
         'Un email de confirmation vous a été envoyé.',
     'no_warranty_title': 'Aucun produit sous garantie',
+    'edit_ticket': 'Modifier le ticket',
     'no_warranty_banner':
         'Aucun produit garanti — le ticket ne sera pas enregistré',
     'no_warranty_msg':
@@ -309,6 +310,7 @@ class AppLocalizations {
     'success_account_created_title': 'Account created!',
     'success_account_created_msg': 'A confirmation email has been sent to you.',
     'no_warranty_title': 'No product under warranty',
+    'edit_ticket': 'Edit ticket',
     'no_warranty_banner':
         'No product under warranty — the ticket will not be saved',
     'no_warranty_msg':
