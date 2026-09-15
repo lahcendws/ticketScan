@@ -22,7 +22,6 @@ class _TicketsPageState extends State<TicketsPage> {
   static const _primary = Color(0xFF147DFF);
   static const _navy = Color(0xFF102A56);
   static const _muted = Color(0xFF5A7194);
-  static const _pageBackground = Color(0xFFF8FBFF);
 
   @override
   void initState() {
@@ -38,13 +37,13 @@ class _TicketsPageState extends State<TicketsPage> {
     final sub = Provider.of<SubscriptionService>(context);
     final provider = Provider.of<TicketProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surface = isDark ? const Color(0xFF16213E) : Colors.white;
+    final surface = Theme.of(context).scaffoldBackgroundColor;
     final primaryText = isDark ? const Color(0xFFECF0F1) : _navy;
 
     final canScan = sub.canScan(provider.tickets);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF1A1A2E) : _pageBackground,
+      backgroundColor: isDark ? const Color(0xFF1A1A2E) : surface,
       drawer: Drawer(
         backgroundColor: surface,
         child: SafeArea(
@@ -106,7 +105,9 @@ class _TicketsPageState extends State<TicketsPage> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: const Color(0xFFE7F1FF),
+                color: isDark
+                    ? const Color(0xFF16213E)
+                    : const Color(0xFFE7F1FF),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -298,7 +299,9 @@ class _TicketsPageState extends State<TicketsPage> {
                 loc?.get('choose_image_action') ?? 'Choisir une image',
               ),
               style: OutlinedButton.styleFrom(
-                backgroundColor: const Color(0xFFEAF3FF),
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF16213E)
+                    : const Color(0xFFEAF3FF),
                 foregroundColor: _primary,
                 side: BorderSide.none,
                 shape: RoundedRectangleBorder(
@@ -510,7 +513,9 @@ class _TicketsPageState extends State<TicketsPage> {
                   ticketsSubtitle,
                   Icons.confirmation_number_outlined,
                   _primary,
-                  const Color(0xFFEAF3FF),
+                  Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF16213E)
+                      : const Color(0xFFEAF3FF),
                   false,
                 ),
               ),
@@ -523,7 +528,9 @@ class _TicketsPageState extends State<TicketsPage> {
                   loc?.get('under_warranty') ?? 'sous garantie',
                   Icons.shield_outlined,
                   const Color(0xFF00B87A),
-                  const Color(0xFFE8FBF3),
+                  Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF0F3460)
+                      : const Color(0xFFE8FBF3),
                   false,
                 ),
               ),
@@ -535,7 +542,9 @@ class _TicketsPageState extends State<TicketsPage> {
                   loc?.get('upcoming') ?? 'à venir',
                   Icons.notifications_none,
                   const Color(0xFFFFA400),
-                  const Color(0xFFFFF7DF),
+                  Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF2A2350)
+                      : const Color(0xFFFFF7DF),
                   false,
                 ),
               ),
@@ -552,7 +561,9 @@ class _TicketsPageState extends State<TicketsPage> {
                             'Plus de\nfonctionnalités',
                   Icons.workspace_premium_outlined,
                   const Color(0xFF6A35F2),
-                  const Color(0xFFF0ECFF),
+                  Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF2A2350)
+                      : const Color(0xFFF0ECFF),
                   true,
                 ),
               ),
@@ -606,7 +617,13 @@ class _TicketsPageState extends State<TicketsPage> {
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: _muted, fontSize: 11, height: 1.2),
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFFBDC3C7)
+                  : _muted,
+              fontSize: 11,
+              height: 1.2,
+            ),
           ),
         ],
       ),

@@ -128,7 +128,12 @@ class TicketCard extends StatelessWidget {
                         ),
                       const SizedBox(width: 4),
                       PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+                        icon: Icon(
+                          Icons.more_vert,
+                          color:
+                              Theme.of(context).textTheme.bodyMedium?.color ??
+                              Colors.grey[600],
+                        ),
                         onSelected: (value) {
                           switch (value) {
                             case 'delete':

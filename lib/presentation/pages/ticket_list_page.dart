@@ -17,7 +17,6 @@ class _TicketListPageState extends State<TicketListPage> {
   static const _primary = Color(0xFF147DFF);
   static const _navy = Color(0xFF102A56);
   static const _muted = Color(0xFF5A7194);
-  static const _background = Color(0xFFF8FBFF);
 
   @override
   void initState() {
@@ -31,16 +30,27 @@ class _TicketListPageState extends State<TicketListPage> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final provider = context.watch<TicketProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? const Color(0xFF1A1A2E)
+        : const Color(0xFFF8FBFF);
+    final appBarBackgroundColor = isDark
+        ? const Color(0xFF16213E)
+        : Colors.white;
+    final appBarForegroundColor = isDark ? const Color(0xFFECF0F1) : _navy;
 
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: _navy,
+        backgroundColor: appBarBackgroundColor,
+        foregroundColor: appBarForegroundColor,
         elevation: 0,
         title: Text(
           localizations?.get('my_tickets') ?? 'Mes tickets',
-          style: const TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: appBarForegroundColor,
+          ),
         ),
       ),
       body: RefreshIndicator(
