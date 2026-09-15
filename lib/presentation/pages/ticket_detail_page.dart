@@ -72,8 +72,12 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     _storeController.dispose();
     _amountController.dispose();
     _dateController.dispose();
-    for (var c in _productNameControllers) c.dispose();
-    for (var c in _productPriceControllers) c.dispose();
+    for (var c in _productNameControllers) {
+      c.dispose();
+    }
+    for (var c in _productPriceControllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -92,10 +96,11 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     try {
       await PDFService.generateAndPreviewTicketPDF(context, widget.ticket);
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Erreur PDF: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isGeneratingPDF = false);
     }
@@ -128,23 +133,26 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   }
 
   void _showUpgradeDialog(String message) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? const Color(0xFF16213E) : Colors.white;
+    final textColor = isDark
+        ? const Color(0xFFECF0F1)
+        : const Color(0xFF102A56);
+    final mutedText = isDark
+        ? const Color(0xFFBDC3C7)
+        : const Color(0xFF5A7194);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Fonction Premium',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(message, style: const TextStyle(color: Colors.white70)),
+        title: Text('Fonction Premium', style: TextStyle(color: textColor)),
+        content: Text(message, style: TextStyle(color: mutedText)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Plus tard',
-              style: TextStyle(color: Colors.white70),
-            ),
+            child: Text('Plus tard', style: TextStyle(color: mutedText)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -302,21 +310,31 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     final localizations = AppLocalizations.of(context);
     final locale = localizations?.locale.toString() ?? 'fr_FR';
     final primary = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? const Color(0xFF16213E) : Colors.white;
+    final textOnSurface = isDark
+        ? const Color(0xFFECF0F1)
+        : const Color(0xFF102A56);
+    final mutedColor = isDark
+        ? const Color(0xFFBDC3C7)
+        : const Color(0xFF5A7194);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: surfaceColor,
+        foregroundColor: textOnSurface,
         elevation: 0,
         title: Text(
           _isEditing
-              ? localizations?.get('edit_ticket') ?? 'Edit Ticket'
-              : localizations?.get('ticket_details') ?? 'Ticket Details',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            letterSpacing: 0.5,
+              ? '${localizations?.get('edit_ticket') ?? 'Modifier le ticket'} · ${widget.ticket.storeName}'
+              : '${localizations?.get('ticket_details') ?? 'Détails du ticket'} · ${widget.ticket.storeName}',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: textOnSurface,
+            fontSize: 18,
           ),
+          overflow: TextOverflow.ellipsis,
         ),
         actions: [
           if (!_isEditing) ...[
@@ -332,20 +350,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                     ),
                   )
                 : IconButton(
-                    icon: const Icon(
-                      Icons.picture_as_pdf,
-                      color: Colors.white70,
-                    ),
+                    icon: Icon(Icons.picture_as_pdf, color: mutedColor),
                     onPressed: _handlePDFExport,
                     tooltip: 'Aperçu PDF',
                   ),
             IconButton(
-              icon: const Icon(Icons.share, color: Colors.white70),
+              icon: Icon(Icons.share, color: mutedColor),
               onPressed: _handleShare,
               tooltip: localizations?.get('share') ?? 'Partager',
             ),
             IconButton(
-              icon: const Icon(Icons.edit, color: Colors.white70),
+              icon: Icon(Icons.edit, color: mutedColor),
               onPressed: () => setState(() => _isEditing = true),
             ),
           ] else ...[
@@ -361,17 +376,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                     ),
                   )
                 : IconButton(
-                    icon: const Icon(Icons.check, color: Colors.white),
+                    icon: Icon(Icons.check, color: primary),
                     onPressed: _saveChanges,
                     tooltip: 'Enregistrer les modifications',
                   ),
             IconButton(
-              icon: const Icon(Icons.share, color: Colors.white70),
+              icon: Icon(Icons.share, color: mutedColor),
               onPressed: _handleShare,
               tooltip: localizations?.get('share') ?? 'Partager',
             ),
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.white70),
+              icon: Icon(Icons.close, color: mutedColor),
               onPressed: () {
                 _initControllers();
                 setState(() => _isEditing = false);
@@ -390,30 +405,55 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
             _buildImageThumbnails(primary),
             const SizedBox(height: 20),
             _isEditing
-                ? _buildEditForm(localizations, primary)
-                : _buildInfoCard(locale, localizations, primary),
+                ? _buildEditForm(
+                    localizations,
+                    primary,
+                    isDark,
+                    surfaceColor,
+                    textOnSurface,
+                  )
+                : _buildInfoCard(
+                    locale,
+                    localizations,
+                    primary,
+                    isDark,
+                    surfaceColor,
+                    textOnSurface,
+                  ),
             const SizedBox(height: 24),
             Text(
               localizations?.get('products') ?? 'Articles',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 0.5,
+                fontWeight: FontWeight.w800,
+                color: textOnSurface,
               ),
             ),
             const SizedBox(height: 12),
-            _buildProductsSection(localizations, primary),
+            _buildProductsSection(
+              localizations,
+              primary,
+              isDark,
+              surfaceColor,
+              textOnSurface,
+              mutedColor,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEditForm(AppLocalizations? localizations, Color primary) {
+  Widget _buildEditForm(
+    AppLocalizations? localizations,
+    Color primary,
+    bool isDark,
+    Color surfaceColor,
+    Color textOnSurface,
+  ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade800,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
@@ -425,6 +465,8 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
               _storeController,
               Icons.store_outlined,
               primary,
+              textOnSurface,
+              isDark,
             ),
             const SizedBox(height: 16),
             _buildEditField(
@@ -432,6 +474,8 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
               _dateController,
               Icons.calendar_today_outlined,
               primary,
+              textOnSurface,
+              isDark,
             ),
             const SizedBox(height: 16),
             _buildEditField(
@@ -439,6 +483,8 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
               _amountController,
               Icons.attach_money_outlined,
               primary,
+              textOnSurface,
+              isDark,
             ),
           ],
         ),
@@ -451,18 +497,27 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     TextEditingController controller,
     IconData icon,
     Color primary,
+    Color textOnSurface,
+    bool isDark,
   ) {
+    final mutedColor = isDark
+        ? const Color(0xFFBDC3C7)
+        : const Color(0xFF5A7194);
+    final fillColor = isDark
+        ? const Color(0xFF1A1A2E)
+        : const Color(0xFFF8FBFF);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 20, color: Colors.grey.shade400),
+            Icon(icon, size: 20, color: mutedColor),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+                style: TextStyle(fontSize: 12, color: mutedColor),
               ),
             ),
           ],
@@ -470,22 +525,22 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         const SizedBox(height: 4),
         TextField(
           controller: controller,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: TextStyle(color: textOnSurface, fontSize: 16),
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade600),
+              borderSide: BorderSide(color: mutedColor.withValues(alpha: 0.3)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade600),
+              borderSide: BorderSide(color: mutedColor.withValues(alpha: 0.3)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: primary, width: 2),
             ),
             filled: true,
-            fillColor: Colors.grey.shade800,
+            fillColor: fillColor,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
@@ -562,10 +617,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     String locale,
     AppLocalizations? localizations,
     Color primary,
+    bool isDark,
+    Color surfaceColor,
+    Color textOnSurface,
   ) {
+    final mutedColor = isDark
+        ? const Color(0xFFBDC3C7)
+        : const Color(0xFF5A7194);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade800,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
@@ -576,7 +638,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: primary.withOpacity(0.1),
+                  backgroundColor: primary.withValues(alpha: 0.1),
                   child: Icon(Icons.store, color: primary, size: 24),
                 ),
                 const SizedBox(width: 16),
@@ -586,27 +648,28 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                     children: [
                       Text(
                         widget.ticket.storeName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          color: textOnSurface,
                         ),
                       ),
                       Text(
                         widget.ticket.category ?? 'Other',
-                        style: TextStyle(color: Colors.grey.shade400),
+                        style: TextStyle(color: mutedColor),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            Divider(height: 24, color: Colors.grey.shade700),
+            Divider(height: 24, color: mutedColor.withValues(alpha: 0.2)),
             _buildInfoRow(
               localizations?.get('total_amount') ?? 'Total',
               '${widget.ticket.totalAmount.toStringAsFixed(2)} ${widget.ticket.currency}',
               primary: primary,
               isBold: true,
+              isDark: isDark,
             ),
             const SizedBox(height: 8),
             _buildInfoRow(
@@ -616,6 +679,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                 locale,
               ).format(widget.ticket.warrantyEndDate),
               primary: primary,
+              isDark: isDark,
             ),
           ],
         ),
@@ -628,22 +692,27 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     String value, {
     bool isBold = false,
     required Color primary,
+    required bool isDark,
   }) {
+    final mutedColor = isDark
+        ? const Color(0xFFBDC3C7)
+        : const Color(0xFF5A7194);
+    final textOnSurface = isDark
+        ? const Color(0xFFECF0F1)
+        : const Color(0xFF102A56);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
-          ),
+          Text(label, style: TextStyle(fontSize: 14, color: mutedColor)),
           Text(
             value,
             style: TextStyle(
               fontSize: 16,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: isBold ? primary : Colors.white,
+              color: isBold ? primary : textOnSurface,
             ),
           ),
         ],
@@ -651,10 +720,21 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     );
   }
 
-  Widget _buildProductsSection(AppLocalizations? localizations, Color primary) {
+  Widget _buildProductsSection(
+    AppLocalizations? localizations,
+    Color primary,
+    bool isDark,
+    Color surfaceColor,
+    Color textOnSurface,
+    Color mutedColor,
+  ) {
+    final fillColor = isDark
+        ? const Color(0xFF1A1A2E)
+        : const Color(0xFFF8FBFF);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade800,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -694,8 +774,8 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                 flex: 3,
                                 child: TextField(
                                   controller: _productNameControllers[index],
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: textOnSurface,
                                     fontSize: 14,
                                   ),
                                   decoration: InputDecoration(
@@ -705,13 +785,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide(
-                                        color: Colors.grey.shade600,
+                                        color: mutedColor.withValues(
+                                          alpha: 0.3,
+                                        ),
                                       ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide(
-                                        color: Colors.grey.shade600,
+                                        color: mutedColor.withValues(
+                                          alpha: 0.3,
+                                        ),
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
@@ -722,7 +806,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                       ),
                                     ),
                                     filled: true,
-                                    fillColor: Colors.grey.shade800,
+                                    fillColor: fillColor,
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 8,
@@ -736,8 +820,8 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                 child: TextField(
                                   controller: _productPriceControllers[index],
                                   keyboardType: TextInputType.number,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: textOnSurface,
                                     fontSize: 14,
                                   ),
                                   decoration: InputDecoration(
@@ -746,13 +830,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide(
-                                        color: Colors.grey.shade600,
+                                        color: mutedColor.withValues(
+                                          alpha: 0.3,
+                                        ),
                                       ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       borderSide: BorderSide(
-                                        color: Colors.grey.shade600,
+                                        color: mutedColor.withValues(
+                                          alpha: 0.3,
+                                        ),
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
@@ -763,7 +851,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                                       ),
                                     ),
                                     filled: true,
-                                    fillColor: Colors.grey.shade800,
+                                    fillColor: fillColor,
                                     contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 12,
                                       vertical: 8,
@@ -779,17 +867,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                               Expanded(
                                 child: Text(
                                   _productNameControllers[index].text,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: textOnSurface,
                                     fontSize: 14,
                                   ),
                                 ),
                               ),
                               Text(
                                 '${_productPriceControllers[index].text} ${widget.ticket.currency}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: textOnSurface,
                                   fontSize: 14,
                                 ),
                               ),
@@ -801,7 +889,7 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
             );
           }),
           if (!_isEditing) ...[
-            Divider(height: 1, color: Colors.grey.shade700),
+            Divider(height: 1, color: mutedColor.withValues(alpha: 0.2)),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -809,17 +897,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                 children: [
                   Text(
                     localizations?.get('total') ?? 'Total',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: textOnSurface,
                     ),
                   ),
                   Text(
                     '${widget.ticket.totalAmount.toStringAsFixed(2)} ${widget.ticket.currency}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
                       fontSize: 16,
-                      color: Colors.white,
+                      color: textOnSurface,
                     ),
                   ),
                 ],
