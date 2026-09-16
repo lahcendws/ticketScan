@@ -173,6 +173,69 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
     );
   }
 
+  Future<void> _confirmDelete() async {
+    final ticketId = widget.ticket.id;
+    if (ticketId == null) return;
+
+    final localizations = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? const Color(0xFF16213E) : Colors.white;
+    final textColor = isDark
+        ? const Color(0xFFECF0F1)
+        : const Color(0xFF102A56);
+    final mutedText = isDark
+        ? const Color(0xFFBDC3C7)
+        : const Color(0xFF5A7194);
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          localizations?.get('delete_ticket') ?? 'Supprimer le ticket',
+          style: TextStyle(color: textColor),
+        ),
+        content: Text(
+          localizations?.get('delete_ticket_warning') ??
+              'Ce ticket sera supprimé définitivement.',
+          style: TextStyle(color: mutedText),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              localizations?.get('cancel') ?? 'Annuler',
+              style: TextStyle(color: mutedText),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await Provider.of<TicketProvider>(
+                context,
+                listen: false,
+              ).deleteTicket(ticketId);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    localizations?.get('ticket_deleted') ?? 'Ticket supprimé',
+                  ),
+                ),
+              );
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              localizations?.get('delete') ?? 'Supprimer',
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _saveChanges() async {
     final ticketId = widget.ticket.id;
     if (ticketId == null) return;
@@ -327,8 +390,8 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         elevation: 0,
         title: Text(
           _isEditing
-              ? '${localizations?.get('edit_ticket') ?? 'Modifier le ticket'} · ${widget.ticket.storeName}'
-              : '${localizations?.get('ticket_details') ?? 'Détails du ticket'} · ${widget.ticket.storeName}',
+              ? (localizations?.get('edit_ticket') ?? 'Modifier le ticket')
+              : (localizations?.get('ticket_details') ?? 'Détails du ticket'),
           style: TextStyle(
             fontWeight: FontWeight.w800,
             color: textOnSurface,
@@ -349,20 +412,97 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                       ),
                     ),
                   )
-                : IconButton(
-                    icon: Icon(Icons.picture_as_pdf, color: mutedColor),
-                    onPressed: _handlePDFExport,
-                    tooltip: 'Aperçu PDF',
+                : PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert, color: mutedColor),
+                    tooltip:
+                        localizations?.get('ticket_actions') ??
+                        'Actions du ticket',
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'share':
+                          _handleShare();
+                          break;
+                        case 'pdf':
+                          _handlePDFExport();
+                          break;
+                        case 'edit':
+                          setState(() => _isEditing = true);
+                          break;
+                        case 'delete':
+                          _confirmDelete();
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem<String>(
+                        value: 'share',
+                        child: Row(
+                          children: [
+                            Icon(Icons.share, color: mutedColor),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                localizations?.get('share') ?? 'Partager',
+                                style: TextStyle(color: textOnSurface),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'pdf',
+                        child: Row(
+                          children: [
+                            Icon(Icons.picture_as_pdf, color: mutedColor),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                localizations?.get('export_pdf') ??
+                                    'Exporter PDF',
+                                style: TextStyle(color: textOnSurface),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, color: mutedColor),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                localizations?.get('edit_ticket') ??
+                                    'Modifier le ticket',
+                                style: TextStyle(color: textOnSurface),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline, color: Colors.red),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                localizations?.get('delete_ticket') ??
+                                    'Supprimer le ticket',
+                                style: const TextStyle(color: Colors.red),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-            IconButton(
-              icon: Icon(Icons.share, color: mutedColor),
-              onPressed: _handleShare,
-              tooltip: localizations?.get('share') ?? 'Partager',
-            ),
-            IconButton(
-              icon: Icon(Icons.edit, color: mutedColor),
-              onPressed: () => setState(() => _isEditing = true),
-            ),
           ] else ...[
             _isSaving
                 ? const Center(
@@ -380,11 +520,6 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
                     onPressed: _saveChanges,
                     tooltip: 'Enregistrer les modifications',
                   ),
-            IconButton(
-              icon: Icon(Icons.share, color: mutedColor),
-              onPressed: _handleShare,
-              tooltip: localizations?.get('share') ?? 'Partager',
-            ),
             IconButton(
               icon: Icon(Icons.close, color: mutedColor),
               onPressed: () {

@@ -36,9 +36,12 @@ void main() {
         ],
         child: MaterialApp(
           locale: const Locale('fr', 'FR'),
+          supportedLocales: const [Locale('fr', 'FR')],
           localizationsDelegates: const [
             AppLocalizations.delegate,
-            ...GlobalMaterialLocalizations.delegates,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
           ],
           home: TicketDetailPage(ticket: testTicket),
         ),
@@ -46,6 +49,9 @@ void main() {
     );
 
     await tester.pumpAndSettle();
+
+    expect(find.text('Détails du ticket'), findsOneWidget);
+    expect(find.text('Détails du ticket · BOULANGER'), findsNothing);
 
     // Vérifier que le nom du produit est affiché seul
     expect(find.text('Aspirateur'), findsOneWidget);
@@ -78,9 +84,12 @@ void main() {
         ],
         child: MaterialApp(
           locale: const Locale('fr', 'FR'),
+          supportedLocales: const [Locale('fr', 'FR')],
           localizationsDelegates: const [
             AppLocalizations.delegate,
-            ...GlobalMaterialLocalizations.delegates,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
           ],
           home: TicketDetailPage(ticket: testTicket),
         ),
@@ -88,7 +97,24 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.share));
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Partager'), findsOneWidget);
+    expect(find.text('Exporter PDF'), findsOneWidget);
+    expect(find.text('Modifier le ticket'), findsOneWidget);
+    expect(find.text('Supprimer le ticket'), findsOneWidget);
+    await tester.tap(find.text('Supprimer le ticket'));
+    await tester.pumpAndSettle();
+    expect(find.text('Supprimer le ticket'), findsOneWidget);
+    expect(find.textContaining('définitivement'), findsOneWidget);
+    await tester.tap(find.text('Annuler'));
+    await tester.pumpAndSettle();
+
+    // Réouvrir le menu pour tester le gate Premium du partage
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Partager'));
     await tester.pumpAndSettle();
 
     expect(

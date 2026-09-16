@@ -1,25 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import '../../data/models/ticket_model.dart';
 import '../../core/services/app_localizations.dart';
 import '../../core/services/supabase_service.dart';
-import '../../core/services/subscription_service.dart';
-import '../../core/services/ticket_share_service.dart';
-import '../pages/ticket_detail_page.dart';
-import '../pages/premium_page.dart';
 
 class TicketCard extends StatelessWidget {
   final TicketModel ticket;
   final VoidCallback? onTap;
-  final VoidCallback? onDelete;
 
-  const TicketCard({
-    super.key,
-    required this.ticket,
-    this.onTap,
-    this.onDelete,
-  });
+  const TicketCard({super.key, required this.ticket, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -94,100 +83,41 @@ class TicketCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Row(
-                    children: [
-                      if (ticket.isWarrantyExpiringSoon())
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                  if (ticket.isWarrantyExpiringSoon())
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.warning_amber,
+                            size: 14,
+                            color: Colors.orange,
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.warning_amber,
-                                size: 14,
-                                color: Colors.orange,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                localizations?.get('warranty') ?? 'Garantie',
-                                style: const TextStyle(
-                                  color: Colors.orange,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(width: 4),
-                      PopupMenuButton<String>(
-                        icon: Icon(
-                          Icons.more_vert,
-                          color:
-                              Theme.of(context).textTheme.bodyMedium?.color ??
-                              Colors.grey[600],
-                        ),
-                        onSelected: (value) {
-                          switch (value) {
-                            case 'delete':
-                              _confirmDelete(context);
-                              break;
-                            case 'share':
-                              _shareTicket(context);
-                              break;
-                            case 'edit':
-                              _editTicket(context);
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                const Icon(Icons.edit, size: 20),
-                                const SizedBox(width: 8),
-                                Text(localizations?.get('edit') ?? 'Modifier'),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'share',
-                            child: Row(
-                              children: [
-                                const Icon(Icons.share, size: 20),
-                                const SizedBox(width: 8),
-                                Text(localizations?.get('share') ?? 'Partager'),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.delete,
-                                  size: 20,
-                                  color: Colors.red,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  localizations?.get('delete') ?? 'Supprimer',
-                                  style: const TextStyle(color: Colors.red),
-                                ),
-                              ],
+                          const SizedBox(width: 4),
+                          Text(
+                            localizations?.get('warranty') ?? 'Garantie',
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right,
+                    color: Theme.of(context).primaryColor,
+                    size: 22,
                   ),
                 ],
               ),
@@ -217,99 +147,6 @@ class TicketCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context) {
-    final loc = AppLocalizations.of(context);
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(loc?.get('delete') ?? 'Supprimer'),
-        content: Text(
-          loc?.get('delete_ticket_warning') ??
-              'Ce ticket sera supprimé définitivement.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(loc?.get('cancel') ?? 'Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              onDelete?.call();
-            },
-            child: Text(
-              loc?.get('delete') ?? 'Supprimer',
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _shareTicket(BuildContext context) {
-    final subscriptionService = Provider.of<SubscriptionService>(
-      context,
-      listen: false,
-    );
-    if (!subscriptionService.isPremium) {
-      _showPremiumDialog(context);
-      return;
-    }
-
-    final localizations = AppLocalizations.of(context);
-    TicketShareService.shareTicket(
-      ticket,
-      locale: localizations?.locale.toString() ?? 'fr_FR',
-    ).catchError((error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erreur de partage : $error')));
-    });
-  }
-
-  void _showPremiumDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Fonction Premium'),
-        content: const Text(
-          'Le partage des tickets est réservé aux membres Premium.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Plus tard'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PremiumPage()),
-              );
-            },
-            child: const Text('Passer Premium'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _editTicket(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) =>
-            TicketDetailPage(ticket: ticket, initialEditMode: true),
       ),
     );
   }
