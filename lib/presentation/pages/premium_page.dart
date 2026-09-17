@@ -5,6 +5,7 @@ import '../../core/services/app_localizations.dart';
 import '../../core/services/subscription_service.dart';
 import 'payment_page.dart';
 import 'privacy_policy_page.dart';
+import 'terms_page.dart';
 
 class PremiumPage extends StatefulWidget {
   const PremiumPage({super.key});
@@ -81,6 +82,13 @@ class _PremiumPageState extends State<PremiumPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
           onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          loc?.get('subscription') ?? 'Abonnement',
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF1A1C1E),
+          ),
         ),
       ),
       body: Column(
@@ -255,7 +263,12 @@ class _PremiumPageState extends State<PremiumPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {},
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (c) => const TermsPage(),
+                          ),
+                        ),
                         child: Text(
                           loc?.get('terms_of_service') ??
                               'Conditions d\'utilisation',

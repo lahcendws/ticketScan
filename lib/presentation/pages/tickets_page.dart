@@ -12,7 +12,9 @@ import 'alerts_page.dart';
 import 'profile_page.dart';
 
 class TicketsPage extends StatefulWidget {
-  const TicketsPage({super.key});
+  final void Function(int)? onNavigateTab;
+
+  const TicketsPage({super.key, this.onNavigateTab});
 
   @override
   State<TicketsPage> createState() => _TicketsPageState();
@@ -82,7 +84,8 @@ class _TicketsPageState extends State<TicketsPage> {
               ListTile(
                 leading: const Icon(Icons.person_outline, color: _primary),
                 title: Text(loc?.get('account') ?? 'Compte'),
-                onTap: () => _openDrawerPage(const ProfilePage()),
+                onTap: () =>
+                    _openDrawerPage(ProfilePage(onNavigateTab: widget.onNavigateTab)),
               ),
             ],
           ),
