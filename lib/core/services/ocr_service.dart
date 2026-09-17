@@ -2,57 +2,103 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// --- Exceptions dédiées, pour que l'UI puisse réagir différemment ----------
+
+class NotAReceiptException implements Exception {
+  final String reason;
+  NotAReceiptException(this.reason);
+}
+
+class QuotaExceededException implements Exception {}
+
+class ScanTechnicalException implements Exception {
+  final String message;
+  ScanTechnicalException(this.message);
+}
+
 class OCRService {
   static final _supabase = Supabase.instance.client;
 
   static Future<TicketAnalysis> extractTextFromImages(
-    List<String> imagePaths,
-  ) async {
-    try {
-      // Convertir toutes les images en Base64
-      List<String> base64Images = [];
-      for (String path in imagePaths) {
-        final bytes = await File(path).readAsBytes();
-        base64Images.add(base64Encode(bytes));
-      }
+      List<String> imagePaths,
+      ) async {
+    List<String> base64Images = [];
+    for (String path in imagePaths) {
+      final bytes = await File(path).readAsBytes();
+      base64Images.add(base64Encode(bytes));
+    }
 
-      // Appeler la fonction avec le tableau d'images
+    try {
       final response = await _supabase.functions.invoke(
         'scan-receipt-v2',
         body: {'imagesBase64': base64Images},
       );
 
-      if (response.status == 200) {
-        final dynamic data = response.data;
-        Map<String, dynamic> content = (data is String)
-            ? jsonDecode(data)
-            : Map<String, dynamic>.from(data);
+      final dynamic data = response.data;
+      final Map<String, dynamic> content = (data is String)
+          ? jsonDecode(data) as Map<String, dynamic>
+          : Map<String, dynamic>.from(data as Map);
 
-        return TicketAnalysis(
-          storeName: content['storeName']?.toString() ?? 'Magasin',
-          storeAddress: content['storeAddress']?.toString(),
-          category: content['category']?.toString() ?? 'Électronique',
-          date:
-              DateTime.tryParse(content['date']?.toString() ?? '') ??
-              DateTime.now(),
-          totalAmount:
-              double.tryParse(content['totalAmount']?.toString() ?? '0') ?? 0.0,
-          currency: content['currency']?.toString() ?? '€',
-          products:
-              (content['products'] as List?)
-                  ?.map((p) => Map<String, dynamic>.from(p))
-                  .toList() ??
-              [],
-          extractedText: [],
-          // Garantie renvoyée par l'edge function, sinon 2 ans par défaut
-          warrantyYears:
-              int.tryParse(content['warrantyYears']?.toString() ?? '') ?? 2,
-        );
+      return _parseAnalysis(content);
+    } on FunctionException catch (e) {
+      final details = e.details;
+      final Map<String, dynamic>? body = details is String
+          ? (jsonDecode(details) as Map<String, dynamic>?)
+          : (details is Map ? Map<String, dynamic>.from(details) : null);
+
+      final code = body?['error']?.toString();
+
+      switch (e.status) {
+        case 422:
+          throw NotAReceiptException(body?['reason']?.toString() ?? 'unknown');
+        case 403:
+          if (code == 'LIMIT_REACHED') throw QuotaExceededException();
+          throw ScanTechnicalException('Accès refusé');
+        case 400:
+          throw ScanTechnicalException(code ?? 'Requête invalide');
+        case 502:
+          throw ScanTechnicalException('Service de reconnaissance indisponible, réessaie dans un instant');
+        default:
+          throw ScanTechnicalException('Erreur serveur (${e.status})');
       }
-      throw Exception('Erreur serveur: ${response.status}');
+    } on NotAReceiptException {
+      rethrow;
+    } on QuotaExceededException {
+      rethrow;
     } catch (e) {
-      throw Exception('Erreur analyse multi-images: $e');
+      throw ScanTechnicalException('Erreur analyse multi-images: $e');
     }
+  }
+
+  static TicketAnalysis _parseAnalysis(Map<String, dynamic> content) {
+    final products = (content['products'] as List?)
+        ?.map((p) => Map<String, dynamic>.from(p as Map))
+        .toList() ??
+        [];
+
+    // La garantie est portée par chaque produit, pas par un champ global.
+    // On prend la durée max déclarée parmi les produits sous garantie,
+    // à défaut 2 ans si au moins un produit est concerné, sinon 0.
+    final warrantedDurations = products
+        .where((p) => p['hasWarranty'] == true)
+        .map((p) => int.tryParse(p['warrantyDurationYears']?.toString() ?? '') ?? 2)
+        .toList();
+    final warrantyYears = warrantedDurations.isEmpty
+        ? 0
+        : warrantedDurations.reduce((a, b) => a > b ? a : b);
+
+    return TicketAnalysis(
+      storeName: content['storeName']?.toString() ?? 'Magasin',
+      storeAddress: content['storeAddress']?.toString(),
+      category: content['category']?.toString() ?? 'Autre',
+      date: DateTime.tryParse(content['date']?.toString() ?? '') ?? DateTime.now(),
+      totalAmount: double.tryParse(content['totalAmount']?.toString() ?? '0') ?? 0.0,
+      currency: content['currency']?.toString() ?? '€',
+      products: products,
+      extractedText: const [],
+      warrantyYears: warrantyYears,
+      needsConfirmation: content['needsConfirmation'] == true,
+    );
   }
 }
 
@@ -66,6 +112,7 @@ class TicketAnalysis {
   final List<Map<String, dynamic>> products;
   final List<String> extractedText;
   final int warrantyYears;
+  final bool needsConfirmation;
 
   TicketAnalysis({
     required this.storeName,
@@ -77,5 +124,6 @@ class TicketAnalysis {
     required this.products,
     required this.extractedText,
     required this.warrantyYears,
+    this.needsConfirmation = false,
   });
 }
