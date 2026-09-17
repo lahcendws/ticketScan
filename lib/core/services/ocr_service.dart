@@ -18,7 +18,7 @@ class OCRService {
 
       // Appeler la fonction avec le tableau d'images
       final response = await _supabase.functions.invoke(
-        'analyze-ticket',
+        'scan-receipt-v2',
         body: {'imagesBase64': base64Images},
       );
 
