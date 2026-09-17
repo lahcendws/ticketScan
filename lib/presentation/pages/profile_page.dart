@@ -436,7 +436,9 @@ class _ProfilePageState extends State<ProfilePage> {
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
         icon: const Icon(Icons.logout),
         label: Text(loc?.get('sign_out') ?? 'Déconnexion'),

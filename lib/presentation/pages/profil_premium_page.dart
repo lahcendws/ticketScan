@@ -36,7 +36,8 @@ class ProfilPremiumPage extends StatelessWidget {
             _buildHeroCard(context, sub, loc, user?.email ?? 'Utilisateur'),
             const SizedBox(height: 32),
             Text(
-              loc?.get('premium_features_list_title') ?? 'Vos avantages Premium',
+              loc?.get('premium_features_list_title') ??
+                  'Vos avantages Premium',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 16),

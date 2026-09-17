@@ -265,9 +265,7 @@ class _PremiumPageState extends State<PremiumPage> {
                       child: GestureDetector(
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (c) => const TermsPage(),
-                          ),
+                          MaterialPageRoute(builder: (c) => const TermsPage()),
                         ),
                         child: Text(
                           loc?.get('terms_of_service') ??

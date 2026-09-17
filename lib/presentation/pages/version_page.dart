@@ -102,7 +102,11 @@ class _VersionPageState extends State<VersionPage> {
             loc?.get('app_info_description') ??
                 'TicketScan vous aide à garder vos tickets et garanties au même endroit.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[600], fontSize: 13, height: 1.4),
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 13,
+              height: 1.4,
+            ),
           ),
         ],
       ),

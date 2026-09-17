@@ -84,8 +84,9 @@ class _TicketsPageState extends State<TicketsPage> {
               ListTile(
                 leading: const Icon(Icons.person_outline, color: _primary),
                 title: Text(loc?.get('account') ?? 'Compte'),
-                onTap: () =>
-                    _openDrawerPage(ProfilePage(onNavigateTab: widget.onNavigateTab)),
+                onTap: () => _openDrawerPage(
+                  ProfilePage(onNavigateTab: widget.onNavigateTab),
+                ),
               ),
             ],
           ),
