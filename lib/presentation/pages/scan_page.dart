@@ -90,11 +90,32 @@ class _ScanPageState extends State<ScanPage> {
       } else {
         if (mounted) await CameraService.cameraController?.resumePreview();
       }
+    } on NotAReceiptException catch (_) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        await CameraService.cameraController?.resumePreview();
+        _showErrorDialog(
+          "Cette photo ne semble pas montrer un ticket de caisse. "
+              "Réessaie en cadrant bien le ticket, à plat et bien éclairé.",
+        );
+      }
+    } on QuotaExceededException catch (_) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        await CameraService.cameraController?.resumePreview();
+        _redirectToPremium();
+      }
+    } on ScanTechnicalException catch (e) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        await CameraService.cameraController?.resumePreview();
+        _showErrorDialog(e.message);
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _isProcessing = false);
         await CameraService.cameraController?.resumePreview();
-        _showErrorDialog(e.toString());
+        _showErrorDialog('Une erreur inattendue est survenue.');
       }
     }
   }
@@ -105,7 +126,7 @@ class _ScanPageState extends State<ScanPage> {
     try {
       final List<String> urls = await Future.wait(
         _capturedImages.map(
-          (path) => SupabaseService.uploadTicketImage(
+              (path) => SupabaseService.uploadTicketImage(
             path,
             'ticket_${DateTime.now().millisecondsSinceEpoch}_${path.split('/').last}.jpg',
           ),
@@ -285,29 +306,29 @@ class _ScanPageState extends State<ScanPage> {
   Widget _buildBottomControls(bool canScan) {
     Widget analyzeButton = _capturedImages.isNotEmpty
         ? ElevatedButton(
-            onPressed: _isProcessing ? null : _analyzeTicket,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isProcessing
-                  ? Colors.grey
-                  : (canScan ? Colors.green : Colors.orange),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-            ),
-            child: _isProcessing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Icon(canScan ? Icons.check : Icons.lock, size: 24),
-          )
+      onPressed: _isProcessing ? null : _analyzeTicket,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _isProcessing
+            ? Colors.grey
+            : (canScan ? Colors.green : Colors.orange),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 2,
+      ),
+      child: _isProcessing
+          ? const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          strokeWidth: 2,
+        ),
+      )
+          : Icon(canScan ? Icons.check : Icons.lock, size: 24),
+    )
         : const SizedBox();
 
     return Container(

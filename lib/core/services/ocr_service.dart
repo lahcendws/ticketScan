@@ -7,13 +7,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class NotAReceiptException implements Exception {
   final String reason;
   NotAReceiptException(this.reason);
+
+  @override
+  String toString() =>
+      "Cette photo ne semble pas montrer un ticket de caisse ($reason).";
 }
 
-class QuotaExceededException implements Exception {}
+class QuotaExceededException implements Exception {
+  @override
+  String toString() => "Limite de scans gratuits atteinte.";
+}
 
 class ScanTechnicalException implements Exception {
   final String message;
   ScanTechnicalException(this.message);
+
+  @override
+  String toString() => message;
 }
 
 class OCRService {
@@ -41,6 +51,10 @@ class OCRService {
 
       return _parseAnalysis(content);
     } on FunctionException catch (e) {
+      // DEBUG temporaire : à retirer une fois le flux validé
+      // ignore: avoid_print
+      print('FunctionException status=${e.status} details=${e.details} (${e.details.runtimeType})');
+
       final details = e.details;
       final Map<String, dynamic>? body = details is String
           ? (jsonDecode(details) as Map<String, dynamic>?)
