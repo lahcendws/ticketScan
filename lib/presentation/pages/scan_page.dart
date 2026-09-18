@@ -90,11 +90,29 @@ class _ScanPageState extends State<ScanPage> {
       } else {
         if (mounted) await CameraService.cameraController?.resumePreview();
       }
-    } catch (e) {
+    } on NotAReceiptException catch (e) {
       if (mounted) {
         setState(() => _isProcessing = false);
         await CameraService.cameraController?.resumePreview();
-        _showErrorDialog(e.toString());
+        _showErrorDialog(e.messageKey);
+      }
+    } on QuotaExceededException catch (_) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        await CameraService.cameraController?.resumePreview();
+        _redirectToPremium();
+      }
+    } on ScanTechnicalException catch (e) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        await CameraService.cameraController?.resumePreview();
+        _showErrorDialog(e.messageKey);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        await CameraService.cameraController?.resumePreview();
+        _showErrorDialog('scan_unexpected_error');
       }
     }
   }
@@ -133,7 +151,7 @@ class _ScanPageState extends State<ScanPage> {
         if (e.toString().contains('LIMIT_REACHED')) {
           _redirectToPremium();
         } else {
-          _showErrorDialog(e.toString());
+          _showErrorDialog('scan_save_error');
         }
       }
     }
@@ -146,19 +164,22 @@ class _ScanPageState extends State<ScanPage> {
     );
   }
 
-  void _showErrorDialog(String error) {
+  void _showErrorDialog(String messageKey) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Erreur'),
-        content: Text(error),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+      builder: (dialogContext) {
+        final loc = AppLocalizations.of(dialogContext);
+        return AlertDialog(
+          title: Text(loc?.get('scan_error_title') ?? 'Scan error'),
+          content: Text(loc?.get(messageKey) ?? messageKey),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(loc?.get('ok') ?? 'OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 

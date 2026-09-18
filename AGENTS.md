@@ -15,7 +15,7 @@ Flutter (Dart) app "TicketScan" — scans receipts with the camera, extracts dat
 
 - `.env` (gitignored) holds `SUPABASE_URL` and `SUPABASE_ANON_KEY`. `lib/main.dart` loads it via `flutter_dotenv` and `lib/supabase_options.dart` reads it with `!` — the app **crashes at startup if `.env` is missing**. Create a local `.env` from the committed template values if the project is freshly cloned.
 - Supabase schema in use: `tickets` (user rows), `profiles` (`is_premium` flag), `app_config` (`min_version`, `is_under_maintenance`, `update_url` for the version gate).
-- Supabase edge functions used by the app: `analyze-ticket` (OCR, images as `base64`), `verify-purchase` (IAP receipt). They are not in this repo.
+- Supabase edge functions used by the app: `scan-receipt-v2` (OCR, images as `base64`), `verify-purchase` (IAP receipt). They are not in this repo.
 - Firebase leftovers are dead and must NOT be regenerated with `flutterfire` or relied on: `lib/firebase_options.dart`, `lib/core/services/firebase_service.dart` (commented out), `firebase.json`, Firebase constants in `lib/core/constants/app_constants.dart`.
 
 ## Entrypoints & dead-code trap
