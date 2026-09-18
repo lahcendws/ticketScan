@@ -142,6 +142,35 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Widget _buildSettingsSelector<T>(
+    BuildContext context, {
+    required T value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return SizedBox(
+      width: 150,
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          isExpanded: true,
+          isDense: true,
+          dropdownColor: Theme.of(context).cardColor,
+          menuMaxHeight: 220,
+          menuWidth: 160,
+          borderRadius: BorderRadius.circular(12),
+          elevation: 8,
+          icon: const Icon(Icons.chevron_right, size: 20),
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+          ),
+          items: items,
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
@@ -309,11 +338,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildMenu(AppLocalizations? loc) {
     final Color iconColor = Theme.of(context).primaryColor;
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return Material(
+      color: Theme.of(context).cardColor,
+      borderRadius: BorderRadius.circular(16),
       child: Column(
         children: [
           ListTile(
@@ -364,28 +391,35 @@ class _ProfilePageState extends State<ProfilePage> {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
+        Material(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.language),
+                leading: Icon(
+                  Icons.language,
+                  color: Theme.of(context).primaryColor,
+                ),
                 title: Text(loc?.get('language') ?? 'Langue'),
-                trailing: PopupMenuButton<Locale>(
-                  onSelected: (l) => lang.setLanguage(l),
-                  itemBuilder: (c) => [
-                    const PopupMenuItem(
-                      value: Locale('fr', 'FR'),
-                      child: Text('Français'),
+                trailing: _buildSettingsSelector<Locale>(
+                  context,
+                  value: lang.currentLocale,
+                  items: [
+                    DropdownMenuItem(
+                      value: const Locale('fr', 'FR'),
+                      child: Text(loc?.get('language_french') ?? 'Français'),
                     ),
-                    const PopupMenuItem(
-                      value: Locale('en', 'US'),
-                      child: Text('English'),
+                    DropdownMenuItem(
+                      value: const Locale('en', 'US'),
+                      child: Text(loc?.get('language_english') ?? 'English'),
                     ),
                   ],
+                  onChanged: (locale) {
+                    if (locale != null) {
+                      lang.setLanguage(locale);
+                    }
+                  },
                 ),
               ),
               Divider(
@@ -394,20 +428,33 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Colors.grey.withOpacity(0.2),
               ),
               ListTile(
-                leading: const Icon(Icons.dark_mode),
+                leading: Icon(
+                  Icons.dark_mode,
+                  color: Theme.of(context).primaryColor,
+                ),
                 title: Text(loc?.get('dark_mode') ?? 'Thème'),
-                trailing: PopupMenuButton<ThemeMode>(
-                  onSelected: (m) => ThemeService.setThemeMode(m),
-                  itemBuilder: (c) => [
-                    PopupMenuItem(
+                trailing: _buildSettingsSelector<ThemeMode>(
+                  context,
+                  value: ThemeService.themeMode,
+                  items: [
+                    DropdownMenuItem(
                       value: ThemeMode.light,
                       child: Text(loc?.get('theme_light') ?? 'Clair'),
                     ),
-                    PopupMenuItem(
+                    DropdownMenuItem(
                       value: ThemeMode.dark,
                       child: Text(loc?.get('theme_dark') ?? 'Sombre'),
                     ),
+                    DropdownMenuItem(
+                      value: ThemeMode.system,
+                      child: Text(loc?.get('theme_system') ?? 'Système'),
+                    ),
                   ],
+                  onChanged: (mode) {
+                    if (mode != null) {
+                      ThemeService.setThemeMode(mode);
+                    }
+                  },
                 ),
               ),
             ],
