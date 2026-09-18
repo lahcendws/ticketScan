@@ -17,7 +17,10 @@ class LanguageService extends ChangeNotifier {
       final savedLanguage = prefs.getString(AppConstants.prefLanguage);
 
       if (savedLanguage != null) {
-        _currentLocale = Locale(savedLanguage);
+        _currentLocale = supportedLocales.firstWhere(
+          (candidate) => candidate.languageCode == savedLanguage,
+          orElse: () => const Locale('fr', 'FR'),
+        );
       }
     } catch (e) {
       debugPrint('Erreur initialisation langue: $e');
