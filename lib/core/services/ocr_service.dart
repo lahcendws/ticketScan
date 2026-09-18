@@ -8,19 +8,27 @@ class NotAReceiptException implements Exception {
   final String reason;
   NotAReceiptException(this.reason);
 
+  String get messageKey => 'scan_not_a_receipt';
+
   @override
-  String toString() =>
-      "Cette photo ne semble pas montrer un ticket de caisse ($reason).";
+  String toString() => 'NotAReceiptException: $reason';
 }
 
 class QuotaExceededException implements Exception {
+  String get messageKey => 'scan_quota_exceeded';
+
   @override
-  String toString() => "Limite de scans gratuits atteinte.";
+  String toString() => 'QuotaExceededException';
 }
 
 class ScanTechnicalException implements Exception {
   final String message;
-  ScanTechnicalException(this.message);
+  final String messageKey;
+
+  ScanTechnicalException(
+    this.message, {
+    this.messageKey = 'scan_technical_error',
+  });
 
   @override
   String toString() => message;
@@ -30,8 +38,8 @@ class OCRService {
   static final _supabase = Supabase.instance.client;
 
   static Future<TicketAnalysis> extractTextFromImages(
-      List<String> imagePaths,
-      ) async {
+    List<String> imagePaths,
+  ) async {
     List<String> base64Images = [];
     for (String path in imagePaths) {
       final bytes = await File(path).readAsBytes();
@@ -53,7 +61,9 @@ class OCRService {
     } on FunctionException catch (e) {
       // DEBUG temporaire : à retirer une fois le flux validé
       // ignore: avoid_print
-      print('FunctionException status=${e.status} details=${e.details} (${e.details.runtimeType})');
+      print(
+        'FunctionException status=${e.status} details=${e.details} (${e.details.runtimeType})',
+      );
 
       final details = e.details;
       final Map<String, dynamic>? body = details is String
@@ -67,27 +77,43 @@ class OCRService {
           throw NotAReceiptException(body?['reason']?.toString() ?? 'unknown');
         case 403:
           if (code == 'LIMIT_REACHED') throw QuotaExceededException();
-          throw ScanTechnicalException('Accès refusé');
+          throw ScanTechnicalException(
+            'access_denied',
+            messageKey: 'scan_access_denied',
+          );
         case 400:
-          throw ScanTechnicalException(code ?? 'Requête invalide');
+          throw ScanTechnicalException(
+            'invalid_request',
+            messageKey: 'scan_invalid_request',
+          );
         case 502:
-          throw ScanTechnicalException('Service de reconnaissance indisponible, réessaie dans un instant');
+          throw ScanTechnicalException(
+            'service_unavailable',
+            messageKey: 'scan_service_unavailable',
+          );
         default:
-          throw ScanTechnicalException('Erreur serveur (${e.status})');
+          throw ScanTechnicalException(
+            'server_error_${e.status}',
+            messageKey: 'scan_server_error',
+          );
       }
     } on NotAReceiptException {
       rethrow;
     } on QuotaExceededException {
       rethrow;
     } catch (e) {
-      throw ScanTechnicalException('Erreur analyse multi-images: $e');
+      throw ScanTechnicalException(
+        'multi_image_analysis_failed: $e',
+        messageKey: 'scan_multi_image_error',
+      );
     }
   }
 
   static TicketAnalysis _parseAnalysis(Map<String, dynamic> content) {
-    final products = (content['products'] as List?)
-        ?.map((p) => Map<String, dynamic>.from(p as Map))
-        .toList() ??
+    final products =
+        (content['products'] as List?)
+            ?.map((p) => Map<String, dynamic>.from(p as Map))
+            .toList() ??
         [];
 
     // La garantie est portée par chaque produit, pas par un champ global.
@@ -95,7 +121,10 @@ class OCRService {
     // à défaut 2 ans si au moins un produit est concerné, sinon 0.
     final warrantedDurations = products
         .where((p) => p['hasWarranty'] == true)
-        .map((p) => int.tryParse(p['warrantyDurationYears']?.toString() ?? '') ?? 2)
+        .map(
+          (p) =>
+              int.tryParse(p['warrantyDurationYears']?.toString() ?? '') ?? 2,
+        )
         .toList();
     final warrantyYears = warrantedDurations.isEmpty
         ? 0
@@ -105,8 +134,11 @@ class OCRService {
       storeName: content['storeName']?.toString() ?? 'Magasin',
       storeAddress: content['storeAddress']?.toString(),
       category: content['category']?.toString() ?? 'Autre',
-      date: DateTime.tryParse(content['date']?.toString() ?? '') ?? DateTime.now(),
-      totalAmount: double.tryParse(content['totalAmount']?.toString() ?? '0') ?? 0.0,
+      date:
+          DateTime.tryParse(content['date']?.toString() ?? '') ??
+          DateTime.now(),
+      totalAmount:
+          double.tryParse(content['totalAmount']?.toString() ?? '0') ?? 0.0,
       currency: content['currency']?.toString() ?? '€',
       products: products,
       extractedText: const [],

@@ -90,14 +90,11 @@ class _ScanPageState extends State<ScanPage> {
       } else {
         if (mounted) await CameraService.cameraController?.resumePreview();
       }
-    } on NotAReceiptException catch (_) {
+    } on NotAReceiptException catch (e) {
       if (mounted) {
         setState(() => _isProcessing = false);
         await CameraService.cameraController?.resumePreview();
-        _showErrorDialog(
-          "Cette photo ne semble pas montrer un ticket de caisse. "
-              "Réessaie en cadrant bien le ticket, à plat et bien éclairé.",
-        );
+        _showErrorDialog(e.messageKey);
       }
     } on QuotaExceededException catch (_) {
       if (mounted) {
@@ -109,13 +106,13 @@ class _ScanPageState extends State<ScanPage> {
       if (mounted) {
         setState(() => _isProcessing = false);
         await CameraService.cameraController?.resumePreview();
-        _showErrorDialog(e.message);
+        _showErrorDialog(e.messageKey);
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() => _isProcessing = false);
         await CameraService.cameraController?.resumePreview();
-        _showErrorDialog('Une erreur inattendue est survenue.');
+        _showErrorDialog('scan_unexpected_error');
       }
     }
   }
@@ -126,7 +123,7 @@ class _ScanPageState extends State<ScanPage> {
     try {
       final List<String> urls = await Future.wait(
         _capturedImages.map(
-              (path) => SupabaseService.uploadTicketImage(
+          (path) => SupabaseService.uploadTicketImage(
             path,
             'ticket_${DateTime.now().millisecondsSinceEpoch}_${path.split('/').last}.jpg',
           ),
@@ -154,7 +151,7 @@ class _ScanPageState extends State<ScanPage> {
         if (e.toString().contains('LIMIT_REACHED')) {
           _redirectToPremium();
         } else {
-          _showErrorDialog(e.toString());
+          _showErrorDialog('scan_save_error');
         }
       }
     }
@@ -167,19 +164,22 @@ class _ScanPageState extends State<ScanPage> {
     );
   }
 
-  void _showErrorDialog(String error) {
+  void _showErrorDialog(String messageKey) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Erreur'),
-        content: Text(error),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+      builder: (dialogContext) {
+        final loc = AppLocalizations.of(dialogContext);
+        return AlertDialog(
+          title: Text(loc?.get('scan_error_title') ?? 'Scan error'),
+          content: Text(loc?.get(messageKey) ?? messageKey),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(loc?.get('ok') ?? 'OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -306,29 +306,29 @@ class _ScanPageState extends State<ScanPage> {
   Widget _buildBottomControls(bool canScan) {
     Widget analyzeButton = _capturedImages.isNotEmpty
         ? ElevatedButton(
-      onPressed: _isProcessing ? null : _analyzeTicket,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _isProcessing
-            ? Colors.grey
-            : (canScan ? Colors.green : Colors.orange),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 2,
-      ),
-      child: _isProcessing
-          ? const SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-          strokeWidth: 2,
-        ),
-      )
-          : Icon(canScan ? Icons.check : Icons.lock, size: 24),
-    )
+            onPressed: _isProcessing ? null : _analyzeTicket,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isProcessing
+                  ? Colors.grey
+                  : (canScan ? Colors.green : Colors.orange),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: _isProcessing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Icon(canScan ? Icons.check : Icons.lock, size: 24),
+          )
         : const SizedBox();
 
     return Container(
