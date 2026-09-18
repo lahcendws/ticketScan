@@ -51,7 +51,10 @@ void main() {
     expect(find.textContaining('45.50'), findsOneWidget);
   });
 
-  testWidgets('free users cannot share a ticket', (WidgetTester tester) async {
+  testWidgets('TicketCard displays a chevron and remains tappable', (
+    WidgetTester tester,
+  ) async {
+    var didTap = false;
     final testTicket = TicketModel(
       storeName: 'CARREFOUR',
       date: DateTime(2024, 1, 1),
@@ -74,20 +77,16 @@ void main() {
             AppLocalizations.delegate,
             ...GlobalMaterialLocalizations.delegates,
           ],
-          home: Scaffold(body: TicketCard(ticket: testTicket)),
+          home: Scaffold(
+            body: TicketCard(ticket: testTicket, onTap: () => didTap = true),
+          ),
         ),
       ),
     );
 
     await tester.pump();
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.share));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text('Le partage des tickets est réservé aux membres Premium.'),
-      findsOneWidget,
-    );
+    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+    await tester.tap(find.byType(InkWell));
+    expect(didTap, isTrue);
   });
 }
