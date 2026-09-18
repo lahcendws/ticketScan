@@ -397,7 +397,10 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.language),
+                leading: Icon(
+                  Icons.language,
+                  color: Theme.of(context).primaryColor,
+                ),
                 title: Text(loc?.get('language') ?? 'Langue'),
                 trailing: _buildSettingsSelector<Locale>(
                   context,
@@ -425,7 +428,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Colors.grey.withOpacity(0.2),
               ),
               ListTile(
-                leading: const Icon(Icons.dark_mode),
+                leading: Icon(
+                  Icons.dark_mode,
+                  color: Theme.of(context).primaryColor,
+                ),
                 title: Text(loc?.get('dark_mode') ?? 'Thème'),
                 trailing: _buildSettingsSelector<ThemeMode>(
                   context,
