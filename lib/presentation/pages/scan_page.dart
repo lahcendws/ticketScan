@@ -7,6 +7,8 @@ import '../../core/services/camera_service.dart';
 import '../../core/services/ocr_service.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/subscription_service.dart';
+import '../../core/services/hash_service.dart';
+import '../../core/services/offline_hash_queue.dart';
 import '../../data/models/ticket_model.dart';
 import '../../data/models/ticket_provider.dart';
 import '../../core/services/app_localizations.dart';
@@ -27,6 +29,8 @@ class _ScanPageState extends State<ScanPage> {
   bool _isProcessing = false;
   bool _isInitialized = false;
   bool _showGuide = true;
+  final Map<String, Map<String, dynamic>> _hashProofs = {};
+  Timer? _hashQueueTimer;
 
   @override
   void initState() {
@@ -35,6 +39,10 @@ class _ScanPageState extends State<ScanPage> {
       _capturedImages.add(widget.initialImagePath!);
     }
     _initializeCamera();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await initHashQueue();
+      _hashQueueTimer = Timer.periodic(const Duration(seconds: 30), (timer) => SupabaseService.processHashQueue());
+    });
     Timer(const Duration(seconds: 5), () {
       if (mounted) setState(() => _showGuide = false);
     });
@@ -46,7 +54,7 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Future<void> _takePhoto() async {
-    final path = await CameraService.takePicture();
+    final path = await CameraService.takePicture(saveAsPng: true);
     if (path != null) {
       setState(() => _capturedImages.add(path));
     }
@@ -54,8 +62,11 @@ class _ScanPageState extends State<ScanPage> {
 
   Future<void> _pickImage() async {
     final path = await CameraService.pickImageFromGallery();
-    if (path != null && mounted) {
-      setState(() => _capturedImages.add(path));
+    if (path != null) {
+      final pngPath = await CameraService._convertToPng(path);
+      if (mounted) {
+        setState(() => _capturedImages.add(pngPath));
+      }
     }
   }
 
@@ -77,11 +88,35 @@ class _ScanPageState extends State<ScanPage> {
       setState(() => _isProcessing = false);
       if (!mounted) return;
 
+      // Compute hash and store proof
+      final proofs = <String, Map<String, dynamic>>{};
+      for (final imgPath in _capturedImages) {
+        final file = File(imgPath);
+        final hash = await HashService.computeSha256(file);
+        try {
+          final supabaseRow = await SupabaseService.storeHash(hash);
+          proofs[imgPath] = {
+            'hash': hash,
+            'timestamp': supabaseRow['created_at'],
+            'supabaseRowId': supabaseRow['id'],
+          };
+        } catch (e) {
+          await enqueueHash(imgPath, hash);
+          proofs[imgPath] = {
+            'hash': hash,
+            'timestamp': null,
+            'supabaseRowId': null,
+          };
+        }
+      }
+      setState(() => _hashProofs.addAll(proofs));
+
       final finalAnalysis = await showDialog<TicketAnalysis>(
         context: context,
         builder: (context) => TicketAnalysisDialog(
           analysis: analysis,
           imagePath: _capturedImages.first,
+          // Optionally pass proofs to dialog if needed
         ),
       );
 
@@ -125,10 +160,19 @@ class _ScanPageState extends State<ScanPage> {
         _capturedImages.map(
           (path) => SupabaseService.uploadTicketImage(
             path,
-            'ticket_${DateTime.now().millisecondsSinceEpoch}_${path.split('/').last}.jpg',
+            'ticket_${DateTime.now().millisecondsSinceEpoch}_${path.split('/').last}.png',
           ),
         ),
       );
+      final List<Map<String, dynamic>> proofList = _capturedImages.map((path) {
+        final proof = _hashProofs[path] ?? {};
+        return {
+          'imagePath': path,
+          'hash': proof['hash'],
+          'timestamp': proof['timestamp'],
+          'supabaseRowId': proof['supabaseRowId'],
+        };
+      }).toList();
       final ticket = TicketModel(
         storeName: analysis.storeName,
         storeAddress: analysis.storeAddress,
@@ -142,6 +186,7 @@ class _ScanPageState extends State<ScanPage> {
           Duration(days: analysis.warrantyYears * 365),
         ),
         createdAt: DateTime.now(),
+        hashProofs: proofList,
       );
       await ticketProvider.addTicket(ticket);
       if (mounted) Navigator.of(context).pop();
@@ -372,5 +417,10 @@ class _ScanPageState extends State<ScanPage> {
         ],
       ),
     );
+  }
+  @override
+  void dispose() {
+    _hashQueueTimer?.cancel();
+    super.dispose();
   }
 }
