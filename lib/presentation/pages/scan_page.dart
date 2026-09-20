@@ -333,43 +333,51 @@ class _ScanPageState extends State<ScanPage> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          SizedBox(
-            width: 70,
-            child: GestureDetector(
-              onTap: _pickImage,
-              child: const Icon(
-                Icons.photo_library_outlined,
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 70,
-            child: GestureDetector(
-              onTap: _takePhoto,
-              child: Container(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.center,
+        child: SizedBox(
+          width: 210,
+          height: 70,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SizedBox(
                 width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
-                ),
-                child: Container(
-                  margin: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: const Icon(
+                    Icons.photo_library_outlined,
                     color: Colors.white,
-                    shape: BoxShape.circle,
+                    size: 32,
                   ),
                 ),
               ),
-            ),
+              SizedBox(
+                width: 70,
+                child: GestureDetector(
+                  onTap: _takePhoto,
+                  child: Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                    ),
+                    child: Container(
+                      margin: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 70, child: analyzeButton),
+            ],
           ),
-          SizedBox(width: 70, child: analyzeButton),
-        ],
+        ),
       ),
     );
   }

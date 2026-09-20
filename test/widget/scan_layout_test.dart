@@ -8,7 +8,7 @@ import 'package:ticketscan_new/presentation/pages/scan_page.dart';
 
 void main() {
   testWidgets('bottom controls fit a narrow screen', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(248.4, 600));
+    await tester.binding.setSurfaceSize(const Size(225, 600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
