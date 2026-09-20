@@ -1,4 +1,4 @@
-# ticketscan_new
+# ticketscan
 
 A new Flutter project.
 
