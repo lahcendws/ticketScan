@@ -33,29 +33,37 @@ class CustomBottomNavigation extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(
-                icon: Icons.receipt_long_outlined,
-                selectedIcon: Icons.receipt_long,
-                index: 0,
-                context: context,
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.receipt_long_outlined,
+                  selectedIcon: Icons.receipt_long,
+                  index: 0,
+                  context: context,
+                ),
               ),
-              _buildNavItem(
-                icon: Icons.confirmation_number_outlined,
-                selectedIcon: Icons.confirmation_number,
-                index: 1,
-                context: context,
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.confirmation_number_outlined,
+                  selectedIcon: Icons.confirmation_number,
+                  index: 1,
+                  context: context,
+                ),
               ),
-              _buildNavItem(
-                icon: Icons.notifications_none,
-                selectedIcon: Icons.notifications,
-                index: 2,
-                context: context,
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.notifications_none,
+                  selectedIcon: Icons.notifications,
+                  index: 2,
+                  context: context,
+                ),
               ),
-              _buildNavItem(
-                icon: Icons.person_outline,
-                selectedIcon: Icons.person,
-                index: 3,
-                context: context,
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.person_outline,
+                  selectedIcon: Icons.person,
+                  index: 3,
+                  context: context,
+                ),
               ),
             ],
           ),
@@ -84,7 +92,8 @@ class CustomBottomNavigation extends StatelessWidget {
         splashColor: Theme.of(context).primaryColor.withOpacity(0.1),
         highlightColor: Colors.transparent,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -98,6 +107,9 @@ class CustomBottomNavigation extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 _labelFor(index, context),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: color,
                   fontSize: 10,

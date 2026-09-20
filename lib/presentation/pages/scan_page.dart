@@ -304,73 +304,100 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Widget _buildBottomControls(bool canScan) {
-    Widget analyzeButton = _capturedImages.isNotEmpty
-        ? ElevatedButton(
-            onPressed: _isProcessing ? null : _analyzeTicket,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isProcessing
-                  ? Colors.grey
-                  : (canScan ? Colors.green : Colors.orange),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-            ),
-            child: _isProcessing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Icon(canScan ? Icons.check : Icons.lock, size: 24),
-          )
-        : const SizedBox();
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          SizedBox(
-            width: 70,
-            child: GestureDetector(
-              onTap: _pickImage,
-              child: const Icon(
-                Icons.photo_library_outlined,
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 70,
-            child: GestureDetector(
-              onTap: _takePhoto,
-              child: Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final controlWidth = constraints.maxWidth / 3;
+        final scale = (controlWidth / 70).clamp(0.0, 1.0).toDouble();
+        final analyzeButton = _capturedImages.isNotEmpty
+            ? ElevatedButton(
+                onPressed: _isProcessing ? null : _analyzeTicket,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isProcessing
+                      ? Colors.grey
+                      : (canScan ? Colors.green : Colors.orange),
+                  foregroundColor: Colors.white,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20 * scale,
+                    vertical: 12 * scale,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12 * scale),
+                  ),
+                  elevation: 2,
                 ),
-                child: Container(
-                  margin: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
+                child: _isProcessing
+                    ? SizedBox(
+                        width: 20 * scale,
+                        height: 20 * scale,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Icon(
+                        canScan ? Icons.check : Icons.lock,
+                        size: 24 * scale,
+                      ),
+              )
+            : const SizedBox();
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: controlWidth,
+                  child: GestureDetector(
+                    onTap: _pickImage,
+                    child: Icon(
+                      Icons.photo_library_outlined,
+                      color: Colors.white,
+                      size: 32 * scale,
+                    ),
                   ),
                 ),
               ),
-            ),
+              Expanded(
+                child: SizedBox(
+                  height: controlWidth,
+                  child: GestureDetector(
+                    onTap: _takePhoto,
+                    child: Container(
+                      width: controlWidth,
+                      height: controlWidth,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 3 * scale,
+                        ),
+                      ),
+                      child: Container(
+                        margin: EdgeInsets.all(6 * scale),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: SizedBox(
+                  height: controlWidth,
+                  child: FittedBox(fit: BoxFit.scaleDown, child: analyzeButton),
+                ),
+              ),
+            ],
           ),
-          SizedBox(width: 70, child: analyzeButton),
-        ],
-      ),
+        );
+      },
     );
   }
 }
