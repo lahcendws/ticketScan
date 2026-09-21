@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 
 class CameraService {
@@ -36,7 +37,7 @@ class CameraService {
     return status.isGranted;
   }
 
-  static Future<String?> takePicture() async {
+  static Future<String?> takePicture({bool saveAsPng = false}) async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
       return null;
     }
@@ -45,11 +46,33 @@ class CameraService {
         await _cameraController!.setFlashMode(FlashMode.off);
       }
       final XFile picture = await _cameraController!.takePicture();
-      return picture.path;
+      final String srcPath = picture.path;
+
+      if (!saveAsPng) return srcPath;
+
+      // ---- Convert to PNG -------------------------------------------------
+      final File pngFile = await _convertToPng(srcPath);
+      return pngFile.path;
     } catch (e) {
       debugPrint('Erreur takePicture: $e');
       return null;
     }
+  }
+
+  static Future<File> _convertToPng(String srcPath) async {
+    final File srcFile = File(srcPath);
+    final List<int> jpgBytes = await srcFile.readAsBytes();
+    final img.Image? jpgImg = img.decodeImage(Uint8List.fromList(jpgBytes));
+    if (jpgImg == null) {
+      throw Exception('Failed to decode image for PNG conversion');
+    }
+    final List<int> pngBytes = img.encodePng(jpgImg);
+    final String pngPath = srcPath.replaceFirst(RegExp(r'\.(jpe?g)$'), '.png');
+    final File pngFile = File(pngPath)
+      ..writeAsBytesSync(pngBytes, flush: true);
+    // Optionally delete the original JPEG to save space
+    await srcFile.delete();
+    return pngFile;
   }
 
   static Future<String?> pickImageFromGallery() async {

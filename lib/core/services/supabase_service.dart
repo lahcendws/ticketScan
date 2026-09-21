@@ -153,4 +153,22 @@ class SupabaseService {
     if (path.startsWith('http')) return path;
     return _storage.from('tickets').getPublicUrl(path);
   }
+
+  /// Insère le hash dans la table ticket_hashes et renvoie la ligne insérée
+  /// (contient le timestamp serveur généré par `now()`).
+  static Future<Map<String, dynamic>> storeHash(String hash) async {
+    final userId = currentUser?.id;
+    if (userId == null) throw Exception('User not authenticated');
+    final data = {
+      'user_id': userId,
+      'hash': hash,
+      // created_at sera rempli automatiquement par le DEFAULT now()
+    };
+    final resp = await _client
+        .from('ticket_hashes')
+        .insert(data)
+        .select() // on veut la ligne retournée (id, created_at, …)
+        .single();
+    return resp;
+  }
 }
