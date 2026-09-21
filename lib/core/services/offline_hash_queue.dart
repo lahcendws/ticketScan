@@ -1,5 +1,6 @@
 // lib/core/services/offline_hash_queue.dart
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart'; // for debugPrint
 import 'supabase_service.dart';

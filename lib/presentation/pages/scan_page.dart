@@ -63,7 +63,7 @@ class _ScanPageState extends State<ScanPage> {
   Future<void> _pickImage() async {
     final path = await CameraService.pickImageFromGallery();
     if (path != null) {
-      final pngPath = await CameraService._convertToPng(path);
+      final pngPath = await CameraService.convertToPng(path);
       if (mounted) {
         setState(() => _capturedImages.add(pngPath));
       }

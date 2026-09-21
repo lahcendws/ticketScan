@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 
@@ -51,15 +52,15 @@ class CameraService {
       if (!saveAsPng) return srcPath;
 
       // ---- Convert to PNG -------------------------------------------------
-      final File pngFile = await _convertToPng(srcPath);
-      return pngFile.path;
+      final String pngPath = await convertToPng(srcPath);
+      return pngPath;
     } catch (e) {
       debugPrint('Erreur takePicture: $e');
       return null;
     }
   }
 
-  static Future<File> _convertToPng(String srcPath) async {
+  static Future<String> convertToPng(String srcPath) async {
     final File srcFile = File(srcPath);
     final List<int> jpgBytes = await srcFile.readAsBytes();
     final img.Image? jpgImg = img.decodeImage(Uint8List.fromList(jpgBytes));
@@ -72,7 +73,7 @@ class CameraService {
       ..writeAsBytesSync(pngBytes, flush: true);
     // Optionally delete the original JPEG to save space
     await srcFile.delete();
-    return pngFile;
+    return pngFile.path;
   }
 
   static Future<String?> pickImageFromGallery() async {
