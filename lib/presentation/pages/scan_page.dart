@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +15,8 @@ import '../../data/models/ticket_provider.dart';
 import '../../core/services/app_localizations.dart';
 import '../widgets/ticket_analysis_dialog.dart';
 import 'premium_page.dart';
+import 'package:image/image.dart' as img;
+import 'dart:ui' as ui;
 
 class ScanPage extends StatefulWidget {
   final String? initialImagePath;
@@ -69,6 +72,61 @@ class _ScanPageState extends State<ScanPage> {
       }
     }
   }
+
+  Future<String> _addWatermarkToImage(String imagePath) async {
+  final File imageFile = File(imagePath);
+  final Uint8List imageBytes = await imageFile.readAsBytes();
+  final img.Image? image = img.decodeImage(imageBytes);
+
+  if (image == null) {
+    throw Exception('Failed to decode image for watermarking');
+  }
+
+  const String watermarkText = 'Integrity verified by TicketScan';
+  const int padding = 12;
+
+  // Police intégrée au package
+  final img.BitmapFont font = img.arial24;
+
+  // Largeur réelle du texte, calculée à partir des glyphes de la police
+  int textWidth = 0;
+  for (final int code in watermarkText.codeUnits) {
+    textWidth += font.characters[code]?.xAdvance ?? 0;
+  }
+  final int textHeight = font.lineHeight;
+
+  final int x = image.width - textWidth - padding;
+  final int y = image.height - textHeight - padding;
+
+  // Fond noir semi-transparent (plein)
+  img.fillRect(
+    image,
+    x1: x - 4,
+    y1: y - 4,
+    x2: x + textWidth + 4,
+    y2: y + textHeight + 4,
+    color: img.ColorRgba8(0, 0, 0, 160),
+  );
+
+  // Texte
+  img.drawString(
+    image,
+    watermarkText,
+    font: font,
+    x: x,
+    y: y,
+    color: img.ColorRgb8(255, 255, 255),
+  );
+
+  final String watermarkedPath = imagePath.replaceFirst(
+    RegExp(r'\.(jpe?g|png)', caseSensitive: false),
+    '_watermarked.png'
+  );
+  final File watermarkedFile = File(watermarkedPath)
+    ..writeAsBytesSync(img.encodePng(image), flush: true);
+
+  return watermarkedFile.path;
+}
 
   Future<void> _analyzeTicket() async {
     if (_capturedImages.isEmpty) return;
@@ -158,10 +216,18 @@ class _ScanPageState extends State<ScanPage> {
     try {
       final List<String> urls = await Future.wait(
         _capturedImages.map(
-          (path) => SupabaseService.uploadTicketImage(
-            path,
-            'ticket_${DateTime.now().millisecondsSinceEpoch}_${path.split('/').last}.png',
-          ),
+          (path) async {
+            final watermarkedPath = await _addWatermarkToImage(path);
+            try {
+              return await SupabaseService.uploadTicketImage(
+                watermarkedPath,
+                'ticket_${DateTime.now().millisecondsSinceEpoch}_${path.split('/').last}.png',
+              );
+            } finally {
+              // Clean up watermarked file
+              await File(watermarkedPath).delete();
+            }
+          },
         ),
       );
       final List<Map<String, dynamic>> proofList = _capturedImages.map((path) {
