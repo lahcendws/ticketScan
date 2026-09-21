@@ -13,6 +13,7 @@ class TicketModel {
   final DateTime warrantyEndDate;
   final List<String> extractedText;
   final DateTime createdAt;
+  final List<Map<String, dynamic>> hashProofs;
 
   TicketModel({
     this.id,
@@ -27,6 +28,7 @@ class TicketModel {
     required this.warrantyEndDate,
     this.extractedText = const [],
     required this.createdAt,
+    this.hashProofs = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -42,6 +44,7 @@ class TicketModel {
       'warranty_end_date': warrantyEndDate.toIso8601String(),
       'extracted_text': extractedText,
       'created_at': createdAt.toIso8601String(),
+      'hash_proofs': hashProofs,
     };
   }
 
@@ -84,6 +87,13 @@ class TicketModel {
       }
     }
 
+    // 3. Parsing robuste des hash proofs
+    List<Map<String, dynamic>> hashProofs = [];
+    dynamic rawHashProofs = data['hash_proofs'];
+    if (rawHashProofs != null && rawHashProofs is List) {
+      hashProofs = List<Map<String, dynamic>>.from(rawHashProofs);
+    }
+
     return TicketModel(
       id: data['id']?.toString(),
       storeName: data['store_name'] ?? '',
@@ -101,6 +111,7 @@ class TicketModel {
       createdAt: DateTime.parse(
         data['created_at'] ?? DateTime.now().toIso8601String(),
       ),
+      hashProofs: hashProofs,
     );
   }
 
@@ -117,6 +128,7 @@ class TicketModel {
     DateTime? warrantyEndDate,
     List<String>? extractedText,
     DateTime? createdAt,
+    List<Map<String, dynamic>>? hashProofs,
   }) {
     return TicketModel(
       id: id ?? this.id,
@@ -131,6 +143,7 @@ class TicketModel {
       warrantyEndDate: warrantyEndDate ?? this.warrantyEndDate,
       extractedText: extractedText ?? this.extractedText,
       createdAt: createdAt ?? this.createdAt,
+      hashProofs: hashProofs ?? this.hashProofs,
     );
   }
 
