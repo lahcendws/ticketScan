@@ -41,7 +41,10 @@ class _ScanPageState extends State<ScanPage> {
     _initializeCamera();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await initHashQueue();
-      _hashQueueTimer = Timer.periodic(const Duration(seconds: 30), (timer) => processHashQueue());
+      _hashQueueTimer = Timer.periodic(
+        const Duration(seconds: 30),
+        (timer) => processHashQueue(),
+      );
     });
     Timer(const Duration(seconds: 5), () {
       if (mounted) setState(() => _showGuide = false);
@@ -445,6 +448,7 @@ class _ScanPageState extends State<ScanPage> {
       },
     );
   }
+
   @override
   void dispose() {
     _hashQueueTimer?.cancel();

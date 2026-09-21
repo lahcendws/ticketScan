@@ -69,8 +69,7 @@ class CameraService {
     }
     final List<int> pngBytes = img.encodePng(jpgImg);
     final String pngPath = srcPath.replaceFirst(RegExp(r'\.(jpe?g)$'), '.png');
-    final File pngFile = File(pngPath)
-      ..writeAsBytesSync(pngBytes, flush: true);
+    final File pngFile = File(pngPath)..writeAsBytesSync(pngBytes, flush: true);
     // Optionally delete the original JPEG to save space
     await srcFile.delete();
     return pngFile.path;

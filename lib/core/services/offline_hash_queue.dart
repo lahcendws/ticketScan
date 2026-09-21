@@ -12,7 +12,7 @@ class HashQueueItem {
   @HiveField(0)
   final String filePath; // chemin du PNG dont on veut stocker le hash
   @HiveField(1)
-  final String hashHex;  // hash pré‑calculé (évite de le recomputer à chaque retry)
+  final String hashHex; // hash pré‑calculé (évite de le recomputer à chaque retry)
   @HiveField(2)
   final DateTime queuedAt;
 
@@ -33,11 +33,13 @@ Future<void> initHashQueue() async {
 // ---------- Enregistrement d’un hash en attente ----------
 Future<void> enqueueHash(String filePath, String hashHex) async {
   final box = Hive.box<HashQueueItem>('hashQueue');
-  await box.add(HashQueueItem(
-    filePath: filePath,
-    hashHex: hashHex,
-    queuedAt: DateTime.now(),
-  ));
+  await box.add(
+    HashQueueItem(
+      filePath: filePath,
+      hashHex: hashHex,
+      queuedAt: DateTime.now(),
+    ),
+  );
 }
 
 // ---------- Traitement de la file d’attente ----------
