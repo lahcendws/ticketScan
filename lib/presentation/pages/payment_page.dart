@@ -267,9 +267,9 @@ class _PaymentPageState extends State<PaymentPage> {
           SnackBar(
             content: Text(
               Platform.isAndroid
-                  ? (loc?.get('payment_service_unavailable_google_play') ??
+                  ? (AppLocalizations.of(context)?.get('payment_service_unavailable_google_play') ??
                         'Le service Google Play n\'est pas disponible pour le moment.')
-                  : (loc?.get('payment_service_unavailable_app_store') ??
+                  : (AppLocalizations.of(context)?.get('payment_service_unavailable_app_store') ??
                         'Le service App Store n\'est pas disponible pour le moment.'),
             ),
           ),

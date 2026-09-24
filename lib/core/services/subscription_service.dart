@@ -32,7 +32,7 @@ class SubscriptionService extends ChangeNotifier {
     if (isTest) {
       debugPrint('SubscriptionService: Initializing in TEST mode');
       // Enable debug logging for in_app_purchase in test mode
-      await _iap.enableDebugLogging();
+      // await _iap.enableDebugLogging();  // Debugging enabled via platform tools in test mode
       // For StoreKit testing in sandbox/TestFlight, we rely on the build configuration
     } else {
       debugPrint('SubscriptionService: Initializing in PRODUCTION mode');
@@ -59,7 +59,7 @@ class SubscriptionService extends ChangeNotifier {
           final ProductDetailsResponse productResponse = await _iap.queryProductDetails(<String>{'premium_yearly', 'premium_monthly'});
           debugPrint('SubscriptionService: Available products: ${productResponse.productDetails.length}');
           for (final product in productResponse.productDetails) {
-            debugPrint('SubscriptionService: Product - ID: ${product.productID}, Title: ${product.title}, Price: ${product.price}');
+            debugPrint('SubscriptionService: Product - ID: ${product.id}, Title: ${product.title}, Price: ${product.price}');
           }
           if (productResponse.notFoundIDs.isNotEmpty) {
             debugPrint('SubscriptionService: Product IDs not found: ${productResponse.notFoundIDs}');
@@ -191,14 +191,14 @@ class SubscriptionService extends ChangeNotifier {
     }
 
     final productDetails = response.productDetails.first;
-    debugPrint('SubscriptionService: Found product - ID: ${productDetails.productID}, Title: ${productDetails.title}');
+    debugPrint('SubscriptionService: Found product - ID: ${productDetails.id}, Title: ${productDetails.title}');
 
     final PurchaseParam purchaseParam = PurchaseParam(
       productDetails: productDetails,
     );
 
     try {
-      debugPrint('SubscriptionService: Initiating purchase for ${productDetails.productID}');
+      debugPrint('SubscriptionService: Initiating purchase for ${productDetails.id}');
       final result = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
       debugPrint('SubscriptionService: Purchase initiated successfully: $result');
       return result;
