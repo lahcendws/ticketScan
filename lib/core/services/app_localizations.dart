@@ -72,15 +72,22 @@ class AppLocalizations {
     'yearly': 'Annuel',
     'monthly': 'Mensuel',
     'premium_unlock_msg': 'Accès illimité à toutes les fonctions',
-    'payment_secure_note':
+    'payment_secure_note_google_play':
         'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.',
-    'payment_secure_note_ios':
+    'payment_secure_note_app_store':
         'Le paiement sera traité de manière sécurisée par l\'App Store. Vous pouvez annuler à tout moment dans vos réglages.',
-    'pay_google_play': 'Payer via Google Play',
-    'pay_app_store': 'Payer via l\'App Store',
+    'payment_button_google_play': 'Payer via Google Play',
+    'payment_button_app_store': 'Payer via l\'App Store',
+    'payment_button_unsupported': 'Paiement non disponible',
+    'payment_service_unavailable_google_play':
+        'Google Play n\'est pas disponible pour le moment. Veuillez réessayer.',
+    'payment_service_unavailable_app_store':
+        'L\'App Store n\'est pas disponible pour le moment. Veuillez réessayer.',
+    'payment_platform_unsupported':
+        'Le paiement d\'abonnement n\'est pas disponible sur cette plateforme.',
+    'payment_error_generic':
+        'Le paiement n\'a pas pu aboutir. Veuillez réessayer.',
     'premium_activated': 'Félicitations ! Vous êtes maintenant Premium 🚀',
-    'play_play_unavailable':
-        'Le service Google Play n\'est pas disponible pour le moment.',
     'live_env': 'Environnement en direct',
     'premium_banner_msg': 'Passez à la version Premium',
     'contact_support': 'Contacter le support',
@@ -311,14 +318,21 @@ class AppLocalizations {
     'yearly': 'Yearly',
     'monthly': 'Monthly',
     'premium_unlock_msg': 'Unlimited access to all features',
-    'payment_secure_note':
+    'payment_secure_note_google_play':
         'Payment is securely processed by Google Play. You can cancel anytime in your Google Play settings.',
-    'payment_secure_note_ios':
+    'payment_secure_note_app_store':
         'Payment is securely processed by the App Store. You can cancel anytime in your Settings.',
-    'pay_google_play': 'Pay with Google Play',
-    'pay_app_store': 'Pay with the App Store',
+    'payment_button_google_play': 'Pay with Google Play',
+    'payment_button_app_store': 'Pay with the App Store',
+    'payment_button_unsupported': 'Payment unavailable',
+    'payment_service_unavailable_google_play':
+        'Google Play is not available right now. Please try again.',
+    'payment_service_unavailable_app_store':
+        'The App Store is not available right now. Please try again.',
+    'payment_platform_unsupported':
+        'Subscription payment is not available on this platform.',
+    'payment_error_generic': 'The payment could not be completed. Please try again.',
     'premium_activated': 'Congratulations! You are now Premium 🚀',
-    'play_play_unavailable': 'Google Play service is not available right now.',
     'live_env': 'Live environment',
     'premium_banner_msg': 'Upgrade to Premium version',
     'contact_support': 'Contact Support',

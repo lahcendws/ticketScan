@@ -29,22 +29,52 @@ class SubscriptionService extends ChangeNotifier {
   }
 
   Future<void> init({bool isTest = false}) async {
+    if (isTest) {
+      debugPrint('SubscriptionService: Initializing in TEST mode');
+      // Enable debug logging for in_app_purchase in test mode
+      await _iap.enableDebugLogging();
+      // For StoreKit testing in sandbox/TestFlight, we rely on the build configuration
+    } else {
+      debugPrint('SubscriptionService: Initializing in PRODUCTION mode');
+    }
+
     if (!isTest) {
       await refreshSubscriptionStatus();
 
       final bool available = await _iap.isAvailable();
+      debugPrint('SubscriptionService: IAP available: $available');
+
       if (available) {
         _subscription = _iap.purchaseStream.listen(
           _listenToPurchaseUpdated,
-          onDone: () => _subscription?.cancel(),
-          onError: (e) => debugPrint('Erreur IAP Stream: $e'),
+          onDone: () {
+            debugPrint('SubscriptionService: IAP purchase stream done');
+            _subscription?.cancel();
+          },
+          onError: (e) => debugPrint('SubscriptionService: Erreur IAP Stream: $e'),
         );
+
+        // Get available products for diagnostic purposes
+        try {
+          final ProductDetailsResponse productResponse = await _iap.queryProductDetails(<String>{'premium_yearly', 'premium_monthly'});
+          debugPrint('SubscriptionService: Available products: ${productResponse.productDetails.length}');
+          for (final product in productResponse.productDetails) {
+            debugPrint('SubscriptionService: Product - ID: ${product.productID}, Title: ${product.title}, Price: ${product.price}');
+          }
+          if (productResponse.notFoundIDs.isNotEmpty) {
+            debugPrint('SubscriptionService: Product IDs not found: ${productResponse.notFoundIDs}');
+          }
+        } catch (e) {
+          debugPrint('SubscriptionService: Error querying product details: $e');
+        }
       }
 
       SupabaseService.authStateChanges.listen((event) {
-        if (event.session != null)
+        if (event.session != null) {
+          debugPrint('SubscriptionService: User session changed, refreshing subscription status');
           refreshSubscriptionStatus();
-        else {
+        } else {
+          debugPrint('SubscriptionService: User signed out');
           _isPremium = false;
           notifyListeners();
         }
@@ -53,31 +83,43 @@ class SubscriptionService extends ChangeNotifier {
   }
 
   Future<void> restorePurchases() async {
+    debugPrint('SubscriptionService: Attempting to restore purchases');
     try {
       await _iap.restorePurchases();
+      debugPrint('SubscriptionService: Purchase restore initiated');
     } catch (e) {
-      debugPrint('Erreur lors de la restauration: $e');
+      debugPrint('SubscriptionService: Erreur lors de la restauration: $e');
     }
   }
 
   void _listenToPurchaseUpdated(
     List<PurchaseDetails> purchaseDetailsList,
   ) async {
+    debugPrint('SubscriptionService: Purchase update received, count: ${purchaseDetailsList.length}');
     for (var purchaseDetails in purchaseDetailsList) {
+      debugPrint('SubscriptionService: Processing purchase - ID: ${purchaseDetails.productID}, Status: ${purchaseDetails.status}');
+
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
+        debugPrint('SubscriptionService: Verifying purchase - ${purchaseDetails.productID}');
         bool valid = await _verifyPurchase(purchaseDetails);
         if (valid) {
+          debugPrint('SubscriptionService: Purchase verified successfully - ${purchaseDetails.productID}');
           await refreshSubscriptionStatus();
+        } else {
+          debugPrint('SubscriptionService: Purchase verification failed - ${purchaseDetails.productID}');
         }
       }
       if (purchaseDetails.pendingCompletePurchase) {
+        debugPrint('SubscriptionService: Completing purchase - ${purchaseDetails.productID}');
         await _iap.completePurchase(purchaseDetails);
+        debugPrint('SubscriptionService: Purchase completed - ${purchaseDetails.productID}');
       }
     }
   }
 
   Future<bool> _verifyPurchase(PurchaseDetails purchaseDetails) async {
+    debugPrint('SubscriptionService: Starting server verification for ${purchaseDetails.productID}');
     try {
       final response = await Supabase.instance.client.functions.invoke(
         'verify-purchase',
@@ -87,16 +129,22 @@ class SubscriptionService extends ChangeNotifier {
           'productId': purchaseDetails.productID,
         },
       );
+      debugPrint('SubscriptionService: Server verification response status: ${response.status} for ${purchaseDetails.productID}');
       return response.status == 200;
     } catch (e) {
-      debugPrint('Erreur verification serveur: $e');
+      debugPrint('SubscriptionService: Erreur verification serveur: $e');
       return false;
     }
   }
 
   Future<void> refreshSubscriptionStatus() async {
     final userId = SupabaseService.currentUser?.id;
-    if (userId == null) return;
+    if (userId == null) {
+      debugPrint('SubscriptionService: No user ID available for subscription refresh');
+      return;
+    }
+
+    debugPrint('SubscriptionService: Refreshing subscription status for user: $userId');
     try {
       final response = await Supabase.instance.client
           .from('profiles')
@@ -104,25 +152,59 @@ class SubscriptionService extends ChangeNotifier {
           .eq('id', userId)
           .maybeSingle();
       if (response != null) {
-        _isPremium = response['is_premium'] ?? false;
-        notifyListeners();
+        final isPremium = response['is_premium'] ?? false;
+        if (_isPremium != isPremium) {
+          debugPrint('SubscriptionService: Subscription status changed from $_isPremium to $isPremium');
+          _isPremium = isPremium;
+          notifyListeners();
+        } else {
+          debugPrint('SubscriptionService: Subscription status unchanged: $_isPremium');
+        }
+      } else {
+        debugPrint('SubscriptionService: No profile found for user: $userId');
       }
     } catch (e) {
-      debugPrint('Erreur rafraîchissement profil: $e');
+      debugPrint('SubscriptionService: Erreur rafraîchissement profil: $e');
     }
   }
 
   Future<bool> upgradeToPremium(String planId) async {
+    debugPrint('SubscriptionService: Attempting to upgrade to premium with planId: $planId');
     final bool available = await _iap.isAvailable();
-    if (!available) return false;
+    if (!available) {
+      debugPrint('SubscriptionService: IAP not available for upgrade');
+      return false;
+    }
+
+    debugPrint('SubscriptionService: Querying product details for planId: $planId');
     final Set<String> kIds = <String>{planId};
     final ProductDetailsResponse response = await _iap.queryProductDetails(
       kIds,
     );
-    if (response.productDetails.isEmpty) return false;
+
+    if (response.productDetails.isEmpty) {
+      debugPrint('SubscriptionService: Product details not found for planId: $planId');
+      if (response.notFoundIDs.isNotEmpty) {
+        debugPrint('SubscriptionService: Not found IDs: ${response.notFoundIDs}');
+      }
+      return false;
+    }
+
+    final productDetails = response.productDetails.first;
+    debugPrint('SubscriptionService: Found product - ID: ${productDetails.productID}, Title: ${productDetails.title}');
+
     final PurchaseParam purchaseParam = PurchaseParam(
-      productDetails: response.productDetails.first,
+      productDetails: productDetails,
     );
-    return await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+
+    try {
+      debugPrint('SubscriptionService: Initiating purchase for ${productDetails.productID}');
+      final result = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      debugPrint('SubscriptionService: Purchase initiated successfully: $result');
+      return result;
+    } catch (e) {
+      debugPrint('SubscriptionService: Error during purchase: $e');
+      return false;
+    }
   }
 }

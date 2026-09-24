@@ -198,9 +198,9 @@ class _PaymentPageState extends State<PaymentPage> {
               const Spacer(),
               Text(
                 Platform.isAndroid
-                    ? loc?.get('payment_secure_note') ??
+                    ? loc?.get('payment_secure_note_google_play') ??
                           'Le paiement sera traité de manière sécurisée par Google Play. Vous pouvez annuler à tout moment dans vos paramètres Google Play.'
-                    : loc?.get('payment_secure_note_ios') ??
+                    : loc?.get('payment_secure_note_app_store') ??
                           'Le paiement sera traité de manière sécurisée par l\'App Store. Vous pouvez annuler à tout moment dans vos réglages.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
@@ -231,9 +231,9 @@ class _PaymentPageState extends State<PaymentPage> {
                         )
                       : Text(
                           Platform.isAndroid
-                              ? (loc?.get('pay_google_play') ??
+                              ? (loc?.get('payment_button_google_play') ??
                                     'Payer via Google Play')
-                              : (loc?.get('pay_app_store') ??
+                              : (loc?.get('payment_button_app_store') ??
                                     'Payer via l\'App Store'),
                           style: const TextStyle(
                             fontSize: 18,
@@ -266,8 +266,11 @@ class _PaymentPageState extends State<PaymentPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context)?.get('play_play_unavailable') ??
-                  'Le service Google Play n\'est pas disponible pour le moment.',
+              Platform.isAndroid
+                  ? (loc?.get('payment_service_unavailable_google_play') ??
+                        'Le service Google Play n\'est pas disponible pour le moment.')
+                  : (loc?.get('payment_service_unavailable_app_store') ??
+                        'Le service App Store n\'est pas disponible pour le moment.'),
             ),
           ),
         );
