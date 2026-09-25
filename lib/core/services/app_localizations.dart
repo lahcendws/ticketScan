@@ -331,7 +331,8 @@ class AppLocalizations {
         'The App Store is not available right now. Please try again.',
     'payment_platform_unsupported':
         'Subscription payment is not available on this platform.',
-    'payment_error_generic': 'The payment could not be completed. Please try again.',
+    'payment_error_generic':
+        'The payment could not be completed. Please try again.',
     'premium_activated': 'Congratulations! You are now Premium 🚀',
     'live_env': 'Live environment',
     'premium_banner_msg': 'Upgrade to Premium version',
