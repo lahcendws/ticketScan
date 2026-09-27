@@ -1,6 +1,7 @@
+/// <reference types="@deno" />
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { create } from "https://deno.land/x/djwt@v2.7/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,6 +23,15 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
     view[i] = binary.charCodeAt(i)
   }
   return buffer
+}
+
+// Base64URL encode without padding
+function base64urlEncode(source: ArrayBuffer): string {
+  // Convert ArrayBuffer to Uint8Array then to base64
+  const binary = String.fromCharCode(...new Uint8Array(source))
+  let base64 = btoa(binary)
+  // Replace +/ with -_ and remove padding =
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
 serve(async (req: Request) => {
@@ -141,28 +151,42 @@ serve(async (req: Request) => {
         ["sign"] // we only need to sign
       )
 
-      // Export the key as JWK
-      const jwk = await crypto.subtle.exportKey("jwk", cryptoKey)
-      console.log(`JWK exported: kty=${jwk.kty}, crv=${jwk.crv}, has d=${!!jwk.d}`) // d is private part
-      // Note: We do not add kid to the JWK; we set it in the header.
-
       // Create header and payload for JWT
       const iat = Math.floor(Date.now() / 1000)
       const exp = iat + 20 * 60 // 20 minutes
-      const header = { alg: 'ES256', kid: appleKeyId, typ: 'JWT' }
-      const payload = { iss: appleIssuerId, iat, exp, aud: 'appstoreconnect-v1' }
-      console.log(`JWT header:`, header)
-      console.log(`JWT payload:`, payload)
+      const headerObj = { alg: 'ES256', kid: appleKeyId, typ: 'JWT' }
+      const payloadObj = { iss: appleIssuerId, iat, exp, aud: 'appstoreconnect-v1' }
+      console.log(`JWT header:`, headerObj)
+      console.log(`JWT payload:`, payloadObj)
 
-      // Sign the JWT
-      let jwt
+      // Encode header and payload as base64url
+      const headerStr = JSON.stringify(headerObj)
+      const payloadStr = JSON.stringify(payloadObj)
+      const headerBytes = new TextEncoder().encode(headerStr)
+      const payloadBytes = new TextEncoder().encode(payloadStr)
+      const headerB64 = base64urlEncode(headerBytes)
+      const payloadB64 = base64urlEncode(payloadBytes)
+
+      // Concatenate header and payload with a dot
+      const unsignedToken = `${headerB64}.${payloadB64}`
+
+      // Sign the unsignedToken
+      let signatureBytes: ArrayBuffer
       try {
-        jwt = await create({ header, payload }, jwk)
-        console.log(`JWT created successfully, length: ${jwt.length}`)
-      } catch (e) {
-        console.error(`JWT creation failed: ${e}`)
-        throw new Error(`Failed to create JWT for Apple API: ${e}`)
+        signatureBytes = await crypto.subtle.sign(
+          { name: "ECDSA", hash: { name: "SHA-256" } }, // ECDSA with SHA-256 for ES256
+          cryptoKey,
+          new TextEncoder().encode(unsignedToken)
+        )
+      } catch (signError) {
+        console.error(`JWT signing failed: ${signError}`)
+        throw new Error(`Failed to sign JWT for Apple API: ${signError}`)
       }
+      const signatureB64 = base64urlEncode(signatureBytes)
+
+      // Assemble the JWT
+      const jwt = `${unsignedToken}.${signatureB64}`
+      console.log(`JWT created successfully, length: ${jwt.length}`)
 
       // Call Apple's App Store Server API to verify the signed transaction
       const verifyUrl = `${APPLE_API_URL}${encodeURIComponent(signedTransaction)}`
