@@ -37,20 +37,30 @@ function base64urlEncode(source: ArrayBuffer): string {
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
+
+  let signedTransaction: string | null = null
+  let productId: string | null = null
+  let platform: string | null = null
   try {
-    const { signedTransaction, productId, platform } = await req.json()
+    const jsonData = await req.json()
+    signedTransaction = jsonData.signedTransaction
+    productId = jsonData.productId
+    platform = jsonData.platform
+  } catch (parseError) {
+    console.error("Failed to parse request body:", parseError)
+    throw new Error(`Invalid request body: ${parseError.message}`)
+  }
 
-    // Basic validation
-    if (!signedTransaction || typeof signedTransaction !== 'string') {
-      throw new Error('signedTransaction is missing or invalid')
-    }
-    if (!productId || typeof productId !== 'string') {
-      throw new Error('productId is missing or invalid')
-    }
-    if (!platform || !(platform === 'android' || platform === 'ios')) {
-      throw new Error('platform must be android or ios')
-    }
-
+  // Validate the extracted values
+  if (!signedTransaction || typeof signedTransaction !== 'string') {
+    throw new Error('signedTransaction is missing or invalid')
+  }
+  if (!productId || typeof productId !== 'string') {
+    throw new Error('productId is missing or invalid')
+  }
+  if (!platform || !(platform === 'android' || platform === 'ios')) {
+    throw new Error('platform must be android or ios')
+  }
     console.log(`Verifying purchase: platform=${platform}, productId=${productId}, signedTransaction length=${signedTransaction.length}`)
 
     // 1. Initialiser Supabase Admin (Bypass RLS pour mettre à jour le profil)
