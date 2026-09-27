@@ -11,8 +11,20 @@ serve(async (req) => {
 
   try {
     const { receipt, productId, platform } = await req.json()
-    const authHeader = req.headers.get('Authorization')!
     
+    // Basic validation
+    if (!receipt || typeof receipt !== 'string' || receipt.trim() === '') {
+      throw new Error('Receipt is missing or empty')
+    }
+    if (!productId || typeof productId !== 'string') {
+      throw new Error('ProductId is missing or invalid')
+    }
+    if (!platform || !(platform === 'android' || platform === 'ios')) {
+      throw new Error('Platform must be android or ios')
+    }
+
+    console.log(`Verifying purchase: platform=${platform}, productId=${productId}, receipt length=${receipt.length}`)
+
     // 1. Initialiser Supabase Admin (Bypass RLS pour mettre à jour le profil)
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -20,6 +32,7 @@ serve(async (req) => {
     )
 
     // 2. Récupérer l'ID de l'utilisateur via son jeton d'authentification
+    const authHeader = req.headers.get('Authorization')!
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
     if (userError || !user) throw new Error('Utilisateur non identifié')
@@ -41,7 +54,10 @@ serve(async (req) => {
       const verifyRes = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
       let data = await verifyRes.json()
 
-      if (verifyRes.status !== 200) throw new Error(`Erreur Google: ${data.error?.message}`)
+      if (verifyRes.status !== 200) {
+        console.error(`Google Play verification failed: status=${verifyRes.status}, body=${JSON.stringify(data)}`)
+        throw new Error(`Erreur Google: ${data.error?.message || verifyRes.statusText}`)
+      }
 
       // IMPORTANT : Accuser réception (Acknowledge)
       if (data.acknowledgementState === 0) {
@@ -94,6 +110,7 @@ serve(async (req) => {
 
       // Handle sandbox redirect
       if (data.status === 21007 || data.status === 21008) {
+        console.log(`Apple production returned ${data.status}, trying sandbox`)
         const sandboxUrl = 'https://sandbox.itunes.apple.com/verifyReceipt'
         verifyRes = await fetch(sandboxUrl, {
           method: 'POST',
@@ -102,11 +119,13 @@ serve(async (req) => {
         })
         data = await verifyRes.json()
         if (verifyRes.status !== 200 || data.status !== 0) {
+          console.error(`Apple sandbox verification failed: status=${verifyRes.status}, body=${JSON.stringify(data)}`)
           throw new Error(`Erreur Apple (sandbox): ${data.status}`)
         }
       }
 
       if (data.status !== 0) {
+        console.error(`Apple verification failed: status=${data.status}`)
         throw new Error(`Erreur Apple: ${data.status}`)
       }
 
