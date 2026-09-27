@@ -197,7 +197,17 @@ serve(async (req: Request) => {
           'Content-Type': 'application/json'
         }
       })
-      const appleData = await verifyRes.json()
+      console.log(`Apple API response status: ${verifyRes.status}`)
+
+      let appleData: any
+      try {
+        appleData = await verifyRes.json()
+      } catch (jsonError) {
+        const rawText = await verifyRes.text()
+        console.error(`Apple API returned invalid JSON: status=${verifyRes.status}, raw text: ${rawText.substring(0, 200)}`)
+        const message = jsonError instanceof Error ? jsonError.message : String(jsonError)
+        throw new Error(`Apple API returned invalid JSON: ${message}`)
+      }
 
       if (!verifyRes.ok) {
         console.error(`Apple App Store Server API failed: status=${verifyRes.status}, body=${JSON.stringify(appleData)}`)
