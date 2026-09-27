@@ -280,6 +280,7 @@ serve(async (req: Request) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
+    }
     } else {
       throw new Error(`Plateforme non supportée: ${platform}`)
     }
