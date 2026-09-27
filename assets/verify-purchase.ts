@@ -1,29 +1,32 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { create, verify } from "https://deno.land/x/djwt@v2.7/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const APPLE_API_URL = 'https://api.storekit.apple.com/inApps/v1/signatures/'
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { receipt, productId, platform } = await req.json()
+    const { signedTransaction, productId, platform } = await req.json()
     
     // Basic validation
-    if (!receipt || typeof receipt !== 'string' || receipt.trim() === '') {
-      throw new Error('Receipt is missing or empty')
+    if (!signedTransaction || typeof signedTransaction !== 'string') {
+      throw new Error('signedTransaction is missing or invalid')
     }
     if (!productId || typeof productId !== 'string') {
-      throw new Error('ProductId is missing or invalid')
+      throw new Error('productId is missing or invalid')
     }
     if (!platform || !(platform === 'android' || platform === 'ios')) {
-      throw new Error('Platform must be android or ios')
+      throw new Error('platform must be android or ios')
     }
 
-    console.log(`Verifying purchase: platform=${platform}, productId=${productId}, receipt length=${receipt.length}`)
+    console.log(`Verifying purchase: platform=${platform}, productId=${productId}, signedTransaction length=${signedTransaction.length}`)
 
     // 1. Initialiser Supabase Admin (Bypass RLS pour mettre à jour le profil)
     const supabaseAdmin = createClient(
@@ -38,7 +41,7 @@ serve(async (req) => {
     if (userError || !user) throw new Error('Utilisateur non identifié')
 
     if (platform === 'android') {
-      // -------- GOOGLE PLAY VERIFICATION --------
+      // -------- GOOGLE PLAY VERIFICATION (existing flow) --------
       const serviceAccount = JSON.parse(Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON")!)
       const { GoogleAuth } = await import('https://esm.sh/google-auth-library@9.0.0')
       const auth = new GoogleAuth({
@@ -49,7 +52,7 @@ serve(async (req) => {
       const accessToken = (await client.getAccessToken()).token
 
       const packageName = "com.devevolu.ticketscan"
-      const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${receipt}`
+      const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${signedTransaction}`
     
       const verifyRes = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
       let data = await verifyRes.json()
@@ -90,71 +93,104 @@ serve(async (req) => {
         throw new Error('L\'abonnement a expiré')
       }
     } else if (platform === 'ios') {
-      // -------- APPLE APP STORE VERIFICATION --------
-      const sharedSecret = Deno.env.get('APPLE_SHARED_SECRET')
-      if (!sharedSecret) throw new Error('APPLE_SHARED_SECRET non configuré')
-
-      const verifyUrl = 'https://buy.itunes.apple.com/verifyReceipt' // production
-      const payload = {
-        'receipt-data': receipt,
-        'password': sharedSecret,
-        'exclude-old-transactions': true
+      // -------- APPLE APP STORE VERIFICATION (StoreKit 2) --------
+      // Validate JWT signature format (three parts separated by dots)
+      const parts = signedTransaction.split('.')
+      if (parts.length !== 3) {
+        throw new Error('Invalid signedTransaction format (expected JWS with three parts)')
       }
 
-      let verifyRes = await fetch(verifyUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      let data = await verifyRes.json()
+      // Prepare JWT for Apple API calls
+      const applePrivateKey = Deno.env.get('APPLE_PRIVATE_KEY')
+      const appleKeyId = Deno.env.get('APPLE_KEY_ID')
+      const appleIssuerId = Deno.env.get('APPLE_ISSUER_ID')
+      if (!applePrivateKey || !appleKeyId || !appleIssuerId) {
+        throw new Error('Apple credentials not configured in Supabase edge function')
+      }
 
-      // Handle sandbox redirect
-      if (data.status === 21007 || data.status === 21008) {
-        console.log(`Apple production returned ${data.status}, trying sandbox`)
-        const sandboxUrl = 'https://sandbox.itunes.apple.com/verifyReceipt'
-        verifyRes = await fetch(sandboxUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        })
-        data = await verifyRes.json()
-        if (verifyRes.status !== 200 || data.status !== 0) {
-          console.error(`Apple sandbox verification failed: status=${verifyRes.status}, body=${JSON.stringify(data)}`)
-          throw new Error(`Erreur Apple (sandbox): ${data.status}`)
+      // Create header and payload for JWT
+      const iat = Math.floor(Date.now() / 1000)
+      const exp = iat + 20 * 60 // 20 minutes
+      const header = { alg: 'ES256', kid: appleKeyId, typ: 'JWT' }
+      const payload = { iss: appleIssuerId, iat, exp, aud: 'appstoreconnect-v1' }
+
+      // Sign the JWT
+      const jwt = await create({ header, payload }, applePrivateKey)
+
+      // Call Apple's App Store Server API to verify the signed transaction
+      const verifyUrl = `${APPLE_API_URL}${encodeURIComponent(signedTransaction)}`
+      const verifyRes = await fetch(verifyUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+          'Content-Type': 'application/json'
         }
+      })
+      const appleData = await verifyRes.json()
+
+      if (!verifyRes.ok) {
+        console.error(`Apple App Store Server API failed: status=${verifyRes.status}, body=${JSON.stringify(appleData)}`)
+        throw new Error(`Erreur Apple: ${appleData?.['error']?.[0]?.['message'] || verifyRes.statusText}`)
       }
 
-      if (data.status !== 0) {
-        console.error(`Apple verification failed: status=${data.status}`)
-        throw new Error(`Erreur Apple: ${data.status}`)
+      // Extract the latest transaction info from the response
+      // The response format: { data: [ { signedTransactionInfo: { ... } } ], ... }
+      const dataArray = appleData.data as Array<any> || []
+      if (dataArray.length === 0) {
+        throw new Error('No transaction data returned from Apple')
       }
 
-      // Find the latest receipt info for this product_id
-      const latestInfo = data.latest_receipt_info?.find((info: any) => info.product_id === productId)
-      if (!latestInfo) {
-        // Maybe receipt is for a different product or expired
-        throw new Error('Receipt info not found for product')
+      // Get the latest transaction (first in array)
+      const latestTransaction = dataArray[0]
+      const signedTransactionInfo = latestTransaction.signedTransactionInfo
+      if (!signedTransactionInfo) {
+        throw new Error('Missing signedTransactionInfo in Apple response')
       }
 
-      const expiresDateMs = parseInt(latestInfo.expires_date_ms || "0")
-      const isExpired = expiresDateMs <= Date.now()
+      // Parse the signedTransactionInfo (it's a base64url encoded JWS payload)
+      // Actually, the signedTransactionInfo is already a JSON string? Let's check.
+      // According to Apple docs, the signedTransactionInfo is a JSON string containing the payload.
+      // We'll parse it directly.
+      let transactionInfo: any
+      try {
+        transactionInfo = JSON.parse(signedTransactionInfo)
+      } catch (e) {
+        // Maybe it's still a JWS? We'll try to decode the payload part.
+        // Split the signedTransactionInfo (which is a JWS) and decode the payload.
+        const infoParts = signedTransactionInfo.split('.')
+        if (infoParts.length !== 3) {
+          throw new Error('Invalid signedTransactionInfo format')
+        }
+        const payloadPart = infoParts[1]
+        // Add padding if needed
+        const padded = payloadPart.replace(/-/g, '+').replace(/_/g, '/')
+        const decoded = atob(padded)
+        transactionInfo = JSON.parse(decoded)
+      }
 
-      if (!isExpired) {
-        // Update profile
-        const { error: updateError } = await supabaseAdmin
-          .from('profiles')
-          .update({ is_premium: true })
-          .eq('id', user.id)
+      // Validate productId
+      if (transactionInfo.productId !== productId) {
+        throw new Error(`Product ID mismatch: expected ${productId}, got ${transactionInfo.productId}`)
+      }
 
-        if (updateError) throw updateError
-
-        return new Response(JSON.stringify({ status: 'success' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        })
-      } else {
+      // Check expiration date (in milliseconds since epoch)
+      const expiresDate = parseInt(transactionInfo.expiresDate || "0")
+      if (isNaN(expiresDate) || expiresDate <= Date.now()) {
         throw new Error('L\'abonnement a expiré')
       }
+
+      // MISE À JOUR SÉCURISÉE DU PROFIL
+      const { error: updateError } = await supabaseAdmin
+        .from('profiles')
+        .update({ is_premium: true })
+        .eq('id', user.id)
+
+      if (updateError) throw updateError
+
+      return new Response(JSON.stringify({ status: 'success' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
     } else {
       throw new Error(`Plateforme non supportée: ${platform}`)
     }

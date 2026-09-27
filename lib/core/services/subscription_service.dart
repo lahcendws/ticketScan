@@ -150,13 +150,21 @@ class SubscriptionService extends ChangeNotifier {
       'SubscriptionService: Starting server verification for ${purchaseDetails.productID}',
     );
     try {
+      final Map<String, dynamic> body = {
+        'productId': purchaseDetails.productID,
+      };
+      if (Platform.isIOS) {
+        body['signedTransaction'] =
+            purchaseDetails.verificationData.serverVerificationData;
+        body['platform'] = 'ios';
+      } else {
+        body['receipt'] =
+            purchaseDetails.verificationData.serverVerificationData;
+        body['platform'] = 'android';
+      }
       final response = await Supabase.instance.client.functions.invoke(
         'verify-purchase',
-        body: {
-          'receipt': purchaseDetails.verificationData.serverVerificationData,
-          'platform': Platform.isAndroid ? 'android' : 'ios',
-          'productId': purchaseDetails.productID,
-        },
+        body: body,
       );
       debugPrint(
         'SubscriptionService: Server verification response status: ${response.status} for ${purchaseDetails.productID}',
