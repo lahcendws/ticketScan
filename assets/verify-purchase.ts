@@ -143,6 +143,7 @@ serve(async (req: Request) => {
 
       // Export the key as JWK
       const jwk = await crypto.subtle.exportKey("jwk", cryptoKey)
+      console.log(`JWK exported: kty=${jwk.kty}, crv=${jwk.crv}, has d=${!!jwk.d}`) // d is private part
       // Note: We do not add kid to the JWK; we set it in the header.
 
       // Create header and payload for JWT
@@ -150,11 +151,14 @@ serve(async (req: Request) => {
       const exp = iat + 20 * 60 // 20 minutes
       const header = { alg: 'ES256', kid: appleKeyId, typ: 'JWT' }
       const payload = { iss: appleIssuerId, iat, exp, aud: 'appstoreconnect-v1' }
+      console.log(`JWT header:`, header)
+      console.log(`JWT payload:`, payload)
 
       // Sign the JWT
       let jwt
       try {
         jwt = await create({ header, payload }, jwk)
+        console.log(`JWT created successfully, length: ${jwt.length}`)
       } catch (e) {
         console.error(`JWT creation failed: ${e}`)
         throw new Error(`Failed to create JWT for Apple API: ${e}`)
