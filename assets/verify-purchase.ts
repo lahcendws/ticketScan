@@ -39,7 +39,7 @@ serve(async (req) => {
       const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${receipt}`
     
       const verifyRes = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-      const data = await verifyRes.json()
+      let data = await verifyRes.json()
 
       if (verifyRes.status !== 200) throw new Error(`Erreur Google: ${data.error?.message}`)
 
@@ -79,50 +79,31 @@ serve(async (req) => {
       if (!sharedSecret) throw new Error('APPLE_SHARED_SECRET non configuré')
 
       const verifyUrl = 'https://buy.itunes.apple.com/verifyReceipt' // production
-      // Optionally fallback to sandbox if needed; we can try production first then sandbox on 21007/21008
       const payload = {
         'receipt-data': receipt,
         'password': sharedSecret,
         'exclude-old-transactions': true
       }
 
-      const verifyRes = await fetch(verifyUrl, {
+      let verifyRes = await fetch(verifyUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      const data = await verifyRes.json()
+      let data = await verifyRes.json()
 
       // Handle sandbox redirect
       if (data.status === 21007 || data.status === 21008) {
         const sandboxUrl = 'https://sandbox.itunes.apple.com/verifyReceipt'
-        const sandboxRes = await fetch(sandboxUrl, {
+        verifyRes = await fetch(sandboxUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         })
-        const sandboxData = await sandboxRes.json()
-        if (sandboxRes.status !== 200 || sandboxData.status !== 0) {
-          throw new Error(`Erreur Apple (sandbox): ${sandboxData}`)
+        data = await verifyRes.json()
+        if (verifyRes.status !== 200 || data.status !== 0) {
+          throw new Error(`Erreur Apple (sandbox): ${data.status}`)
         }
-        // Use sandbox data
-        // Continue with sandboxData as data
-        // We'll replace data with sandboxData for further processing
-        // but keep status check
-        // We'll set data = sandboxData and continue
-        // Note: we need to adjust status check below
-        // We'll just replace data
-        // We'll also need to check that sandboxRes.ok
-        // We'll do a simple reassignment
-        // For simplicity, we'll just use sandboxData as data and continue
-        // but we need to ensure we check status 0
-        // We'll set data = sandboxData
-        // We'll also need to verify that the response is valid
-        // Let's just assign and continue
-        // We'll also need to check that the request succeeded
-        // We'll do a quick check:
-        if (sandboxRes.status !== 200) throw new Error(`Erreur HTTP Apple sandbox: ${sandboxRes.status}`)
-        data = sandboxData
       }
 
       if (data.status !== 0) {
