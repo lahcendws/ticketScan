@@ -9,12 +9,27 @@ const corsHeaders = {
 
 const APPLE_API_URL = 'https://api.storekit.apple.com/inApps/v1/signatures/'
 
-serve(async (req) => {
+// Helper function to convert PEM string to ArrayBuffer
+function pemToArrayBuffer(pem: string): ArrayBuffer {
+  const lines = pem.split('\n')
+  // Remove header and footer lines
+  const encoded = lines.slice(1, -1).join('')
+  // Decode base64
+  const binary = atob(encoded)
+  const buffer = new ArrayBuffer(binary.length)
+  const view = new Uint8Array(buffer)
+  for (let i = 0; i < binary.length; i++) {
+    view[i] = binary.charCodeAt(i)
+  }
+  return buffer
+}
+
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
     const { signedTransaction, productId, platform } = await req.json()
-    
+
     // Basic validation
     if (!signedTransaction || typeof signedTransaction !== 'string') {
       throw new Error('signedTransaction is missing or invalid')
@@ -43,6 +58,7 @@ serve(async (req) => {
     if (platform === 'android') {
       // -------- GOOGLE PLAY VERIFICATION (existing flow) --------
       const serviceAccount = JSON.parse(Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON")!)
+      // @ts-ignore
       const { GoogleAuth } = await import('https://esm.sh/google-auth-library@9.0.0')
       const auth = new GoogleAuth({
         credentials: serviceAccount,
@@ -53,7 +69,7 @@ serve(async (req) => {
 
       const packageName = "com.devevolu.ticketscan"
       const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${signedTransaction}`
-    
+
       const verifyRes = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
       let data = await verifyRes.json()
 
@@ -66,9 +82,9 @@ serve(async (req) => {
       if (data.acknowledgementState === 0) {
         await fetch(`${url}:acknowledge`, {
           method: 'POST',
-          headers: { 
+          headers: {
             Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json' 
+            'Content-Type': 'application/json'
           }
         })
         console.log("Achat acquitté auprès de Google.");
@@ -109,12 +125,25 @@ serve(async (req) => {
         throw new Error('Apple credentials not configured in Supabase edge function')
       }
 
-      // Ensure newlines are correct: replace literal \n with actual newline if needed
+      // Convert PEM to CryptoKey
       let applePrivateKey = applePrivateKeyEnv
+      // Handle literal \n in the string (if supplied as JSON string)
       if (applePrivateKey.includes('\\n') && !applePrivateKey.includes('\n')) {
         // Replace \n (two chars) with actual newline
         applePrivateKey = applePrivateKey.replace(/\\n/g, '\n')
       }
+      // Import the private key
+      const cryptoKey = await crypto.subtle.importKey(
+        "pkcs8",
+        pemToArrayBuffer(applePrivateKey),
+        { name: "ECDSA", namedCurve: "P-256" }, // ES256 uses P-256
+        true, // extractable
+        ["sign"] // we only need to sign
+      )
+
+      // Export the key as JWK
+      const jwk = await crypto.subtle.exportKey("jwk", cryptoKey)
+      // Note: We do not add kid to the JWK; we set it in the header.
 
       // Create header and payload for JWT
       const iat = Math.floor(Date.now() / 1000)
@@ -125,7 +154,7 @@ serve(async (req) => {
       // Sign the JWT
       let jwt
       try {
-        jwt = await create({ header, payload }, applePrivateKey)
+        jwt = await create({ header, payload }, jwk)
       } catch (e) {
         console.error(`JWT creation failed: ${e}`)
         throw new Error(`Failed to create JWT for Apple API: ${e}`)
@@ -162,7 +191,6 @@ serve(async (req) => {
       }
 
       // Parse the signedTransactionInfo (it's a base64url encoded JWS payload)
-      // Actually, the signedTransactionInfo is already a JSON string? Let's check.
       // According to Apple docs, the signedTransactionInfo is a JSON string containing the payload.
       // We'll parse it directly.
       let transactionInfo: any
@@ -209,11 +237,19 @@ serve(async (req) => {
       throw new Error(`Plateforme non supportée: ${platform}`)
     }
 
-  } catch (error) {
-    console.error("Erreur critique validation:", error.message)
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Erreur critique validation:", error.message)
+      return new Response(JSON.stringify({ error: error.message }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      })
+    } else {
+      console.error("Erreur critique validation:", String(error))
+      return new Response(JSON.stringify({ error: String(error) }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      })
+    }
   }
 })
