@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { create, verify } from "https://deno.land/x/djwt@v2.7/mod.ts"
+import { create } from "https://deno.land/x/djwt@v2.7/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -101,11 +101,19 @@ serve(async (req) => {
       }
 
       // Prepare JWT for Apple API calls
-      const applePrivateKey = Deno.env.get('APPLE_PRIVATE_KEY')
+      const applePrivateKeyEnv = Deno.env.get('APPLE_PRIVATE_KEY')
       const appleKeyId = Deno.env.get('APPLE_KEY_ID')
       const appleIssuerId = Deno.env.get('APPLE_ISSUER_ID')
-      if (!applePrivateKey || !appleKeyId || !appleIssuerId) {
+      console.log(`Apple env check: privateKey present=${!!applePrivateKeyEnv}, keyId present=${!!appleKeyId}, issuerId present=${!!appleIssuerId}`)
+      if (!applePrivateKeyEnv || !appleKeyId || !appleIssuerId) {
         throw new Error('Apple credentials not configured in Supabase edge function')
+      }
+
+      // Ensure newlines are correct: replace literal \n with actual newline if needed
+      let applePrivateKey = applePrivateKeyEnv
+      if (applePrivateKey.includes('\\n') && !applePrivateKey.includes('\n')) {
+        // Replace \n (two chars) with actual newline
+        applePrivateKey = applePrivateKey.replace(/\\n/g, '\n')
       }
 
       // Create header and payload for JWT
@@ -115,7 +123,13 @@ serve(async (req) => {
       const payload = { iss: appleIssuerId, iat, exp, aud: 'appstoreconnect-v1' }
 
       // Sign the JWT
-      const jwt = await create({ header, payload }, applePrivateKey)
+      let jwt
+      try {
+        jwt = await create({ header, payload }, applePrivateKey)
+      } catch (e) {
+        console.error(`JWT creation failed: ${e}`)
+        throw new Error(`Failed to create JWT for Apple API: ${e}`)
+      }
 
       // Call Apple's App Store Server API to verify the signed transaction
       const verifyUrl = `${APPLE_API_URL}${encodeURIComponent(signedTransaction)}`
