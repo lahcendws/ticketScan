@@ -61,7 +61,7 @@ serve(async (req: Request) => {
   if (!platform || !(platform === 'android' || platform === 'ios')) {
     throw new Error('platform must be android or ios')
   }
-    console.log(`Verifying purchase: platform=${platform}, productId=${productId}, signedTransaction length=${signedTransaction.length}`)
+  console.log(`Verifying purchase: platform=${platform}, productId=${productId}, signedTransaction length=${signedTransaction.length}`)
 
     // 1. Initialiser Supabase Admin (Bypass RLS pour mettre à jour le profil)
     const supabaseAdmin = createClient(
