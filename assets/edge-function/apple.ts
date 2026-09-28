@@ -65,46 +65,69 @@ let jwtCache: { token: string; exp: number } | null = null
 
 async function appleJwt(): Promise<string> {
   const nowSec = Math.floor(Date.now() / 1000)
-  if (jwtCache && jwtCache.exp - 60 > nowSec) return jwtCache.token
+  if (jwtCache && jwtCache.exp - 60 > nowSec) {
+    console.log('[AppleService] Using cached JWT')
+    return jwtCache.token
+  }
 
+  console.log('[AppleService] Generating new JWT')
   const privateKeyEnv = Deno.env.get("APPLE_PRIVATE_KEY")
   const keyId = Deno.env.get("APPLE_KEY_ID")
   const issuerId = Deno.env.get("APPLE_ISSUER_ID")
+  
+  console.log(`[AppleService] Checking Apple credentials: privateKey=${!!privateKeyEnv}, keyId=${!!keyId}, issuerId=${!!issuerId}`)
+  
   if (!privateKeyEnv || !keyId || !issuerId) {
-    throw new HttpError(500, "APPLE_PRIVATE_KEY, APPLE_KEY_ID ou APPLE_ISSUER_ID manquant")
+    const missing = []
+    if (!privateKeyEnv) missing.append('APPLE_PRIVATE_KEY')
+    if (!keyId) missing.append('APPLE_KEY_ID')
+    if (!issuerId) missing.append('APPLE_ISSUER_ID')
+    throw new HttpError(500, `APPLE_PRIVATE_KEY, APPLE_KEY_ID ou APPLE_ISSUER_ID manquant: ${missing.join(', ')}`)
   }
 
   let pem = privateKeyEnv
-  if (pem.includes("\\n") && !pem.includes("\n")) pem = pem.replace(/\\n/g, "\n")
+  if (pem.includes("\\n") && !pem.includes("\n")) {
+    console.log('[AppleService] Converting escaped newlines to actual newlines')
+    pem = pem.replace(/\\n/g, "\n")
+  }
 
-  const key = await crypto.subtle.importKey(
-    "pkcs8",
-    pemToArrayBuffer(pem),
-    { name: "ECDSA", namedCurve: "P-256" },
-    false,
-    ["sign"],
-  )
+  try {
+    console.log('[AppleService] Importing private key')
+    const key = await crypto.subtle.importKey(
+      "pkcs8",
+      pemToArrayBuffer(pem),
+      { name: "ECDSA", namedCurve: "P-256" },
+      false,
+      ["sign"],
+    )
 
-  const exp = nowSec + 900
-  const enc = new TextEncoder()
-  const header = b64urlEncode(enc.encode(JSON.stringify({ alg: "ES256", kid: keyId, typ: "JWT" })))
-  const payload = b64urlEncode(enc.encode(JSON.stringify({
-    iss: issuerId,
-    iat: nowSec,
-    exp,
-    aud: "appstoreconnect-v1",
-    bid: APPLE_BUNDLE_ID,
-  })))
-  const unsigned = `${header}.${payload}`
-  const sig = await crypto.subtle.sign(
-    { name: "ECDSA", hash: "SHA-256" },
-    key,
-    enc.encode(unsigned),
-  )
+    const exp = nowSec + 900
+    const enc = new TextEncoder()
+    const header = b64urlEncode(enc.encode(JSON.stringify({ alg: "ES256", kid: keyId, typ: "JWT" })))
+    const payload = b64urlEncode(enc.encode(JSON.stringify({
+      iss: issuerId,
+      iat: nowSec,
+      exp,
+      aud: "appstoreconnect-v1",
+      bid: APPLE_BUNDLE_ID,
+    })))
+    const unsigned = `${header}.${payload}`
+    console.log(`[AppleService] JWT unsigned token created (length: ${unsigned.length})`)
+    
+    const sig = await crypto.subtle.sign(
+      { name: "ECDSA", hash: "SHA-256" },
+      key,
+      enc.encode(unsigned),
+    )
 
-  const token = `${unsigned}.${b64urlEncode(sig)}`
-  jwtCache = { token, exp }
-  return token
+    const token = `${unsigned}.${b64urlEncode(sig)}`
+    jwtCache = { token, exp }
+    console.log('[AppleService] JWT generated and cached successfully')
+    return token
+  } catch (error) {
+    console.error('[AppleService] Failed to generate JWT:', error)
+    throw new HttpError(500, `Failed to generate Apple JWT: ${error.message}`)
+  }
 }
 
 // ------------------------------------------------------------
@@ -114,34 +137,49 @@ async function appleJwt(): Promise<string> {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 async function appleGet(path: string, envHint?: string): Promise<any> {
+  console.log(`[AppleService] Making API call to: ${path} (envHint: ${envHint ?? 'none'})`)
   const jwt = await appleJwt()
   const order = envHint === "Sandbox" ? ["Sandbox", "Production"] : ["Production", "Sandbox"]
 
   for (const env of order) {
+    console.log(`[AppleService] Trying environment: ${env}`)
     for (let attempt = 0; attempt < 3; attempt++) {
+      console.log(`[AppleService] Attempt ${attempt + 1}/3 for ${env}`)
       const res = await fetch(HOSTS[env] + path, {
         headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" },
       })
 
-      if (res.ok) return await res.json()
+      if (res.ok) {
+        console.log(`[AppleService] API call successful: ${res.status}`)
+        return await res.json()
+      }
 
       // Transaction inconnue dans cet environnement → on tente l'autre
-      if (res.status === 404) break
+      if (res.status === 404) {
+        console.log(`[AppleService] Transaction not found in ${env}, trying other environment`)
+        break
+      }
 
       const text = (await res.text()).slice(0, 300)
 
       // Erreurs temporaires → retry avec backoff, puis 503 (Apple/Supabase réessaieront)
       if (res.status === 429 || res.status >= 500) {
-        if (attempt === 2) throw new HttpError(503, `Apple HTTP ${res.status}: ${text}`)
+        console.log(`[AppleService] Temporary error ${res.status}, retrying...`)
+        if (attempt === 2) {
+          console.error(`[AppleService] Max retries exceeded for ${env}`)
+          throw new HttpError(503, `Apple HTTP ${res.status}: ${text}`)
+        }
         await sleep(500 * 2 ** attempt)
         continue
       }
 
       // 401 = notre JWT/clé est mauvaise : erreur de configuration côté serveur
+      console.error(`[AppleService] JWT authentication failed (401) for ${env}: ${text}`)
       throw new HttpError(res.status === 401 ? 500 : 502, `Apple HTTP ${res.status}: ${text}`)
     }
   }
 
+  console.error('[AppleService] Transaction not found in any environment')
   throw new HttpError(404, "Transaction Apple introuvable (production et sandbox)")
 }
 
@@ -167,6 +205,7 @@ export async function fetchAppleSubscription(
   transactionId: string,
   envHint?: string,
 ): Promise<{ state: SubscriptionState; appAccountToken?: string }> {
+  console.log(`[AppleService] Fetching subscription status for transactionId: ${transactionId}`)
   const res = await appleGet(
     `/inApps/v1/subscriptions/${encodeURIComponent(transactionId)}`,
     envHint,
@@ -197,7 +236,7 @@ export async function fetchAppleSubscription(
     expiresAtMs = Number(renewal.gracePeriodExpiresDate)
   }
 
-  return {
+  const result = {
     appAccountToken: tx.appAccountToken,
     state: {
       platform: "ios",
@@ -209,4 +248,7 @@ export async function fetchAppleSubscription(
       environment: tx.environment ?? res.environment ?? "Production",
     },
   }
+  
+  console.log(`[AppleService] Subscription status: ${JSON.stringify(result.state)}`)
+  return result
 }

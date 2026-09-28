@@ -1,6 +1,7 @@
 /// <reference types="@deno" />
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 import { APPLE_BUNDLE_ID, ANDROID_PACKAGE, ALLOWED_PRODUCTS, SubscriptionState, isEntitled, json, adminClient, HttpError } from "./common.ts"
 import { fetchAppleSubscription, decodeJws } from "./apple.ts"
@@ -15,6 +16,7 @@ serve(async (req: Request) => {
 
   try {
     const { signedTransaction, productId, platform } = await req.json()
+    console.log(`[VerifyPurchase] Request received: platform=${platform}, productId=${productId}, signedTransaction length=${signedTransaction?.length ?? 0}`)
 
     if (!signedTransaction || typeof signedTransaction !== 'string') {
       throw new HttpError(400, 'signedTransaction is missing or invalid')
@@ -37,20 +39,27 @@ serve(async (req: Request) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
     if (userError || !user) throw new HttpError(401, 'User not identified')
     const userId = user.id
+    console.log(`[VerifyPurchase] User identified: ${userId}`)
 
     let state: SubscriptionState
 
     if (platform === 'ios') {
+      console.log('[VerifyPurchase] Processing iOS purchase')
       // Decode JWS to get originalTransactionId
       const jwsPayload = decodeJws(signedTransaction)
       const originalTransactionId = jwsPayload.originalTransactionId
       if (!originalTransactionId) throw new HttpError(400, 'originalTransactionId missing in JWS')
+      console.log(`[VerifyPurchase] Decoded JWS: originalTransactionId=${originalTransactionId}`)
+      
       // Fetch subscription status from Apple
+      console.log('[VerifyPurchase] Fetching Apple subscription status')
       const { state: appleState } = await fetchAppleSubscription(originalTransactionId)
       state = appleState
       // Override productId with the one from request (should match)
       state.productId = productId
+      console.log(`[VerifyPurchase] Apple subscription state: ${JSON.stringify({ platform: state.platform, productId: state.productId, status: state.status, expiresAt: state.expiresAt.toISOString(), autoRenew: state.autoRenew })}`)
     } else if (platform === 'android') {
+      console.log('[VerifyPurchase] Processing Android purchase')
       // Verify with Google Play Developer API
       const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON')
       if (!serviceAccountJson) throw new HttpError(500, 'GOOGLE_SERVICE_ACCOUNT_JSON not configured')
@@ -75,7 +84,7 @@ serve(async (req: Request) => {
       const data = await verifyRes.json()
 
       if (!verifyRes.ok) {
-        console.error('Google verification failed:', data)
+        console.error('[VerifyPurchase] Google verification failed:', data)
         throw new HttpError(verifyRes.status, `Google error: ${data.error?.message ?? verifyRes.statusText}`)
       }
 
@@ -89,7 +98,7 @@ serve(async (req: Request) => {
           },
         })
         if (!acknowledgeRes.ok) {
-          console.error('Google acknowledge failed:', await acknowledgeRes.text())
+          console.error('[VerifyPurchase] Google acknowledge failed:', await acknowledgeRes.text())
           // Not critical, but warn
         }
       }
@@ -123,11 +132,13 @@ serve(async (req: Request) => {
         autoRenew: autoRenewing,
         environment: data.regionCode ?? 'production', // approximate
       }
+      console.log(`[VerifyPurchase] Google subscription state: ${JSON.stringify({ platform: state.platform, productId: state.productId, status: state.status, expiresAt: state.expiresAt.toISOString(), autoRenew: state.autoRenew })}`)
     } else {
       throw new HttpError(400, `Unsupported platform: ${platform}`)
     }
 
     // Upsert subscription
+    console.log('[VerifyPurchase] Upserting subscription to database')
     const { error: upsertError } = await supabaseAdmin
       .from('subscriptions')
       .upsert({
@@ -142,11 +153,17 @@ serve(async (req: Request) => {
         last_verified_at: new Date().toISOString(),
       }, { onConflict: 'platform,original_transaction_id' })
 
-    if (upsertError) throw upsertError
+    if (upsertError) {
+      console.error('[VerifyPurchase] Failed to upsert subscription:', upsertError)
+      throw upsertError
+    }
+    console.log('[VerifyPurchase] Subscription upserted successfully')
 
     // Update profile with subscription details
+    console.log('[VerifyPurchase] Updating user profile')
     const subscriptionType = state.productId.endsWith('_yearly') ? 'yearly' : 'monthly'
     const daysRemaining = Math.max(0, Math.floor((state.expiresAt.getTime() - Date.now()) / 86400000))
+    console.log(`[VerifyPurchase] Profile update data: is_premium=${isEntitled(state)}, subscription_type=${subscriptionType}, days_remaining=${daysRemaining}, expires_at=${state.expiresAt.toISOString()}`)
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .update({
@@ -157,14 +174,19 @@ serve(async (req: Request) => {
       })
       .eq('id', userId)
 
-    if (profileError) throw profileError
+    if (profileError) {
+      console.error('[VerifyPurchase] Failed to update profile:', profileError)
+      throw profileError
+    }
+    console.log('[VerifyPurchase] Profile updated successfully')
 
     return json({ status: 'success', platform: state.platform, productId: state.productId, expiresAt: state.expiresAt, autoRenew: state.autoRenew })
   } catch (err) {
     if (err instanceof HttpError) {
+      console.error(`[VerifyPurchase] HttpError: ${err.status} - ${err.message}`)
       return json({ error: err.message }, err.status)
     }
-    console.error('Unexpected error:', err)
+    console.error('[VerifyPurchase] Unexpected error:', err)
     return json({ error: 'Internal server error' }, 500)
   }
 })
