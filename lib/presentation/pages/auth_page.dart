@@ -175,18 +175,30 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
           );
         }
       } else {
-        await SupabaseService.signUpWithEmail(
+        final response = await SupabaseService.signUpWithEmail(
           _emailController.text.trim(),
           _passwordController.text,
         );
         if (mounted) {
-          _showInfoDialog(
-            title: loc?.get('success_account_created_title') ?? 'Compte créé !',
-            message:
-                loc?.get('success_account_created_msg') ??
-                'Un email de confirmation vous a été envoyé.',
-            onConfirm: () => setState(() => _isLogin = true),
-          );
+          if (response.session != null) {
+            // Email confirmation is disabled in Supabase settings, user is auto-logged in
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          } else {
+            // Email confirmation is enabled, show confirmation message with resend option
+            _showInfoDialog(
+              title:
+                  loc?.get('success_account_created_title') ?? 'Compte créé !',
+              message:
+                  loc?.get('success_account_created_msg') ??
+                  'Un email de confirmation vous a été envoyé.',
+              onConfirm: () => setState(() => _isLogin = true),
+              onResend: () => _resendConfirmationEmail(
+                loc?.get('email') ?? _emailController.text.trim(),
+              ),
+            );
+          }
         }
       }
     } catch (e) {
@@ -208,6 +220,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
     required String title,
     required String message,
     VoidCallback? onConfirm,
+    VoidCallback? onResend,
   }) {
     showDialog(
       context: context,
@@ -234,23 +247,42 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                onConfirm?.call();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (onResend != null) ...[
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    onResend?.call();
+                  },
+                  child: Text(
+                    AppLocalizations.of(context)?.get('resend_email') ??
+                        'Renvoyer l\'email',
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColor,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                const SizedBox(height: 8),
+              ],
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  onConfirm?.call();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Text(AppLocalizations.of(context)?.get('ok') ?? 'OK'),
               ),
-              child: Text(AppLocalizations.of(context)?.get('ok') ?? 'OK'),
-            ),
+            ],
           ),
         ],
       ),
@@ -361,6 +393,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 48),
                       CustomTextField(
+                        key: const Key('email_field'),
                         controller: _emailController,
                         label: loc?.get('email') ?? 'Email',
                         keyboardType: TextInputType.emailAddress,
@@ -368,6 +401,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 16),
                       CustomTextField(
+                        key: const Key('password_field'),
                         controller: _passwordController,
                         label: loc?.get('password') ?? 'Mot de passe',
                         obscureText: _obscurePassword,
@@ -456,5 +490,35 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  Future<void> _resendConfirmationEmail(String email) async {
+    if (email.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Adresse email requise pour renvoyer l\'email de confirmation',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      await SupabaseService.resendConfirmationEmail(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email de confirmation renvoyé')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Échec de l\'envoi de l\'email: $e')),
+        );
+      }
+    }
   }
 }

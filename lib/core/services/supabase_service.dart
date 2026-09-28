@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
+import 'package:gotrue/gotrue.dart';
 
 class SupabaseService {
   static final SupabaseClient _client = Supabase.instance.client;
@@ -37,6 +38,10 @@ class SupabaseService {
 
   static Future<void> resetPassword(String email, {String? redirectTo}) async {
     await _auth.resetPasswordForEmail(email, redirectTo: redirectTo);
+  }
+
+  static Future<void> resendConfirmationEmail(String email) async {
+    await _auth.resend(email: email, type: OtpType.email);
   }
 
   static Future<List<Map<String, dynamic>>> getTickets({
