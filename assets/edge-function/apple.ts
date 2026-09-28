@@ -174,8 +174,15 @@ async function appleGet(path: string, envHint?: string): Promise<any> {
       }
 
       // 401 = notre JWT/clé est mauvaise : erreur de configuration côté serveur
+      // Cependant, dans le contexte d'essayer les deux environnements, on continue à essayer
+      // car le 401 pourrait être dû à un mauvais environnement plutôt qu'à des mauvais credentials
       console.error(`[AppleService] JWT authentication failed (401) for ${env}: ${text}`)
-      throw new HttpError(res.status === 401 ? 500 : 502, `Apple HTTP ${res.status}: ${text}`)
+      if (attempt === 2) {
+        console.error(`[AppleService] Max retries exceeded for ${env}`)
+        throw new HttpError(res.status === 401 ? 500 : 502, `Apple HTTP ${res.status}: ${text}`)
+      }
+      await sleep(500 * 2 ** attempt)
+      continue
     }
   }
 
