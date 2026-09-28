@@ -188,12 +188,15 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
           } else {
             // Email confirmation is enabled, show confirmation message with resend option
             _showInfoDialog(
-              title: loc?.get('success_account_created_title') ?? 'Compte créé !',
+              title:
+                  loc?.get('success_account_created_title') ?? 'Compte créé !',
               message:
                   loc?.get('success_account_created_msg') ??
                   'Un email de confirmation vous a été envoyé.',
               onConfirm: () => setState(() => _isLogin = true),
-              onResend: () => _resendConfirmationEmail(loc?.get('email') ?? _emailController.text.trim()),
+              onResend: () => _resendConfirmationEmail(
+                loc?.get('email') ?? _emailController.text.trim(),
+              ),
             );
           }
         }
@@ -254,7 +257,8 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                     onResend?.call();
                   },
                   child: Text(
-                    AppLocalizations.of(context)?.get('resend_email') ?? 'Renvoyer l\'email',
+                    AppLocalizations.of(context)?.get('resend_email') ??
+                        'Renvoyer l\'email',
                     style: TextStyle(
                       color: Theme.of(context).primaryColor,
                       fontSize: 12,
@@ -388,14 +392,16 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                         ),
                       ),
                       const SizedBox(height: 48),
-                      CustomTextField(key: const Key('email_field'),
+                      CustomTextField(
+                        key: const Key('email_field'),
                         controller: _emailController,
                         label: loc?.get('email') ?? 'Email',
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: Icons.email_outlined,
                       ),
                       const SizedBox(height: 16),
-                      CustomTextField(key: const Key('password_field'), 
+                      CustomTextField(
+                        key: const Key('password_field'),
                         controller: _passwordController,
                         label: loc?.get('password') ?? 'Mot de passe',
                         obscureText: _obscurePassword,
@@ -491,7 +497,9 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Adresse email requise pour renvoyer l\'email de confirmation'),
+            content: Text(
+              'Adresse email requise pour renvoyer l\'email de confirmation',
+            ),
           ),
         );
       }
@@ -502,17 +510,13 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
       await SupabaseService.resendConfirmationEmail(email);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Email de confirmation renvoyé'),
-          ),
+          const SnackBar(content: Text('Email de confirmation renvoyé')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Échec de l\'envoi de l\'email: $e'),
-          ),
+          SnackBar(content: Text('Échec de l\'envoi de l\'email: $e')),
         );
       }
     }
