@@ -141,8 +141,13 @@ async function appleGet(path: string, envHint?: string): Promise<any> {
   const jwt = await appleJwt()
   const order = envHint === "Sandbox" ? ["Sandbox", "Production"] : ["Production", "Sandbox"]
 
+  let lastError: { status: number; message: string } | null = null
+
   for (const env of order) {
     console.log(`[AppleService] Trying environment: ${env}`)
+    let envSuccess = false
+    let envError: { status: number; message: string } | null = null
+
     for (let attempt = 0; attempt < 3; attempt++) {
       console.log(`[AppleService] Attempt ${attempt + 1}/3 for ${env}`)
       const res = await fetch(HOSTS[env] + path, {
@@ -154,40 +159,61 @@ async function appleGet(path: string, envHint?: string): Promise<any> {
         return await res.json()
       }
 
-      // Transaction inconnue dans cet environnement → on tente l'autre
+      const text = (await res.text()).slice(0, 300)
+
+      // Transaction inconnue dans cet environnement → on note l'erreur et on essaie l'autre environnement
       if (res.status === 404) {
-        console.log(`[AppleService] Transaction not found in ${env}, trying other environment`)
+        console.log(`[AppleService] Transaction not found in ${env}`)
+        envError = { status: 404, message: `Transaction not found in ${env}` }
         break
       }
 
-      const text = (await res.text()).slice(0, 300)
-
-      // Erreurs temporaires → retry avec backoff, puis 503 (Apple/Supabase réessaieront)
+      // Erreurs temporaires → retry avec backoff
       if (res.status === 429 || res.status >= 500) {
         console.log(`[AppleService] Temporary error ${res.status}, retrying...`)
         if (attempt === 2) {
           console.error(`[AppleService] Max retries exceeded for ${env}`)
-          throw new HttpError(503, `Apple HTTP ${res.status}: ${text}`)
+          envError = { status: res.status, message: `Apple HTTP ${res.status}: ${text}` }
+        } else {
+          await sleep(500 * 2 ** attempt)
+          continue
         }
-        await sleep(500 * 2 ** attempt)
-        continue
       }
 
       // 401 = notre JWT/clé est mauvaise : erreur de configuration côté serveur
-      // Cependant, dans le contexte d'essayer les deux environnements, on continue à essayer
+      // Cependant, dans le contexte d'essayer les deux environnements, on note l'erreur
       // car le 401 pourrait être dû à un mauvais environnement plutôt qu'à des mauvais credentials
       console.error(`[AppleService] JWT authentication failed (401) for ${env}: ${text}`)
       if (attempt === 2) {
         console.error(`[AppleService] Max retries exceeded for ${env}`)
-        throw new HttpError(res.status === 401 ? 500 : 502, `Apple HTTP ${res.status}: ${text}`)
+        envError = { status: 401, message: `Apple HTTP 401: ${text}` }
+      } else {
+        await sleep(500 * 2 ** attempt)
+        continue
       }
-      await sleep(500 * 2 ** attempt)
-      continue
     }
+
+    // If we succeeded in this environment, return immediately
+    if (!envError) {
+      console.log(`[AppleService] Success in environment: ${env}`)
+      // We would have returned already if we got here via res.ok
+      // This is a fallback in case we need it
+      return {} // This shouldn't happen in practice
+    }
+
+    // Remember the last error from this environment to potentially return later
+    lastError = envError
+    
+    // Continue to try the next environment
+    console.log(`[AppleService] Finished with ${env}, moving to next environment`)
   }
 
-  console.error('[AppleService] Transaction not found in any environment')
-  throw new HttpError(404, "Transaction Apple introuvable (production et sandbox)")
+  // If we get here, we've tried all environments and all had errors
+  console.error('[AppleService] All environments failed')
+  if (lastError) {
+    throw new HttpError(lastError.status, lastError.message)
+  }
+  throw new HttpError(500, "Unknown error contacting Apple servers")
 }
 
 // ------------------------------------------------------------
