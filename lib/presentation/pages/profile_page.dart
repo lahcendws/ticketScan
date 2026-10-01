@@ -75,16 +75,23 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _deleteAccount() async {
+    // Get all required data while context is definitely valid
     final loc = AppLocalizations.of(context);
     final sub = Provider.of<SubscriptionService>(context, listen: false);
+    final isPremium = sub.isPremium;
+    final isMounted = mounted;
+
+    debugPrint(
+      '_deleteAccount: Starting delete process, isPremium=$isPremium, mounted=$isMounted',
+    );
 
     // Determine which warning to show based on subscription status
-    final String warningKey = sub.isPremium
+    final String warningKey = isPremium
         ? 'delete_account_premium_warning'
         : 'delete_account_warning';
 
     Widget dialogContent;
-    if (sub.isPremium) {
+    if (isPremium) {
       final String warningTemplate =
           loc?.get(warningKey) ?? 'Action irréversible.';
       final String url = Platform.isIOS
@@ -109,8 +116,13 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             recognizer: TapGestureRecognizer()
               ..onTap = () async {
-                if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(Uri.parse(url));
+                // Don't use context here - just launch the URL
+                try {
+                  if (await canLaunchUrl(Uri.parse(url))) {
+                    await launchUrl(Uri.parse(url));
+                  }
+                } catch (e) {
+                  debugPrint('Error launching URL: $e');
                 }
               },
           ),
@@ -123,25 +135,32 @@ class _ProfilePageState extends State<ProfilePage> {
       dialogContent = RichText(
         text: TextSpan(
           children: spans,
-          style: DefaultTextStyle.of(context).style,
+          style: const TextStyle(
+            color: Colors.black87, // Explicit style to avoid context issues
+          ),
         ),
       );
     } else {
-      dialogContent = Text(loc?.get(warningKey) ?? 'Action irréversible.');
+      dialogContent = Text(
+        loc?.get(warningKey) ?? 'Action irréversible.',
+        style: const TextStyle(
+          color: Colors.black87, // Explicit style to avoid context issues
+        ),
+      );
     }
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext dialogContext) => AlertDialog(
         title: Text(loc?.get('delete_account') ?? 'Supprimer'),
         content: dialogContent,
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: Text(loc?.get('cancel') ?? 'Annuler'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: Text(
               loc?.get('delete') ?? 'Supprimer',
               style: const TextStyle(color: Colors.red),
@@ -151,21 +170,40 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
 
+    debugPrint('_deleteAccount: Dialog result: $confirmed, mounted: $mounted');
+
     if (confirmed == true && mounted) {
+      debugPrint('_deleteAccount: User confirmed deletion, proceeding...');
       setState(() => _isDeleting = true);
       try {
+        debugPrint('_deleteAccount: Invoking delete-user function');
         await Supabase.instance.client.functions.invoke('delete-user');
+        debugPrint('_deleteAccount: delete-user function invoked successfully');
         await SupabaseService.signOut();
+        debugPrint('_deleteAccount: Signed out successfully');
         if (mounted) {
+          debugPrint('_deleteAccount: Navigating to auth page');
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const AuthPage()),
             (r) => false,
           );
+        } else {
+          debugPrint(
+            '_deleteAccount: Not mounted after signout, skipping navigation',
+          );
         }
       } catch (e) {
+        debugPrint('_deleteAccount: Error during deletion: $e');
         if (mounted) {
           setState(() => _isDeleting = false);
         }
+        // Re-throw to see if it's being swallowed somewhere
+        rethrow;
+      }
+    } else {
+      debugPrint('_deleteAccount: Deletion not confirmed or not mounted');
+      if (mounted) {
+        setState(() => _isDeleting = false);
       }
     }
   }
