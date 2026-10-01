@@ -29,6 +29,18 @@ class _PremiumPageState extends State<PremiumPage> {
   @override
   void initState() {
     super.initState();
+    // Rediriger immédiatement si l'utilisateur est déjà Premium
+    final subService = Provider.of<SubscriptionService>(context, listen: false);
+    if (subService.isPremium && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Abonnement activé ! Merci de votre confiance 🚀'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      return;
+    }
     _pageController = PageController();
     // Diaporama auto : avance toutes les 4 secondes
     _slideshowTimer = Timer.periodic(const Duration(seconds: 4), (_) {
@@ -41,7 +53,6 @@ class _PremiumPageState extends State<PremiumPage> {
       );
     });
     // Écouter les changements de statut pour rediriger en cas de restauration réussie
-    final subService = Provider.of<SubscriptionService>(context, listen: false);
     subService.addListener(_onSubscriptionChanged);
   }
 
@@ -73,6 +84,7 @@ class _PremiumPageState extends State<PremiumPage> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
+    // TEST COMMENT
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -195,7 +207,7 @@ class _PremiumPageState extends State<PremiumPage> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 20,
                   offset: const Offset(0, -5),
                 ),

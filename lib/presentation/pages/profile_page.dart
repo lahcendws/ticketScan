@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/theme_service.dart';
 import '../../core/services/language_service.dart';
@@ -33,11 +35,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _signOut() async {
     await SupabaseService.signOut();
-    if (mounted)
+    if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const AuthPage()),
         (r) => false,
       );
+    }
   }
 
   Future<void> _contactSupport() async {
@@ -59,7 +62,7 @@ class _ProfilePageState extends State<ProfilePage> {
         throw 'Impossible d\'ouvrir l\'application email';
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -67,18 +70,71 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         );
+      }
     }
   }
 
   Future<void> _deleteAccount() async {
     final loc = AppLocalizations.of(context);
+    final sub = Provider.of<SubscriptionService>(context, listen: false);
+
+    // Determine which warning to show based on subscription status
+    final String warningKey = sub.isPremium
+        ? 'delete_account_premium_warning'
+        : 'delete_account_warning';
+
+    Widget dialogContent;
+    if (sub.isPremium) {
+      final String warningTemplate =
+          loc?.get(warningKey) ?? 'Action irréversible.';
+      final String url = Platform.isIOS
+          ? 'https://apps.apple.com/account/subscriptions'
+          : 'https://play.google.com/store/account/subscriptions?sku=premium_monthly&package=com.devevolu.ticketscan';
+      // Determine placeholder based on language
+      final String placeholder = (loc?.locale.languageCode == 'fr')
+          ? '[lien gestion abonnement]'
+          : '[subscription management link]';
+      final List<TextSpan> spans = [];
+      final List<String> parts = warningTemplate.split(placeholder);
+      if (parts.length == 2) {
+        spans.add(TextSpan(text: parts[0]));
+        spans.add(
+          TextSpan(
+            text: Platform.isIOS
+                ? loc?.get('manage_subscription') ?? 'Gérer mon abonnement'
+                : loc?.get('manage_subscription') ?? 'Manage subscription',
+            style: const TextStyle(
+              color: Colors.blue,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () async {
+                if (await canLaunchUrl(Uri.parse(url))) {
+                  await launchUrl(Uri.parse(url));
+                }
+              },
+          ),
+        );
+        spans.add(TextSpan(text: parts[1]));
+      } else {
+        // fallback: just show the template with URL as plain text
+        spans.add(TextSpan(text: warningTemplate));
+      }
+      dialogContent = RichText(
+        text: TextSpan(
+          children: spans,
+          style: DefaultTextStyle.of(context).style,
+        ),
+      );
+    } else {
+      dialogContent = Text(loc?.get(warningKey) ?? 'Action irréversible.');
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(loc?.get('delete_account') ?? 'Supprimer'),
-        content: Text(
-          loc?.get('delete_account_warning') ?? 'Action irréversible.',
-        ),
+        content: dialogContent,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -100,13 +156,16 @@ class _ProfilePageState extends State<ProfilePage> {
       try {
         await Supabase.instance.client.functions.invoke('delete-user');
         await SupabaseService.signOut();
-        if (mounted)
+        if (mounted) {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const AuthPage()),
             (r) => false,
           );
+        }
       } catch (e) {
-        if (mounted) setState(() => _isDeleting = false);
+        if (mounted) {
+          setState(() => _isDeleting = false);
+        }
       }
     }
   }
@@ -221,10 +280,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 32),
                 _buildSettings(lang, loc),
                 const SizedBox(height: 24),
-                if (!sub.isPremium) ...[
-                  _buildDeleteLink(loc),
-                  const SizedBox(height: 8),
-                ],
+                _buildDeleteLink(loc),
+                const SizedBox(height: 8),
                 _buildSignOutButton(loc, isDark),
               ],
             ),
@@ -275,7 +332,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6A35F2).withOpacity(0.12),
+                    color: const Color(0xFF6A35F2).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -311,7 +368,7 @@ class _ProfilePageState extends State<ProfilePage> {
           gradient: LinearGradient(
             colors: [
               const Color(0xFF6A35F2),
-              const Color(0xFF6A35F2).withOpacity(0.75),
+              const Color(0xFF6A35F2).withValues(alpha: 0.75),
             ],
           ),
           borderRadius: BorderRadius.circular(16),
@@ -349,28 +406,44 @@ class _ProfilePageState extends State<ProfilePage> {
             trailing: const Icon(Icons.chevron_right, size: 20),
             onTap: _openTickets,
           ),
-          Divider(height: 1, indent: 16, color: Colors.grey.withOpacity(0.2)),
+          Divider(
+            height: 1,
+            indent: 16,
+            color: Colors.grey.withValues(alpha: 0.2),
+          ),
           ListTile(
             leading: Icon(Icons.card_membership, color: iconColor),
             title: Text(loc?.get('subscription') ?? 'Abonnement'),
             trailing: const Icon(Icons.chevron_right, size: 20),
             onTap: _openProfilPremium,
           ),
-          Divider(height: 1, indent: 16, color: Colors.grey.withOpacity(0.2)),
+          Divider(
+            height: 1,
+            indent: 16,
+            color: Colors.grey.withValues(alpha: 0.2),
+          ),
           ListTile(
             leading: Icon(Icons.notifications_outlined, color: iconColor),
             title: Text(loc?.get('alerts_title') ?? 'Alertes'),
             trailing: const Icon(Icons.chevron_right, size: 20),
             onTap: _openAlerts,
           ),
-          Divider(height: 1, indent: 16, color: Colors.grey.withOpacity(0.2)),
+          Divider(
+            height: 1,
+            indent: 16,
+            color: Colors.grey.withValues(alpha: 0.2),
+          ),
           ListTile(
             leading: Icon(Icons.help_outline, color: iconColor),
             title: Text(loc?.get('help') ?? 'Aide'),
             trailing: const Icon(Icons.chevron_right, size: 20),
             onTap: _contactSupport,
           ),
-          Divider(height: 1, indent: 16, color: Colors.grey.withOpacity(0.2)),
+          Divider(
+            height: 1,
+            indent: 16,
+            color: Colors.grey.withValues(alpha: 0.2),
+          ),
           ListTile(
             leading: Icon(Icons.info_outline, color: iconColor),
             title: Text(loc?.get('about') ?? 'À propos'),
@@ -425,7 +498,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Divider(
                 height: 1,
                 indent: 16,
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
               ListTile(
                 leading: Icon(

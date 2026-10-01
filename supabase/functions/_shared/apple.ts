@@ -71,18 +71,26 @@ async function appleJwt(): Promise<string> {
   }
 
   console.log('[AppleService] Generating new JWT')
-  const privateKeyEnv = Deno.env.get("APPLE_PRIVATE_KEY")
+  // APPLE_PRIVATE_KEY_B64 (recommandé) : le fichier .p8 entier encodé en base64
+  // en une seule ligne (ex: `base64 -i SubscriptionKey_XXXX.p8`), ce qui élimine
+  // tout risque de corruption des retours à la ligne dans le secret Supabase.
+  // À défaut, on retombe sur APPLE_PRIVATE_KEY (PEM brut, avec l'heuristique
+  // \n littéral ci-dessous, plus fragile).
+  const privateKeyB64 = Deno.env.get("APPLE_PRIVATE_KEY_B64")
+  const privateKeyEnv = privateKeyB64
+    ? atob(privateKeyB64.trim())
+    : Deno.env.get("APPLE_PRIVATE_KEY")
   const keyId = Deno.env.get("APPLE_KEY_ID")
   const issuerId = Deno.env.get("APPLE_ISSUER_ID")
   
-  console.log(`[AppleService] Checking Apple credentials: privateKey=${!!privateKeyEnv}, keyId=${!!keyId}, issuerId=${!!issuerId}`)
+  console.log(`[AppleService] Checking Apple credentials: privateKey=${!!privateKeyEnv} (source: ${privateKeyB64 ? "APPLE_PRIVATE_KEY_B64" : "APPLE_PRIVATE_KEY"}), keyId=${!!keyId}, issuerId=${!!issuerId}`)
   
   if (!privateKeyEnv || !keyId || !issuerId) {
     const missing = []
-    if (!privateKeyEnv) missing.append('APPLE_PRIVATE_KEY')
-    if (!keyId) missing.append('APPLE_KEY_ID')
-    if (!issuerId) missing.append('APPLE_ISSUER_ID')
-    throw new HttpError(500, `APPLE_PRIVATE_KEY, APPLE_KEY_ID ou APPLE_ISSUER_ID manquant: ${missing.join(', ')}`)
+    if (!privateKeyEnv) missing.push('APPLE_PRIVATE_KEY(_B64)')
+    if (!keyId) missing.push('APPLE_KEY_ID')
+    if (!issuerId) missing.push('APPLE_ISSUER_ID')
+    throw new HttpError(500, `Variables manquantes: ${missing.join(', ')}`)
   }
 
   let pem = privateKeyEnv
@@ -145,11 +153,14 @@ async function appleGet(path: string, envHint?: string): Promise<any> {
 
   for (const env of order) {
     console.log(`[AppleService] Trying environment: ${env}`)
-    let envSuccess = false
-    let envError: { status: number; message: string } | null = null
 
-    for (let attempt = 0; attempt < 3; attempt++) {
-      console.log(`[AppleService] Attempt ${attempt + 1}/3 for ${env}`)
+    // 401/403 = clé/issuer/keyId invalides : erreur de configuration, identique
+    // en Sandbox et en Production puisque le JWT est signé avec la même clé.
+    // Inutile de retenter plusieurs fois : ça ne peut pas changer le résultat.
+    const maxAttempts = 3
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      console.log(`[AppleService] Attempt ${attempt + 1}/${maxAttempts} for ${env}`)
       const res = await fetch(HOSTS[env] + path, {
         headers: { Authorization: `Bearer ${jwt}`, Accept: "application/json" },
       })
@@ -161,59 +172,52 @@ async function appleGet(path: string, envHint?: string): Promise<any> {
 
       const text = (await res.text()).slice(0, 300)
 
-      // Transaction inconnue dans cet environnement → on note l'erreur et on essaie l'autre environnement
       if (res.status === 404) {
+        // Transaction inconnue dans cet environnement → on essaie l'autre
         console.log(`[AppleService] Transaction not found in ${env}`)
-        envError = { status: 404, message: `Transaction not found in ${env}` }
+        lastError = { status: 404, message: `Transaction introuvable dans ${env}` }
         break
       }
 
-      // Erreurs temporaires → retry avec backoff
+      if (res.status === 401 || res.status === 403) {
+        // Erreur d'authentification réelle : APPLE_KEY_ID / APPLE_ISSUER_ID /
+        // APPLE_PRIVATE_KEY ne correspondent probablement pas à une clé
+        // "In-App Purchase" (App Store Connect → Users and Access →
+        // Integrations → In-App Purchase, PAS "App Store Connect API").
+        console.error(`[AppleService] Apple HTTP ${res.status} pour ${env} (clé/issuer invalide ?): ${text}`)
+        lastError = { status: res.status, message: `Apple HTTP ${res.status}: ${text}` }
+        break
+      }
+
       if (res.status === 429 || res.status >= 500) {
-        console.log(`[AppleService] Temporary error ${res.status}, retrying...`)
-        if (attempt === 2) {
-          console.error(`[AppleService] Max retries exceeded for ${env}`)
-          envError = { status: res.status, message: `Apple HTTP ${res.status}: ${text}` }
-        } else {
+        console.log(`[AppleService] Erreur temporaire ${res.status}, nouvelle tentative...`)
+        lastError = { status: res.status, message: `Apple HTTP ${res.status}: ${text}` }
+        if (attempt < maxAttempts - 1) {
           await sleep(500 * 2 ** attempt)
           continue
         }
+        console.error(`[AppleService] Tentatives épuisées pour ${env}`)
+        break
       }
 
-      // 401 = notre JWT/clé est mauvaise : erreur de configuration côté serveur
-      // Cependant, dans le contexte d'essayer les deux environnements, on note l'erreur
-      // car le 401 pourrait être dû à un mauvais environnement plutôt qu'à des mauvais credentials
-      console.error(`[AppleService] JWT authentication failed (401) for ${env}: ${text}`)
-      if (attempt === 2) {
-        console.error(`[AppleService] Max retries exceeded for ${env}`)
-        envError = { status: 401, message: `Apple HTTP 401: ${text}` }
-      } else {
-        await sleep(500 * 2 ** attempt)
-        continue
-      }
+      // Statut inattendu, non retryable
+      console.error(`[AppleService] Apple HTTP ${res.status} inattendu pour ${env}: ${text}`)
+      lastError = { status: res.status, message: `Apple HTTP ${res.status}: ${text}` }
+      break
     }
 
-    // If we succeeded in this environment, return immediately
-    if (!envError) {
-      console.log(`[AppleService] Success in environment: ${env}`)
-      // We would have returned already if we got here via res.ok
-      // This is a fallback in case we need it
-      return {} // This shouldn't happen in practice
-    }
-
-    // Remember the last error from this environment to potentially return later
-    lastError = envError
-    
-    // Continue to try the next environment
-    console.log(`[AppleService] Finished with ${env}, moving to next environment`)
+    console.log(`[AppleService] Terminé pour ${env}, passage à l'environnement suivant si besoin`)
   }
 
-  // If we get here, we've tried all environments and all had errors
-  console.error('[AppleService] All environments failed')
+  console.error('[AppleService] Tous les environnements ont échoué')
+  if (lastError?.status === 401 || lastError?.status === 403) {
+    // Un souci d'authentification n'est jamais dû au client : on répond 500.
+    throw new HttpError(500, `Configuration Apple invalide (${lastError.message}). Vérifiez APPLE_KEY_ID / APPLE_ISSUER_ID / APPLE_PRIVATE_KEY (clé "In-App Purchase", pas "App Store Connect API").`)
+  }
   if (lastError) {
-    throw new HttpError(lastError.status, lastError.message)
+    throw new HttpError(502, lastError.message)
   }
-  throw new HttpError(500, "Unknown error contacting Apple servers")
+  throw new HttpError(500, "Erreur inconnue en contactant les serveurs Apple")
 }
 
 // ------------------------------------------------------------

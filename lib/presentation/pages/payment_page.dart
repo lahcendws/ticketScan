@@ -24,8 +24,22 @@ class _PaymentPageState extends State<PaymentPage> {
   @override
   void initState() {
     super.initState();
-    // Écouter les changements de statut Premium pour fermer la page en cas de succès
+    // Rediriger immédiatement si l'utilisateur est déjà Premium
     final subService = Provider.of<SubscriptionService>(context, listen: false);
+    if (subService.isPremium && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.get('premium_activated') ??
+                'Félicitations ! Vous êtes maintenant Premium 🚀',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+      return;
+    }
+    // Écouter les changements de statut Premium pour fermer la page en cas de succès
     subService.addListener(_onSubscriptionChanged);
   }
 
@@ -122,7 +136,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: _primaryColor.withOpacity(0.12),
+                            color: _primaryColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(
@@ -218,7 +232,9 @@ class _PaymentPageState extends State<PaymentPage> {
                       borderRadius: BorderRadius.circular(29),
                     ),
                     elevation: 0,
-                    disabledBackgroundColor: _primaryColor.withOpacity(0.5),
+                    disabledBackgroundColor: _primaryColor.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                   child: _isProcessing
                       ? const SizedBox(

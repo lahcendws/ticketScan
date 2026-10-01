@@ -86,11 +86,19 @@ export async function saveSubscription(
     .maybeSingle()
   if (error) throw error
 
+  // If there's an existing subscription for a different user, we transfer it
+  // to the current user when we have a verified purchase (userId is provided)
+  // since we've already validated the purchase receipt with Apple/Google
+  let owner: string | null = null
   if (existing && userId && existing.user_id !== userId) {
-    throw new HttpError(409, "Cet abonnement est déjà lié à un autre compte")
+    console.log(
+      `[saveSubscription] Transferring subscription from user ${existing.user_id} to user ${userId}`
+    )
+    owner = userId // Transfer to current user
+  } else {
+    // Either no existing subscription, or it's already for the same user
+    owner = existing?.user_id ?? userId
   }
-
-  let owner: string | null = existing?.user_id ?? userId
 
   // Android : un nouveau token qui en remplace un autre hérite du même utilisateur
   if (!owner && s.replaces) {
