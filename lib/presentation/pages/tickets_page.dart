@@ -102,9 +102,42 @@ class _TicketsPageState extends State<TicketsPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: Text(
-          loc?.get('my_tickets') ?? 'Mes tickets',
-          style: TextStyle(fontWeight: FontWeight.w800, color: primaryText),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF16213E)
+                    : const Color(0xFFE7F1FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.receipt_long_outlined,
+                color: _primary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 10),
+            RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  color: primaryText,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
+                children: [
+                  TextSpan(text: 'Ticket'),
+                  TextSpan(
+                    text: 'Scan',
+                    style: TextStyle(color: _primary),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
       body: Column(
