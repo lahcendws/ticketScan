@@ -96,6 +96,10 @@ class AppLocalizations {
         'Attention : cette action est irréversible. Toutes vos données seront supprimées.',
     'delete_account_premium_warning':
         'Ton abonnement continuera d\'être facturé par Apple/Google,\nrésilie-le d\'ici : [lien gestion abonnement]',
+  'delete_account_premium_warning_ios':
+        'Votre abonnement continuera d\'être facturé par Apple, vous pouvez le résilier ici : [lien gestion abonnement]',
+  'delete_account_premium_warning_android':
+        'Votre abonnement continuera d\'être facturé par Google, vous pouvez le résilier ici : [lien gestion abonnement]',
     'dark_mode': 'Thème',
     'theme_light': 'Clair',
     'theme_dark': 'Sombre',
@@ -346,6 +350,10 @@ class AppLocalizations {
         'Warning: this action is irreversible. All your data will be deleted.',
     'delete_account_premium_warning':
         'Your subscription will continue to be billed by Apple/Google,\nplease cancel it here: [subscription management link]',
+  'delete_account_premium_warning_ios':
+        'Your subscription will continue to be billed by Apple, you can cancel it here: [subscription management link]',
+  'delete_account_premium_warning_android':
+        'Your subscription will continue to be billed by Google, you can cancel it here: [subscription management link]',
     'dark_mode': 'Theme',
     'theme_light': 'Light',
     'theme_dark': 'Dark',
