@@ -25,13 +25,18 @@ class _PremiumPageState extends State<PremiumPage> {
   int _currentSlide = 0;
   late final PageController _pageController;
   Timer? _slideshowTimer;
+  bool _disposed = false;
+  SubscriptionService? _subscriptionService;
 
   @override
   void initState() {
     super.initState();
     // Rediriger immédiatement si l'utilisateur est déjà Premium
-    final subService = Provider.of<SubscriptionService>(context, listen: false);
-    if (subService.isPremium && mounted) {
+    _subscriptionService = Provider.of<SubscriptionService>(
+      context,
+      listen: false,
+    );
+    if (_subscriptionService!.isPremium && mounted) {
       Navigator.of(context).popUntil((route) => route.isFirst);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -44,6 +49,7 @@ class _PremiumPageState extends State<PremiumPage> {
     _pageController = PageController();
     // Diaporama auto : avance toutes les 4 secondes
     _slideshowTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (_disposed) return;
       if (!mounted || !_pageController.hasClients) return;
       _currentSlide = (_currentSlide + 1) % _slides.length;
       _pageController.animateToPage(
@@ -53,23 +59,22 @@ class _PremiumPageState extends State<PremiumPage> {
       );
     });
     // Écouter les changements de statut pour rediriger en cas de restauration réussie
-    subService.addListener(_onSubscriptionChanged);
+    _subscriptionService!.addListener(_onSubscriptionChanged);
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _slideshowTimer?.cancel();
     _pageController.dispose();
-    Provider.of<SubscriptionService>(
-      context,
-      listen: false,
-    ).removeListener(_onSubscriptionChanged);
+    _subscriptionService?.removeListener(_onSubscriptionChanged);
     super.dispose();
   }
 
   void _onSubscriptionChanged() {
-    final subService = Provider.of<SubscriptionService>(context, listen: false);
-    if (subService.isPremium && mounted) {
+    if (_subscriptionService != null &&
+        _subscriptionService!.isPremium &&
+        mounted) {
       // Si l'utilisateur est passé Premium (via restauration par exemple), on retourne à l'accueil
       Navigator.of(context).popUntil((route) => route.isFirst);
       ScaffoldMessenger.of(context).showSnackBar(
