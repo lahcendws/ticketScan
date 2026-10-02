@@ -23,19 +23,28 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
 
   try {
-    const { signedTransaction, productId, platform } = await req.json()
+    const { signedTransaction, receipt, productId, platform } = await req.json()
     console.log(
-      `[VerifyPurchase] Request received: platform=${platform}, productId=${productId}, signedTransaction length=${signedTransaction?.length ?? 0}`,
+      `[VerifyPurchase] Request received: platform=${platform}, productId=${productId}, signedTransaction length=${signedTransaction?.length ?? 0}, receipt length=${receipt?.length ?? 0}`,
     )
 
-    if (!signedTransaction || typeof signedTransaction !== "string") {
-      throw new HttpError(400, "signedTransaction is missing or invalid")
+    let transactionId: string | undefined
+    if (platform === "ios") {
+      transactionId = signedTransaction
+      if (!transactionId || typeof transactionId !== "string") {
+        throw new HttpError(400, "signedTransaction is missing or invalid for iOS")
+      }
+    } else if (platform === "android") {
+      transactionId = receipt
+      if (!transactionId || typeof transactionId !== "string") {
+        throw new HttpError(400, "receipt is missing or invalid for Android")
+      }
+    } else {
+      throw new HttpError(400, "platform must be ios or android")
     }
+
     if (!productId || typeof productId !== "string") {
       throw new HttpError(400, "productId is missing or invalid")
-    }
-    if (!platform || (platform !== "ios" && platform !== "android")) {
-      throw new HttpError(400, "platform must be ios or android")
     }
     if (!ALLOWED_PRODUCTS.includes(productId)) {
       throw new HttpError(400, `Product not allowed: ${productId}`)
@@ -58,7 +67,7 @@ serve(async (req: Request) => {
 
     if (platform === "ios") {
       console.log("[VerifyPurchase] Processing iOS purchase")
-      const jwsPayload = decodeJws(signedTransaction)
+      const jwsPayload = decodeJws(transactionId)
       const originalTransactionId = jwsPayload.originalTransactionId
       if (!originalTransactionId) throw new HttpError(400, "originalTransactionId missing in JWS")
 
@@ -91,7 +100,7 @@ serve(async (req: Request) => {
       const client = await auth.getClient()
       const accessToken = (await client.getAccessToken()).token
 
-      const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${ANDROID_PACKAGE}/purchases/subscriptions/${productId}/tokens/${signedTransaction}`
+      const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${ANDROID_PACKAGE}/purchases/subscriptions/${productId}/tokens/${transactionId}`
       const verifyRes = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
       const data = await verifyRes.json()
 
@@ -116,7 +125,7 @@ serve(async (req: Request) => {
       state = {
         platform: "android",
         productId,
-        originalTransactionId: signedTransaction, // purchase token
+        originalTransactionId: transactionId, // purchase token
         status,
         expiresAt: new Date(expiryTimeMillis),
         autoRenew: data.autoRenewing ?? false,
