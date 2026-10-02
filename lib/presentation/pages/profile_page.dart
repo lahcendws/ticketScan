@@ -88,8 +88,8 @@ class _ProfilePageState extends State<ProfilePage> {
     // Determine which warning to show based on subscription status
     final String warningKey = isPremium
         ? (Platform.isIOS
-            ? 'delete_account_premium_warning_ios'
-            : 'delete_account_premium_warning_android')
+              ? 'delete_account_premium_warning_ios'
+              : 'delete_account_premium_warning_android')
         : 'delete_account_warning';
 
     Widget dialogContent;
