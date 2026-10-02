@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 import '../../core/services/subscription_service.dart';
 import '../../core/services/supabase_service.dart';
 import '../../core/services/app_localizations.dart';
@@ -65,7 +67,7 @@ class ProfilPremiumPage extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             const Color(0xFF6A35F2),
-            const Color(0xFF147DFF).withOpacity(0.85),
+            const Color(0xFF147DFF).withValues(alpha: 0.85),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
@@ -75,7 +77,7 @@ class ProfilPremiumPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const CircleAvatar(
@@ -99,7 +101,7 @@ class ProfilPremiumPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -123,18 +125,37 @@ class ProfilPremiumPage extends StatelessWidget {
                       'Passez à la version Premium'),
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 13,
             ),
           ),
+          if (sub.isPremium) ...[
+            const SizedBox(height: 12),
+            _buildSubscriptionInfo(context, sub, loc),
+          ],
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PremiumPage()),
-              ),
+              onPressed: () async {
+                if (sub.isPremium) {
+                  final url = Platform.isIOS
+                      ? 'https://apps.apple.com/account/subscriptions'
+                      : 'https://play.google.com/store/account/subscriptions?sku=premium_monthly&package=com.devevolu.ticketscan';
+                  if (await canLaunchUrl(Uri.parse(url))) {
+                    await launchUrl(Uri.parse(url));
+                  } else {
+                    // Ignore launch error; could optionally show a toast but we lack context for snack bar
+                  }
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PremiumPage(),
+                    ),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: isDark ? Colors.white : Colors.white,
                 foregroundColor: const Color(0xFF6A35F2),
@@ -162,11 +183,58 @@ class ProfilPremiumPage extends StatelessWidget {
     );
   }
 
+  Widget _buildSubscriptionInfo(
+    BuildContext context,
+    SubscriptionService sub,
+    AppLocalizations? loc,
+  ) {
+    final String? type = sub.subscriptionType;
+    // Convert product_id to a readable short label using localization
+    String typeLabel = '';
+    if (type == 'premium_monthly' && loc != null) {
+      typeLabel = loc.get('monthly');
+    } else if (type == 'premium_yearly' && loc != null) {
+      typeLabel = loc.get('yearly');
+    } else if (type != null) {
+      // fallback: replace underscores with spaces and capitalize
+      typeLabel = type.replaceAll('_', ' ').toLowerCase();
+    }
+    final int? days = sub.daysRemaining;
+    final String daysLabel = days == null
+        ? ''
+        : sub.isSubscriptionExpired
+        ? (loc?.get('expired') ?? 'Expiré')
+        : '$days ${(loc?.get('premium_days_remaining')) ?? 'jours restants'}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (typeLabel.isNotEmpty)
+          Text(
+            typeLabel,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        if (daysLabel.isNotEmpty)
+          Text(
+            daysLabel,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 13,
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildFeaturesGrid(BuildContext context, AppLocalizations? loc) {
     final features = [
       {
-        'icon': Icons.all_inclusive,
-        'color': const Color(0xFF147DFF),
+        'icon': Icons.confirmation_num,
+        'color': const Color(0xFF6A35F2),
         'label': loc?.get('feat_unlimited_tickets') ?? 'Tickets illimités',
       },
       {

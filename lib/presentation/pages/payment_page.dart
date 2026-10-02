@@ -20,30 +20,50 @@ class _PaymentPageState extends State<PaymentPage> {
   static const Color _lightBlue = Color(0xFFF5F7FF);
 
   bool _isProcessing = false;
+  SubscriptionService?
+  _subscriptionService; // Store reference to avoid Provider.of in dispose/callback
 
   @override
   void initState() {
     super.initState();
+    // Store the reference instead of using a local variable
+    _subscriptionService = Provider.of<SubscriptionService>(
+      context,
+      listen: false,
+    );
+    // Rediriger immédiatement si l'utilisateur est déjà Premium
+    if (_subscriptionService!.isPremium && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)?.get('premium_activated') ??
+                'Félicitations ! Vous êtes maintenant Premium 🚀',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+      return;
+    }
     // Écouter les changements de statut Premium pour fermer la page en cas de succès
-    final subService = Provider.of<SubscriptionService>(context, listen: false);
-    subService.addListener(_onSubscriptionChanged);
+    _subscriptionService!.addListener(_onSubscriptionChanged);
   }
 
   @override
   void dispose() {
     // Très important : retirer l'écouteur pour éviter les fuites mémoire
-    Provider.of<SubscriptionService>(
-      context,
-      listen: false,
-    ).removeListener(_onSubscriptionChanged);
+    // Utiliser la référence stockée au lieu de Provider.of
+    _subscriptionService?.removeListener(_onSubscriptionChanged);
     super.dispose();
   }
 
   bool get _isYearly => widget.plan == 'yearly';
 
   void _onSubscriptionChanged() {
-    final subService = Provider.of<SubscriptionService>(context, listen: false);
-    if (subService.isPremium && mounted) {
+    // Utiliser la référence stockée avec vérification de null et mounted
+    if (_subscriptionService != null &&
+        _subscriptionService!.isPremium &&
+        mounted) {
       // Si l'utilisateur est passé Premium, on ferme tout et on retourne à l'accueil
       Navigator.of(context).popUntil((route) => route.isFirst);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -122,7 +142,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: _primaryColor.withOpacity(0.12),
+                            color: _primaryColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(
@@ -218,7 +238,9 @@ class _PaymentPageState extends State<PaymentPage> {
                       borderRadius: BorderRadius.circular(29),
                     ),
                     elevation: 0,
-                    disabledBackgroundColor: _primaryColor.withOpacity(0.5),
+                    disabledBackgroundColor: _primaryColor.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                   child: _isProcessing
                       ? const SizedBox(
@@ -254,13 +276,10 @@ class _PaymentPageState extends State<PaymentPage> {
     setState(() => _isProcessing = true);
 
     try {
-      final subService = Provider.of<SubscriptionService>(
-        context,
-        listen: false,
-      );
+      // Utiliser la référence stockée au lieu de Provider.of
       final productId = _isYearly ? 'premium_yearly' : 'premium_monthly';
 
-      final success = await subService.upgradeToPremium(productId);
+      final success = await _subscriptionService!.upgradeToPremium(productId);
 
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

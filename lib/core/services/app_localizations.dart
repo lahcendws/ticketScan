@@ -36,7 +36,7 @@ class AppLocalizations {
     'search_hint': 'Tapez un nom de magasin...',
     'recent_searches': 'Recherches récentes',
     'no_recent_searches': 'Aucune recherche récente',
-    'my_tickets': 'Mes Tickets',
+    'my_tickets': 'Mes tickets',
     'registered_tickets': 'Tickets enregistrés',
     'free_offer_limit': 'Offre gratuite : 3 tickets max',
     'premium_ticket_access': 'Tickets illimités',
@@ -94,6 +94,12 @@ class AppLocalizations {
     'delete_account': 'Supprimer mon compte',
     'delete_account_warning':
         'Attention : cette action est irréversible. Toutes vos données seront supprimées.',
+    'delete_account_premium_warning':
+        'Ton abonnement continuera d\'être facturé par Apple/Google,\nrésilie-le d\'ici : [lien gestion abonnement]',
+    'delete_account_premium_warning_ios':
+        'Votre abonnement continuera d\'être facturé par Apple, vous pouvez le résilier ici : [lien gestion abonnement]',
+    'delete_account_premium_warning_android':
+        'Votre abonnement continuera d\'être facturé par Google, vous pouvez le résilier ici : [lien gestion abonnement]',
     'dark_mode': 'Thème',
     'theme_light': 'Clair',
     'theme_dark': 'Sombre',
@@ -198,6 +204,7 @@ class AppLocalizations {
     'see_all': 'Voir tout',
     'tickets_label': 'Tickets',
     'tickets_remaining': 'tickets restants',
+    'premium_days_remaining': 'jours restants',
     'unlimited': 'Illimité',
     'premium_access': 'Accès Premium',
     'premium_active': 'Actif',
@@ -341,6 +348,12 @@ class AppLocalizations {
     'delete_account': 'Delete my account',
     'delete_account_warning':
         'Warning: this action is irreversible. All your data will be deleted.',
+    'delete_account_premium_warning':
+        'Your subscription will continue to be billed by Apple/Google,\nplease cancel it here: [subscription management link]',
+    'delete_account_premium_warning_ios':
+        'Your subscription will continue to be billed by Apple, you can cancel it here: [subscription management link]',
+    'delete_account_premium_warning_android':
+        'Your subscription will continue to be billed by Google, you can cancel it here: [subscription management link]',
     'dark_mode': 'Theme',
     'theme_light': 'Light',
     'theme_dark': 'Dark',
@@ -441,6 +454,7 @@ class AppLocalizations {
     'see_all': 'See all',
     'tickets_label': 'Tickets',
     'tickets_remaining': 'tickets remaining',
+    'premium_days_remaining': 'days remaining',
     'unlimited': 'Unlimited',
     'premium_access': 'Premium access',
     'premium_active': 'Active',

@@ -48,42 +48,12 @@ class _TicketListPageState extends State<TicketListPage> {
         backgroundColor: appBarBackgroundColor,
         foregroundColor: appBarForegroundColor,
         elevation: 0,
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF16213E)
-                    : const Color(0xFFE7F1FF),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.receipt_long_outlined,
-                color: _primary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 10),
-            RichText(
-              text: TextSpan(
-                style: TextStyle(
-                  color: appBarForegroundColor,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                ),
-                children: [
-                  const TextSpan(text: 'Ticket'),
-                  TextSpan(
-                    text: 'Scan',
-                    style: const TextStyle(color: _primary),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        title: Text(
+          localizations?.get('my_tickets') ?? 'Mes tickets',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: appBarForegroundColor,
+          ),
         ),
       ),
       body: RefreshIndicator(

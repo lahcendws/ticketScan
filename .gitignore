@@ -48,3 +48,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+SOLUTION_SUMMARY.md
+.gitignore
+ACCOUNT_DELETION_UPDATE.md
+CHANGES_SUMMARY.md

@@ -14,14 +14,36 @@ class SubscriptionService extends ChangeNotifier {
   SubscriptionService._internal();
 
   bool _isPremium = false;
+  String? _subscriptionType; // premium_monthly or premium_yearly
+  DateTime? _subscriptionExpiresAt;
   final int _freeLimit = 3;
+  Timer? _subscriptionRefreshTimer;
 
   InAppPurchase? _iapInstance;
   InAppPurchase get _iap => _iapInstance ??= InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
 
   bool get isPremium => _isPremium;
+  String? get subscriptionType => _subscriptionType;
+  DateTime? get subscriptionExpiresAt => _subscriptionExpiresAt;
   int get freeLimit => _freeLimit;
+
+  /// Returns days remaining until expiry, or null if no active subscription.
+  int? get daysRemaining {
+    if (_subscriptionExpiresAt == null) return null;
+    final now = DateTime.now().toUtc();
+    // Subscription is only active if expires_at is strictly in the future
+    // (matches the logic in the database refresh_premium function)
+    if (!_subscriptionExpiresAt!.isAfter(now)) return 0;
+    return _subscriptionExpiresAt!.difference(now).inDays;
+  }
+
+  /// True if the subscription has expired (based on expiration date, independent of
+  /// the is_premium flag which may be delayed due to sync intervals).
+  bool get isSubscriptionExpired {
+    if (_subscriptionExpiresAt == null) return false;
+    return !_subscriptionExpiresAt!.isAfter(DateTime.now().toUtc());
+  }
 
   bool canScan(List<TicketModel> allTickets) {
     if (_isPremium) return true;
@@ -40,6 +62,7 @@ class SubscriptionService extends ChangeNotifier {
 
     if (!isTest) {
       await refreshSubscriptionStatus();
+      _startSubscriptionRefreshTimer();
 
       final bool available = await _iap.isAvailable();
       debugPrint('SubscriptionService: IAP available: $available');
@@ -86,13 +109,31 @@ class SubscriptionService extends ChangeNotifier {
             'SubscriptionService: User session changed, refreshing subscription status',
           );
           refreshSubscriptionStatus();
+          // Restart timer when user signs in
+          _startSubscriptionRefreshTimer();
         } else {
           debugPrint('SubscriptionService: User signed out');
           _isPremium = false;
+          _subscriptionType = null;
+          _subscriptionExpiresAt = null;
+          _stopSubscriptionRefreshTimer();
           notifyListeners();
         }
       });
     }
+  }
+
+  void _startSubscriptionRefreshTimer() {
+    _stopSubscriptionRefreshTimer(); // Cancel any existing timer
+    _subscriptionRefreshTimer = Timer.periodic(
+      const Duration(hours: 6),
+      (timer) => refreshSubscriptionStatus(),
+    );
+  }
+
+  void _stopSubscriptionRefreshTimer() {
+    _subscriptionRefreshTimer?.cancel();
+    _subscriptionRefreshTimer = null;
   }
 
   Future<void> restorePurchases() async {
@@ -189,26 +230,60 @@ class SubscriptionService extends ChangeNotifier {
       'SubscriptionService: Refreshing subscription status for user: $userId',
     );
     try {
+      // Fetch premium status from profiles table
       final response = await Supabase.instance.client
           .from('profiles')
           .select('is_premium')
           .eq('id', userId)
           .maybeSingle();
+
+      bool isPremium = false;
+      String? subscriptionType;
+      DateTime? expiresAt;
+
       if (response != null) {
-        final isPremium = response['is_premium'] ?? false;
-        if (_isPremium != isPremium) {
-          debugPrint(
-            'SubscriptionService: Subscription status changed from $_isPremium to $isPremium',
-          );
-          _isPremium = isPremium;
-          notifyListeners();
-        } else {
-          debugPrint(
-            'SubscriptionService: Subscription status unchanged: $_isPremium',
-          );
+        isPremium = response['is_premium'] as bool? ?? false;
+
+        // If premium, also fetch subscription details for type and expiration
+        if (isPremium) {
+          final subResponse = await Supabase.instance.client
+              .from('subscriptions')
+              .select('product_id,expires_at')
+              .eq('user_id', userId)
+              .inFilter('status', ['active', 'grace_period'])
+              .order('expires_at', ascending: false)
+              .limit(1)
+              .maybeSingle();
+
+          if (subResponse != null) {
+            subscriptionType = subResponse['product_id'] as String?;
+            final expiresStr = subResponse['expires_at'] as String?;
+            if (expiresStr != null) {
+              expiresAt = DateTime.parse(expiresStr).toUtc();
+            }
+          }
         }
+      }
+
+      // Update values and notify if changed
+      if (_isPremium != isPremium ||
+          _subscriptionType != subscriptionType ||
+          _subscriptionExpiresAt != expiresAt) {
+        debugPrint(
+          'SubscriptionService: Status changed - premium: $_isPremium -> $isPremium, type: $_subscriptionType -> $subscriptionType, expires: $_subscriptionExpiresAt -> $expiresAt',
+        );
+        _isPremium = isPremium;
+        _subscriptionType = subscriptionType;
+        _subscriptionExpiresAt = expiresAt;
+        notifyListeners();
       } else {
-        debugPrint('SubscriptionService: No profile found for user: $userId');
+        // Still update the values to ensure we have the latest data
+        _isPremium = isPremium;
+        _subscriptionType = subscriptionType;
+        _subscriptionExpiresAt = expiresAt;
+        debugPrint(
+          'SubscriptionService: Subscription status unchanged: $_isPremium',
+        );
       }
     } catch (e) {
       debugPrint('SubscriptionService: Erreur rafraîchissement profil: $e');
