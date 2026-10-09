@@ -5,10 +5,10 @@ import 'tickets_page.dart';
 import 'ticket_list_page.dart';
 import 'profile_page.dart';
 import 'auth_page.dart';
+import 'help_page.dart';
 import 'alerts_page.dart';
 
 class HomePage extends StatefulWidget {
-import 'help_page.dart';
   const HomePage({super.key});
 
   @override
