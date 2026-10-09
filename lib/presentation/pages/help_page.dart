@@ -188,7 +188,7 @@ class _HelpPageState extends State<HelpPage> {
                 ),
                 const SizedBox(height: 24),
                 PrimaryButton(
-                  text: loc?.get('contact_support_button') ?? 'Contact Support',
+                  text: loc?.get('send_button') ?? 'Send',
                   onPressed: _submitForm,
                   isLoading: _isLoading,
                 ),

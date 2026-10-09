@@ -5,7 +5,6 @@ import 'tickets_page.dart';
 import 'ticket_list_page.dart';
 import 'profile_page.dart';
 import 'auth_page.dart';
-import 'help_page.dart';
 import 'alerts_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,7 +21,6 @@ class _HomePageState extends State<HomePage> {
     TicketsPage(onNavigateTab: _onTabTapped),
     const TicketListPage(),
     const AlertsPage(),
-    const HelpPage(),
     ProfilePage(onNavigateTab: _onTabTapped),
   ];
 

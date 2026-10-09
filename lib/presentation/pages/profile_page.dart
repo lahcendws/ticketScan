@@ -13,6 +13,7 @@ import 'auth_page.dart';
 import 'premium_page.dart';
 import 'profil_premium_page.dart';
 import 'version_page.dart';
+import 'help_page.dart';
 
 class ProfilePage extends StatefulWidget {
   final void Function(int)? onNavigateTab;
@@ -40,37 +41,6 @@ class _ProfilePageState extends State<ProfilePage> {
         MaterialPageRoute(builder: (context) => const AuthPage()),
         (r) => false,
       );
-    }
-  }
-
-  Future<void> _contactSupport() async {
-    final String subject = Uri.encodeComponent(
-      "[TicketScan] Feedback / Support",
-    );
-    final String body = Uri.encodeComponent(
-      "Bonjour, j'utilise le compte ${_user?.email}. Voici mon message : ",
-    );
-    // NOUVELLE ADRESSE MAIL APPLIQUÉE
-    final Uri emailLaunchUri = Uri.parse(
-      "mailto:ticketscan1.help@outlook.fr?subject=$subject&body=$body",
-    );
-
-    try {
-      if (await canLaunchUrl(emailLaunchUri)) {
-        await launchUrl(emailLaunchUri);
-      } else {
-        throw 'Impossible d\'ouvrir l\'application email';
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Veuillez envoyer un mail à ticketscan1.help@outlook.fr',
-            ),
-          ),
-        );
-      }
     }
   }
 
@@ -477,7 +447,7 @@ class _ProfilePageState extends State<ProfilePage> {
             leading: Icon(Icons.help_outline, color: iconColor),
             title: Text(loc?.get('help') ?? 'Aide'),
             trailing: const Icon(Icons.chevron_right, size: 20),
-            onTap: _contactSupport,
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpPage())),
           ),
           Divider(
             height: 1,
