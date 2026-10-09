@@ -65,6 +65,14 @@ class CustomBottomNavigation extends StatelessWidget {
                   context: context,
                 ),
               ),
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.question_answer_outlined,
+                  selectedIcon: Icons.question_answer,
+                  index: 4,
+                  context: context,
+                ),
+              ),
             ],
           ),
         ),
@@ -134,6 +142,8 @@ class CustomBottomNavigation extends StatelessWidget {
         return loc?.get('alerts') ?? 'Alertes';
       case 3:
         return loc?.get('account') ?? 'Compte';
+      case 4:
+        return loc?.get('help') ?? 'Help';
       default:
         return '';
     }

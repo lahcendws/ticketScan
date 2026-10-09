@@ -8,6 +8,7 @@ import 'auth_page.dart';
 import 'alerts_page.dart';
 
 class HomePage extends StatefulWidget {
+import 'help_page.dart';
   const HomePage({super.key});
 
   @override
@@ -21,6 +22,7 @@ class _HomePageState extends State<HomePage> {
     TicketsPage(onNavigateTab: _onTabTapped),
     const TicketListPage(),
     const AlertsPage(),
+    const HelpPage(),
     ProfilePage(onNavigateTab: _onTabTapped),
   ];
 
