@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/services/app_localizations.dart';
+import '../../core/services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 
@@ -14,7 +16,9 @@ class HelpPage extends StatefulWidget {
 class _HelpPageState extends State<HelpPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
+  // Pre-fill with logged-in user's email (hidden field)
+  final _emailController =
+      TextEditingController(text: SupabaseService.currentUser?.email ?? '');
   final _subjectController = TextEditingController();
   final _messageController = TextEditingController();
   bool _isLoading = false;
@@ -22,12 +26,32 @@ class _HelpPageState extends State<HelpPage> {
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isLoading = true);
-      // Here you would typically send the form data to your backend
-      // For now, we'll just show a success message
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        setState(() => _isLoading = false);
-        _showSuccessDialog();
+      try {
+        // Invoke Supabase Edge Function to send the contact email
+        final _ = await Supabase.instance.client.functions.invoke(
+          'send-mail',
+          body: {
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'subject': _subjectController.text.trim(),
+            'message': _messageController.text.trim(),
+          },
+        );
+        // If the function returns an error, it will throw.
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _showSuccessDialog();
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur d\'envoi : $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -66,6 +90,15 @@ class _HelpPageState extends State<HelpPage> {
         ),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _subjectController.dispose();
+    _messageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -133,6 +166,7 @@ class _HelpPageState extends State<HelpPage> {
             key: _formKey,
             child: Column(
               children: [
+                // ---- NAME ----
                 CustomTextField(
                   controller: _nameController,
                   label: loc?.get('name') ?? 'Name',
@@ -145,6 +179,10 @@ class _HelpPageState extends State<HelpPage> {
                   },
                 ),
                 const SizedBox(height: 16),
+                // ---- EMAIL (HIDDEN) ----
+                // We keep the controller but do NOT render a field.
+                // Uncomment the block below if you ever need to show it for debugging.
+                /*
                 CustomTextField(
                   controller: _emailController,
                   label: loc?.get('email') ?? 'Email',
@@ -161,7 +199,9 @@ class _HelpPageState extends State<HelpPage> {
                     return null;
                   },
                 ),
+                */
                 const SizedBox(height: 16),
+                // ---- SUBJECT ----
                 CustomTextField(
                   controller: _subjectController,
                   label: loc?.get('subject') ?? 'Subject',
@@ -174,6 +214,7 @@ class _HelpPageState extends State<HelpPage> {
                   },
                 ),
                 const SizedBox(height: 16),
+                // ---- MESSAGE ----
                 CustomTextField(
                   controller: _messageController,
                   label: loc?.get('message') ?? 'Message',
@@ -187,6 +228,7 @@ class _HelpPageState extends State<HelpPage> {
                   },
                 ),
                 const SizedBox(height: 24),
+                // ---- SEND BUTTON (label from localisation) ----
                 PrimaryButton(
                   text: loc?.get('send_button') ?? 'Send',
                   onPressed: _submitForm,
