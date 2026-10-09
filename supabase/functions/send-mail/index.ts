@@ -1,17 +1,13 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import nodemailer from "https://cdn.skypack.dev/nodemailer@6.9.1";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// SMTP configuration – reuse the same you already have for verification e‑mail
-const smtpHost = Deno.env.get("SMTP_HOST")!;
-const smtpPort = Number(Deno.env.get("SMTP_PORT")!);
-const smtpUser = Deno.env.get("SMTP_USER")!;
-const smtpPass = Deno.env.get("SMTP_PASS")!;
-const FROM_EMAIL = Deno.env.get("CONTACT_FROM_EMAIL") ?? smtpUser;
+// SendGrid configuration – set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL in Supabase env vars
+const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY")!;
+const fromEmail = Deno.env.get("SENDGRID_FROM_EMAIL")!; // verified sender in SendGrid
 
 serve(async (req) => {
   // CORS preflight
@@ -30,25 +26,38 @@ serve(async (req) => {
       );
     }
 
-    const mailOptions = {
-      from: `"TicketScan Contact" <${FROM_EMAIL}>`,
-      to: smtpUser, // send to your support inbox (same as verification e‑mail)
-      replyTo: `"${name}" <${email}>`,
+    const personalizations = [{ to: [{ email: fromEmail }] }]; // send to support inbox
+    const content = [
+      {
+        type: "text/plain",
+        value: `Name: ${name}\nE-mail: ${email}\n\nMessage:\n${message}`,
+      },
+    ];
+
+    const data = {
+      personalizations,
+      from: { email: fromEmail, name: "TicketScan Contact" },
       subject: `[TicketScan Contact] ${subject}`,
-      text: `Name: ${name}\nE‑mail: ${email}\n\nMessage:\n${message}`,
+      content,
     };
 
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465, // true for 465, false for other ports
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
+    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sendGridApiKey}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify(data),
     });
 
-    await transporter.sendMail(mailOptions);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("SendGrid error:", errorText);
+      return new Response(
+        JSON.stringify({ error: `SendGrid error: ${response.status}` }),
+        { status: 502, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true }),
