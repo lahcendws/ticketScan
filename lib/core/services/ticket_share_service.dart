@@ -85,7 +85,9 @@ class TicketShareService {
       final tempDir = await getTemporaryDirectory();
       final String extension = imagePath.split('.').last;
       final String idPart = ticket.id ?? 'unknown';
-      file = File('${tempDir.path}/ticket_${idPart}_image_$imageIndex.$extension');
+      file = File(
+        '${tempDir.path}/ticket_${idPart}_image_$imageIndex.$extension',
+      );
       await file!.writeAsBytes(bytes);
 
       // Verify file was written correctly

@@ -374,9 +374,10 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
       ),
     );
   }
+
   Future<void> _shareTicketImage(String imagePath) async {
     if (!mounted) return;
-    
+
     try {
       // Find the index of this image in the ticket's imageUrls
       final imageIndex = widget.ticket.imageUrls.indexOf(imagePath);
@@ -396,7 +397,12 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         widget.ticket,
         imageIndex,
         // For full screen image, we can use the full screen as origin
-        Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
+        Rect.fromLTWH(
+          0,
+          0,
+          MediaQuery.of(context).size.width,
+          MediaQuery.of(context).size.height,
+        ),
       );
     } catch (e) {
       if (!mounted) return;
