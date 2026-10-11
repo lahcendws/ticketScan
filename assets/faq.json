@@ -1,0 +1,54 @@
+{
+  "fr": [
+    {
+      "question": "Mes données sont-elles sécurisées ?",
+      "answer": "Oui, absolument. Toutes les photos de vos tickets sont chiffrées de bout en bout et stockées sur des serveurs européens sécurisés (AWS Paris). Nous ne revendons aucune donnée personnelle à des tiers."
+    },
+    {
+      "question": "Puis-je utiliser Ticketscan sur plusieurs appareils ?",
+      "answer": "Oui. En créant un compte, vos données sont synchronisées dans le cloud. Vous pouvez vous connecter sur votre iPhone, votre tablette Android ou via notre site web et retrouver tous vos tickets instantanément."
+    },
+    {
+      "question": "Que se passe-t-il si je dépasse les 3 tickets gratuits ?",
+      "answer": "Le plan gratuit vous permet de stocker 3 tickets à la fois. Si vous souhaitez en ajouter un 4ème, vous devrez soit supprimer un ancien ticket, soit passer au plan Premium (2.99€/mois) qui offre un stockage illimité."
+    },
+    {
+      "question": "Un ticket numérique a-t-il une valeur juridique ?",
+      "answer": "Oui. En France et dans la plupart des pays européens, une copie numérique fidèle et durable d'un ticket de caisse a la même valeur juridique que l'original papier. Les services client (SAV) acceptent parfaitement nos exports PDF ou les photos scannées via l'application."
+    },
+    {
+      "question": "Comment fonctionnent les alertes de garantie ?",
+      "answer": "Lors du scan de votre ticket, notre IA détecte la date d'achat. Par défaut, nous appliquons la garantie légale de 2 ans. L'application vous enverra une notification 30 jours avant l'expiration pour vous permettre de vérifier si votre appareil fonctionne bien avant qu'il ne soit trop tard."
+    },
+    {
+      "question": "L'OCR fonctionne-t-il sur des tickets froissés ?",
+      "answer": "Notre IA est spécifiquement entraînée pour le contexte des tickets de caisse. Elle parvient à redresser l'image, améliorer le contraste des impressions thermiques parfois effacées et lire le texte même si le ticket a été plié. Veillez simplement à avoir un bon éclairage lors de la photo."
+    }
+  ],
+  "en": [
+    {
+      "question": "Are my data secure?",
+      "answer": "Yes, absolutely. All photos of your receipts are encrypted end-to-end and stored on secure European servers (AWS Paris). We never sell any personal data to third parties."
+    },
+    {
+      "question": "Can I use TicketScan on multiple devices?",
+      "answer": "Yes. By creating an account, your data is synchronized in the cloud. You can sign in on your iPhone, your Android tablet, or via our website and instantly access all your receipts."
+    },
+    {
+      "question": "What happens if I exceed the 3 free receipts?",
+      "answer": "The Free plan allows you to store up to 3 receipts at a time. If you want to add a 4th receipt, you will need to either delete an old receipt or upgrade to the Premium plan (€2.99/month), which offers unlimited storage."
+    },
+    {
+      "question": "Does a digital receipt have legal validity?",
+      "answer": "Yes. In France and most European countries, a faithful and durable digital copy of a receipt has the same legal validity as the original paper receipt. Customer service departments readily accept our PDF exports or photos scanned through the app."
+    },
+    {
+      "question": "How do warranty alerts work?",
+      "answer": "When you scan your receipt, our AI detects the purchase date. By default, we apply the 2-year statutory warranty. The app will send you a notification 30 days before the warranty expires, allowing you to check that your device is working properly before it is too late."
+    },
+    {
+      "question": "Does OCR work on crumpled receipts?",
+      "answer": "Our AI is specifically trained for receipt processing. It can straighten images, improve the contrast of sometimes-faded thermal print, and read text even if the receipt has been folded. Just make sure you have good lighting when taking the photo."
+    }
+  ]
+}

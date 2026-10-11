@@ -39,11 +39,7 @@ class NotificationService {
           iOS: initializationSettingsIOS,
         );
 
-    await _notifications.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: _onNotificationTapped,
-    );
-
+    await _notifications.initialize(initializationSettings);
     await _requestPermissions();
 
     _initialized = true;

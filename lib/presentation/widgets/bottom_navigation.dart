@@ -89,7 +89,7 @@ class CustomBottomNavigation extends StatelessWidget {
       child: InkWell(
         onTap: () => onTap(index),
         borderRadius: BorderRadius.circular(16),
-        splashColor: Theme.of(context).primaryColor.withOpacity(0.1),
+        splashColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
         highlightColor: Colors.transparent,
         child: Container(
           width: double.infinity,
