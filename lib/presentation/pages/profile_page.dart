@@ -447,7 +447,10 @@ class _ProfilePageState extends State<ProfilePage> {
             leading: Icon(Icons.help_outline, color: iconColor),
             title: Text(loc?.get('help') ?? 'Aide'),
             trailing: const Icon(Icons.chevron_right, size: 20),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpPage())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HelpPage()),
+            ),
           ),
           Divider(
             height: 1,

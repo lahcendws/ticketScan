@@ -39,9 +39,7 @@ class NotificationService {
           iOS: initializationSettingsIOS,
         );
 
-    await _notifications.initialize(
-      initializationSettings,
-    );
+    await _notifications.initialize(initializationSettings);
     await _requestPermissions();
 
     _initialized = true;
