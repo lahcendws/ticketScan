@@ -354,6 +354,13 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             iconTheme: const IconThemeData(color: Colors.white),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.share),
+                tooltip: 'Partager l\'image',
+                onPressed: () => _shareTicketImage(path),
+              ),
+            ],
           ),
           body: Center(
             child: InteractiveViewer(
@@ -366,6 +373,40 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
         ),
       ),
     );
+  }
+  Future<void> _shareTicketImage(String imagePath) async {
+    if (!mounted) return;
+    
+    try {
+      // Find the index of this image in the ticket's imageUrls
+      final imageIndex = widget.ticket.imageUrls.indexOf(imagePath);
+      if (imageIndex == -1) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible de partager l\'image'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Share the image using the ticket share service
+      await TicketShareService.shareTicketImage(
+        widget.ticket,
+        imageIndex,
+        // For full screen image, we can use the full screen as origin
+        Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur de partage: \$e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override

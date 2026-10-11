@@ -7,6 +7,8 @@ class SupabaseService {
   static final GoTrueClient _auth = _client.auth;
   static final SupabaseStorageClient _storage = _client.storage;
 
+  static SupabaseStorageClient get storage => _storage;
+
   static Future<void> initialize() async {}
 
   static User? get currentUser => _auth.currentUser;
