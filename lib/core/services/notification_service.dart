@@ -41,9 +41,7 @@ class NotificationService {
 
     await _notifications.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: _onNotificationTapped,
     );
-
     await _requestPermissions();
 
     _initialized = true;
