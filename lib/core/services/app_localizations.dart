@@ -173,10 +173,12 @@ class AppLocalizations {
     'message_hint': 'Entrez votre message',
     'error_field_required': 'Ce champ est requis',
     'error_invalid_email': 'Entrez un email valide',
-    'success_message_sent': 'Votre message a été envoyé avec succès. Nous répondrons bientôt.',
+    'success_message_sent':
+        'Votre message a été envoyé avec succès. Nous répondrons bientôt.',
     'send_button': 'Envoyer',
     'faq': 'FAQ',
-    'faq_description': 'Trouvez les réponses aux questions courantes sur notre page FAQ.',
+    'faq_description':
+        'Trouvez les réponses aux questions courantes sur notre page FAQ.',
     'faq_button': 'Visiter la page FAQ',
     'error_launch_url': 'Impossible de lancer l\'URL',
     'error_image': 'Erreur image',
@@ -425,7 +427,8 @@ class AppLocalizations {
     'message_hint': 'Enter your message',
     'error_field_required': 'This field is required',
     'error_invalid_email': 'Enter a valid email',
-    'success_message_sent': 'Your message has been sent successfully. We will respond shortly.',
+    'success_message_sent':
+        'Your message has been sent successfully. We will respond shortly.',
     'send_button': 'Send',
     'faq': 'FAQ',
     'faq_description': 'Find answers to common questions on our FAQ page.',
