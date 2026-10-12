@@ -378,6 +378,17 @@ class _TicketDetailPageState extends State<TicketDetailPage> {
   Future<void> _shareTicketImage(String imagePath) async {
     if (!mounted) return;
 
+    final subscriptionService = Provider.of<SubscriptionService>(
+      context,
+      listen: false,
+    );
+    if (!subscriptionService.isPremium) {
+      _showUpgradeDialog(
+        'Le partage des tickets est réservé aux membres Premium.',
+      );
+      return;
+    }
+
     try {
       // Find the index of this image in the ticket's imageUrls
       final imageIndex = widget.ticket.imageUrls.indexOf(imagePath);

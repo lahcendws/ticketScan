@@ -250,7 +250,7 @@ class ProfilPremiumPage extends StatelessWidget {
       {
         'icon': Icons.verified_user,
         'color': const Color(0xFF30A46C),
-        'label': loc?.get('feat_warranty') ?? 'Extension de garantie',
+        'label': 'Bientôt disponible',
       },
     ];
 
