@@ -374,7 +374,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Image.asset(
-                                'assets/icons/app_icon.png',
+                                'assets/icons/android_launcher.png',
                                 fit: BoxFit.contain,
                               ),
                             ),
