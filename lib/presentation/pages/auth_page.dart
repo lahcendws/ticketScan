@@ -375,8 +375,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                               ),
                               child: Image.asset(
                                 'assets/icons/app_icon.png',
-                                width: 40,
-                                height: 40,
+                                fit: BoxFit.contain,
                               ),
                             ),
                             const SizedBox(height: 16),
