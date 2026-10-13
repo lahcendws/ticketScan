@@ -359,24 +359,10 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                       Center(
                         child: Column(
                           children: [
-                            Container(
+                            Image.asset(
+                              'assets/icons/app_icon.png',
                               width: 80,
                               height: 80,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Theme.of(context).primaryColor,
-                                    Theme.of(
-                                      context,
-                                    ).primaryColor.withOpacity(0.7),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Image.asset(
-                                'assets/icons/app_icon.png',
-                                fit: BoxFit.contain,
-                              ),
                             ),
                             const SizedBox(height: 16),
                             Text(
