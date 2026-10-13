@@ -1,5 +1,5 @@
 name: ticketscan_new
-description: "A new Flutter project."
+description: "App scan your reciept and save it on cloud."
 publish_to: 'none'
 
 # PASSAGE AUX TESTS FERMÉS
